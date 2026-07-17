@@ -70,6 +70,57 @@ def test_dish_type_must_fit_slot() -> None:
         entry.full_clean()
 
 
+def test_dinner_accepts_optional_dessert_course() -> None:
+    camp = make_camp()
+    dessert = make_recipe("Messinaroom", dish_type=DishType.DESSERT)
+    entry = MenuEntry(
+        camp=camp,
+        date=AUG_1,
+        meal_type=MealType.DINNER,
+        course="dessert",
+        recipe=dessert,
+    )
+    entry.full_clean()  # must not raise
+    entry.save()
+    assert camp.menu_entries.count() == 1
+
+
+def test_breakfast_accepts_optional_extra_course() -> None:
+    camp = make_camp()
+    extra = make_recipe("Cornflakes", dish_type=DishType.BREAKFAST_EXTRA)
+    entry = MenuEntry(
+        camp=camp,
+        date=AUG_1,
+        meal_type=MealType.BREAKFAST,
+        course="extra",
+        recipe=extra,
+    )
+    entry.full_clean()  # must not raise
+
+
+def test_breakfast_extra_rejected_in_main_breakfast_slot() -> None:
+    camp = make_camp()
+    extra = make_recipe("Beleg", dish_type=DishType.BREAKFAST_EXTRA)
+    entry = MenuEntry(
+        camp=camp,
+        date=AUG_1,
+        meal_type=MealType.BREAKFAST,
+        course="",
+        recipe=extra,
+    )
+    with pytest.raises(Exception, match="does not fit"):
+        entry.full_clean()
+
+
+def test_sweet_snack_fits_tea_slot() -> None:
+    camp = make_camp()
+    waffles = make_recipe("Wafels", dish_type=DishType.SNACK_SWEET)
+    entry = MenuEntry(
+        camp=camp, date=AUG_1, meal_type=MealType.TEA, course="", recipe=waffles
+    )
+    entry.full_clean()  # must not raise
+
+
 def test_date_must_be_within_camp() -> None:
     camp = make_camp()
     recipe = make_recipe("Pancakes", dish_type=DishType.BREAKFAST)

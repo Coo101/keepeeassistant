@@ -68,10 +68,10 @@ Meals are not uniform — each meal type has its own shape:
 
 | Meal | Structure | Slots |
 |---|---|---|
-| **Breakfast** | One variant chosen from a few | 1 recipe |
+| **Breakfast** | Fixed standard breakfast, plus optional extra (beleg, cornflakes, ...) | 1 recipe + optional extra |
 | **Lunch** (midday, large) | Three courses | soup + main + dessert |
-| **Tea time** | Afternoon snack — fruit/veg **or** savory | 1 recipe |
-| **Dinner** (evening) | Either a simple hot meal **or** a bread meal | 1 recipe |
+| **Tea time** | Afternoon snack — fruit/veg, savory **or** sweet | 1 recipe |
+| **Dinner** (evening) | Simple hot meal **or** bread meal, plus optional dessert | 1 recipe + optional dessert |
 
 A recipe carries a `dish_type` so the planner only offers appropriate recipes
 for each slot (e.g. only `soup` recipes for the lunch soup slot; only
@@ -87,8 +87,8 @@ dinner).
 
 ### Recipe
 - `name`
-- `dish_type` — breakfast / soup / main / dessert / snack_fruitveg /
-  snack_savory / hot_meal / bread_meal / other
+- `dish_type` — breakfast / breakfast_extra / soup / main / dessert /
+  snack_fruitveg / snack_savory / snack_sweet / hot_meal / bread_meal / other
 - `base_children` — under-12 count the entered quantities feed
 - `base_teens` — 12+ count the entered quantities feed
 - `base_portions` (derived) = `base_teens + 0.7 * base_children`

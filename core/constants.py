@@ -37,22 +37,26 @@ class IngredientCategory:
 
 class DishType:
     BREAKFAST = "breakfast"
+    BREAKFAST_EXTRA = "breakfast_extra"
     SOUP = "soup"
     MAIN = "main"
     DESSERT = "dessert"
     SNACK_FRUITVEG = "snack_fruitveg"
     SNACK_SAVORY = "snack_savory"
+    SNACK_SWEET = "snack_sweet"
     HOT_MEAL = "hot_meal"
     BREAD_MEAL = "bread_meal"
     OTHER = "other"
 
     CHOICES = [
         (BREAKFAST, "Breakfast"),
+        (BREAKFAST_EXTRA, "Breakfast extra"),
         (SOUP, "Soup"),
         (MAIN, "Main"),
         (DESSERT, "Dessert"),
         (SNACK_FRUITVEG, "Snack (fruit/veg)"),
         (SNACK_SAVORY, "Snack (savory)"),
+        (SNACK_SWEET, "Snack (sweet)"),
         (HOT_MEAL, "Hot meal"),
         (BREAD_MEAL, "Bread meal"),
         (OTHER, "Other"),
@@ -79,11 +83,13 @@ class Course:
     SOUP = "soup"
     MAIN = "main"
     DESSERT = "dessert"
+    EXTRA = "extra"
 
     CHOICES = [
         (SOUP, "Soup"),
         (MAIN, "Main"),
         (DESSERT, "Dessert"),
+        (EXTRA, "Extra"),
     ]
 
 
@@ -91,11 +97,19 @@ class Course:
 # Course is "" for single-slot meals; lunch has three courses.
 MEAL_SLOTS: list[tuple[str, str, list[str]]] = [
     (MealType.BREAKFAST, "", [DishType.BREAKFAST]),
+    # Fixed standard breakfast plus an optional extra (beleg, cornflakes, ...).
+    (MealType.BREAKFAST, Course.EXTRA, [DishType.BREAKFAST_EXTRA]),
     (MealType.LUNCH, Course.SOUP, [DishType.SOUP]),
     (MealType.LUNCH, Course.MAIN, [DishType.MAIN]),
     (MealType.LUNCH, Course.DESSERT, [DishType.DESSERT]),
-    (MealType.TEA, "", [DishType.SNACK_FRUITVEG, DishType.SNACK_SAVORY]),
+    (
+        MealType.TEA,
+        "",
+        [DishType.SNACK_FRUITVEG, DishType.SNACK_SAVORY, DishType.SNACK_SWEET],
+    ),
     (MealType.DINNER, "", [DishType.HOT_MEAL, DishType.BREAD_MEAL]),
+    # Dinner sometimes carries a dessert (appelcake, messinaroom, ...) — optional.
+    (MealType.DINNER, Course.DESSERT, [DishType.DESSERT]),
 ]
 
 
