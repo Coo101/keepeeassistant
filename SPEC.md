@@ -1,0 +1,245 @@
+# Summer Camp Meal Planner — Project Specification
+
+**Status:** v1.0 — Ready for build (via Claude Code)
+**Author:** Yonick
+**Last updated:** 2026-07-17
+
+> This document is the source of truth for the build. Keep it in the repo (e.g.
+> `docs/SPEC.md`) and reference it from `CLAUDE.md` so the coding agent always
+> has the full picture.
+
+---
+
+## 1. Overview
+
+A tool to plan catering for summer camps. It lets you maintain a library of
+recipes, define camps with their attendees and meal schedule, assign recipes to
+each meal across the camp's days, automatically scale recipe quantities to the
+number of people, and generate shopping lists grouped by shopping trip.
+
+The end deliverables for a camp are:
+1. A **day-by-day meal plan** (which recipes at which meal, each day).
+2. **Shopping lists** — one per shopping trip, with aggregated quantities.
+
+## 2. Users & Goals
+
+- **Primary user:** camp organiser / cook planning meals for a multi-day camp.
+- **Scale:** camps are always **50+ people**.
+- **Goals:** reuse recipes across camps, avoid manual portion maths, get a
+  clean shopping list per shop run.
+
+**Success criteria:** For a given camp, the tool produces a correct scaled
+shopping list per selected shopping day with no manual recalculation.
+
+## 3. Tech Stack
+
+**Framework: Django** (confirmed). CRUD-heavy relational app that needs
+data-entry screens — Django admin, ORM, migrations, and server-rendered
+templates fit it well.
+
+| Layer | Choice |
+|---|---|
+| Language | Python 3.12 |
+| Framework | Django 5.x |
+| Database | SQLite (dev) -> Postgres if ever multi-user |
+| Templating | Django templates (+ HTMX optional for snappier UI) |
+| PDF export | WeasyPrint (HTML template -> PDF) |
+| Testing | pytest + pytest-django |
+| Lint/format | ruff + black |
+| Type hints | Yes, throughout |
+
+## 4. Core Concepts
+
+- **Portion** — the unit of demand. One portion = one 12+/adult serving. An
+  under-12 = **0.7** portion. Staff = a full portion. Both recipes and camps
+  express their size in portions, so scaling is a single division.
+- **Recipe** — a reusable dish with ingredients and timed steps, defined for a
+  base number of under-12s + 12+ (which converts to base portions).
+- **Ingredient** — a master item with a canonical unit (piece / kg / liter) and
+  a category, used to organise shopping lists.
+- **Camp** — a multi-day event with a headcount and a daily meal schedule.
+- **Menu entry** — a recipe assigned to a specific (camp, date, meal, course).
+- **Shopping trip** — a date on which you shop; it covers the meals of the days
+  **after** it, up to and including the next trip day (never its own day).
+
+## 5. Meal Structure
+
+Meals are not uniform — each meal type has its own shape:
+
+| Meal | Structure | Slots |
+|---|---|---|
+| **Breakfast** | One variant chosen from a few | 1 recipe |
+| **Lunch** (midday, large) | Three courses | soup + main + dessert |
+| **Tea time** | Afternoon snack — fruit/veg **or** savory | 1 recipe |
+| **Dinner** (evening) | Either a simple hot meal **or** a bread meal | 1 recipe |
+
+A recipe carries a `dish_type` so the planner only offers appropriate recipes
+for each slot (e.g. only `soup` recipes for the lunch soup slot; only
+`snack_fruitveg` / `snack_savory` for tea; only `hot_meal` / `bread_meal` for
+dinner).
+
+## 6. Data Model
+
+### Ingredient
+- `name` (unique)
+- `unit` — one of **{piece, kg, liter}** (fixed set; no conversions)
+- `category` — produce / dairy / meat / bakery / dry goods / other (for grouping)
+
+### Recipe
+- `name`
+- `dish_type` — breakfast / soup / main / dessert / snack_fruitveg /
+  snack_savory / hot_meal / bread_meal / other
+- `base_children` — under-12 count the entered quantities feed
+- `base_teens` — 12+ count the entered quantities feed
+- `base_portions` (derived) = `base_teens + 0.7 * base_children`
+- `notes`
+- has many **RecipeIngredient**, many **RecipeStep**
+
+### RecipeIngredient
+- `recipe`, `ingredient`, `quantity`, `unit`
+
+### RecipeStep
+- `recipe`, `order`, `instruction`, `duration_minutes` (optional)
+
+### Camp
+- `name`, `start_date`, `end_date`
+- `num_children` (under 12), `num_teens` (12+), `num_staff`
+- meal times: `breakfast_time`, `lunch_time`, `teatime_time`, `dinner_time`
+- `demand_portions` (derived) = `num_teens + num_staff + 0.7 * num_children`
+
+### MenuEntry
+- `camp`, `date`, `meal_type` (breakfast/lunch/tea/dinner)
+- `course` (nullable; used for lunch: soup/main/dessert)
+- `recipe`
+- One meal can hold several entries (lunch = 3 courses); breakfast/tea/dinner
+  normally one each.
+
+### ShoppingTrip
+- `camp`, `date`
+- Coverage is derived (see §8).
+
+### ShoppingListItem (computed)
+- `ingredient`, `total_quantity`, `unit`, `category`
+
+## 7. Scaling Logic
+
+Both sides are in portions, so:
+
+```
+recipe.base_portions = base_teens + 0.7 * base_children
+camp.demand_portions = num_teens + num_staff + 0.7 * num_children
+scale = camp.demand_portions / recipe.base_portions
+```
+
+Each ingredient quantity is multiplied by `scale`. Because units are only
+piece / kg / liter, totals add up directly with no conversion.
+
+**Rounding:** round quantities to **1 decimal** for kg/liter; whole numbers for
+piece. Camps are always 50+ people, so fine-grained precision isn't needed.
+
+## 8. Shopping List Logic
+
+A shopping trip buys for the days **after** it, up to and including the next
+trip day — never its own day.
+
+```
+trips = sorted(selected shopping dates)
+for i, trip_date in enumerate(trips):
+    cover_start = trip_date + 1 day
+    cover_end   = trips[i+1] if i+1 < len(trips) else camp.end_date   # inclusive
+    covered_days = [d for d in camp_days if cover_start <= d <= cover_end]
+
+    totals = {}   # keyed by (ingredient, unit)
+    for entry in MenuEntry where camp=camp and date in covered_days:
+        scale = camp.demand_portions / entry.recipe.base_portions
+        for ri in entry.recipe.ingredients:
+            totals[(ri.ingredient, ri.unit)] += ri.quantity * scale
+
+    list = group totals by ingredient.category, rounded per §7
+```
+
+**Coverage warning (important):** because a trip never covers its own day, the
+camp's **opening days up to and including the first shopping day are not covered
+by any trip.** To cover them, add a shopping trip dated *before* those days
+(e.g. an arrival-eve shop). The planner must **flag any camp day that no trip
+covers** so nothing silently falls through the cracks.
+
+## 9. Features (MVP)
+
+### 9.1 Recipe management
+- List / add / edit / delete recipes.
+- Fields: name, dish_type, base children + teens, ingredients (ingredient + qty
+  + unit from the fixed set), ordered steps with optional per-step time.
+- Show total estimated time (sum of step durations).
+
+### 9.2 Camp management
+- Create / edit multiple camps.
+- Fields: name, start/end date, headcount (children / teens / staff), the four
+  meal times.
+- Derive the day list from start/end date.
+
+### 9.3 Menu planning
+- For a chosen camp, show a grid of days x meals.
+- Fill each slot with the appropriate recipe(s): breakfast (1), lunch (soup +
+  main + dessert), tea (1), dinner (1: hot or bread).
+- Only offer recipes whose `dish_type` fits the slot.
+- Show scaled quantities per meal for the camp's demand.
+
+### 9.4 Shopping lists
+- For a chosen camp, select which dates are shopping days.
+- Generate one aggregated, category-grouped list per shopping day using §8.
+- Warn about any uncovered camp days.
+
+### 9.5 Output / print
+- **Camp / day overview** -> **PDF** (WeasyPrint) for printing.
+- **Shopping lists** -> printable, PDF export as well.
+
+## 10. Non-functional Requirements
+
+- **Logging:** Python `logging`, no `print`.
+- **Errors:** validate at model/form layer; fail loudly in dev.
+- **Testing:** pytest; cover the scaling and shopping-list aggregation logic
+  especially (highest-risk code).
+- **Style:** ruff + black, type hints throughout, small focused modules.
+
+## 11. Proposed Project Structure
+
+```
+campmealplanner/
+├── manage.py
+├── config/                 # settings, urls, wsgi
+├── recipes/                # Recipe, Ingredient, RecipeIngredient, RecipeStep
+├── camps/                  # Camp, meal schedule
+├── planning/               # MenuEntry, the day x meal grid
+├── shopping/               # ShoppingTrip + list generation
+├── core/                   # shared: portion/scaling helpers, constants
+├── templates/
+└── tests/
+```
+
+Suggested shared constant: `CHILD_PORTION_FACTOR = 0.7` in `core/`.
+
+## 12. Resolved Decisions
+
+1. Under-12 portion factor = **0.7**. Staff eat and count as a full portion.
+2. Recipes entered as "serves X under-12 + Y 12+", converted to base portions.
+3. **Canonical units only: piece / kg / liter.** No conversions.
+4. A shopping day **does not** cover its own day; it buys for the following
+   days up to and including the next shopping day. Uncovered opening days are
+   flagged.
+5. Lunch has three distinct courses (soup / main / dessert); breakfast = one
+   variant; dinner = hot meal or bread meal; tea = snack (fruit/veg or savory).
+6. Spec stays as `.md`; camp/day overview and shopping lists export to **PDF**.
+7. Quantities rounded to **1 decimal** (kg/liter); camps are always 50+ people.
+8. Framework is **Django**.
+
+## 13. Out of Scope for v1 (future)
+
+- **Nutrition / balance tracker.** Flag whether a meal and a day are balanced —
+  e.g. enough vegetables, not too much sugar. Likely approach: per-ingredient
+  nutrition tags (is-vegetable, sugar level, food group, etc.) rolled up per
+  meal and per day, with simple threshold warnings in the planner.
+- Dietary restrictions / allergies handling.
+- "Pantry on hand" subtraction (exclude what you already have).
+- Cost estimation / budgeting.
+- Multi-user accounts / permissions.
