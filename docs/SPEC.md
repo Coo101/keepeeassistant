@@ -5,7 +5,7 @@
 **Last updated:** 2026-07-17
 
 > This document is the source of truth for the build. Keep it in the repo (e.g.
-> `docs/SPEC.md`) and reference it from `CLAUDE.md` so the coding agent always
+> `docs/SPEC.md`) and reference it from `../CLAUDE.md` so the coding agent always
 > has the full picture.
 
 ---
