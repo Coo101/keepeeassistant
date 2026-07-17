@@ -35,19 +35,19 @@ def _build_grid(camp: Camp) -> list[dict]:
     for day in camp.days:
         meals = []
         for meal_type in MealType.ORDER:
-            slots = [
+            cells = [
                 {
-                    "course": course,
-                    "entry": entries.get((day, meal_type, course)),
+                    "slot": slot,
+                    "entry": entries.get((day, meal_type, slot.course)),
                 }
-                for slot_meal, course, _ in MEAL_SLOTS
-                if slot_meal == meal_type
+                for slot in MEAL_SLOTS
+                if slot.meal_type == meal_type
             ]
             meals.append(
                 {
                     "meal_type": meal_type,
                     "label": MEAL_LABELS[meal_type],
-                    "slots": slots,
+                    "cells": cells,
                 }
             )
         grid.append({"day": day, "meals": meals})
@@ -123,9 +123,9 @@ def overview_pdf(request: HttpRequest, camp_id: int) -> HttpResponse:
     grid = _build_grid(camp)
     for row in grid:
         for meal in row["meals"]:
-            for slot in meal["slots"]:
-                if slot["entry"]:
-                    slot["scaled"] = scale_entry(slot["entry"], camp)
+            for cell in meal["cells"]:
+                if cell["entry"]:
+                    cell["scaled"] = scale_entry(cell["entry"], camp)
     return render_pdf(
         request,
         "planning/overview_print.html",

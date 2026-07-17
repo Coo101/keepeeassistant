@@ -27,12 +27,12 @@
       <th>{{ row.day|date:"D d M" }}</th>
       {% for meal in row.meals %}
       <td>
-        {% for slot in meal.slots %}
+        {% for cell in meal.cells %}
           <div class="slot">
-            {% if slot.course %}<span class="slot-course">{{ slot.course }}</span> {% endif %}
-            <a class="slot-chip{% if not slot.entry %} empty-slot{% endif %}"
-               href="{% url 'edit_slot' camp.pk row.day|date:'Y-m-d' meal.meal_type %}{% if slot.course %}?course={{ slot.course }}{% endif %}">
-              {% if slot.entry %}{{ slot.entry.recipe.name }}{% else %}pick…{% endif %}
+            <span class="slot-course">{{ cell.slot.label }}</span>
+            <a class="slot-chip{% if not cell.entry %} empty-slot{% if cell.slot.required %} missing{% endif %}{% endif %}"
+               href="{% url 'edit_slot' camp.pk row.day|date:'Y-m-d' meal.meal_type %}{% if cell.slot.course %}?course={{ cell.slot.course }}{% endif %}">
+              {% if cell.entry %}{{ cell.entry.recipe.name }}{% else %}pick…{% endif %}
             </a>
           </div>
         {% endfor %}

@@ -1,0 +1,18 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      # Generate your own: python -c "import secrets; print(secrets.token_urlsafe(50))"
+      DJANGO_SECRET_KEY: "change-me-to-a-long-random-string"
+      # Hostnames/IPs the app may be reached on (comma-separated)
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1"
+      # Add e.g. https://meals.example.com when serving behind a proxy/domain
+      DJANGO_CSRF_TRUSTED_ORIGINS: ""
+    volumes:
+      - campdata:/data
+    restart: unless-stopped
+
+volumes:
+  campdata:

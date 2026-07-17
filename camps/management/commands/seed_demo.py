@@ -43,7 +43,7 @@ INGREDIENTS = [
 RECIPES: list[dict[str, Any]] = [
     {
         "name": "Porridge with apples",
-        "dish_type": DishType.BREAKFAST,
+        "dish_type": DishType.BREAD_MEAL,
         "base_children": 10,
         "base_teens": 10,
         "ingredients": [
@@ -60,7 +60,7 @@ RECIPES: list[dict[str, Any]] = [
     },
     {
         "name": "Bread breakfast",
-        "dish_type": DishType.BREAKFAST,
+        "dish_type": DishType.BREAD_MEAL,
         "base_children": 10,
         "base_teens": 10,
         "ingredients": [
@@ -99,7 +99,7 @@ RECIPES: list[dict[str, Any]] = [
     },
     {
         "name": "Spaghetti bolognese",
-        "dish_type": DishType.MAIN,
+        "dish_type": DishType.HOT_MEAL,
         "base_children": 10,
         "base_teens": 10,
         "ingredients": [
@@ -116,7 +116,7 @@ RECIPES: list[dict[str, Any]] = [
     },
     {
         "name": "Chicken and rice",
-        "dish_type": DishType.MAIN,
+        "dish_type": DishType.HOT_MEAL,
         "base_children": 10,
         "base_teens": 10,
         "ingredients": [

@@ -36,14 +36,14 @@
     </thead>
     <tbody>
       {% for meal in row.meals %}
-        {% for slot in meal.slots %}
+        {% for cell in meal.cells %}
         <tr>
           <td>{% if forloop.first %}{{ meal.label }}{% endif %}
-              {% if slot.course %}<div class="course">{{ slot.course }}</div>{% endif %}</td>
-          <td>{% if slot.entry %}{{ slot.entry.recipe.name }}{% else %}<span class="empty">—</span>{% endif %}</td>
+              <div class="course">{{ cell.slot.label }}</div></td>
+          <td>{% if cell.entry %}{{ cell.entry.recipe.name }}{% else %}<span class="empty">—</span>{% endif %}</td>
           <td>
-            {% if slot.scaled %}
-              {% for item in slot.scaled.ingredients %}<span class="qty">{{ item.ingredient.name }} {{ item.quantity }}&nbsp;{{ item.unit }}</span>{% if not forloop.last %} · {% endif %}{% endfor %}
+            {% if cell.scaled %}
+              {% for item in cell.scaled.ingredients %}<span class="qty">{{ item.ingredient.name }} {{ item.quantity }}&nbsp;{{ item.unit }}</span>{% if not forloop.last %} · {% endif %}{% endfor %}
             {% endif %}
           </td>
         </tr>

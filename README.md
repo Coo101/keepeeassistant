@@ -37,6 +37,35 @@ PDF). To get native PDF output, install the
 [GTK3 runtime](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases)
 and restart the server.
 
+## Docker
+
+```bash
+docker compose up -d --build
+```
+
+Then open http://localhost:8000/. The SQLite database lives on the named
+volume `campdata` (mounted at `/data`), so it survives rebuilds and
+restarts. Migrations run automatically at container start, and the image
+includes the Pango libraries, so PDF export works natively.
+
+Before deploying, edit the environment in [docker-compose.yml](docker-compose.yml):
+set a real `DJANGO_SECRET_KEY`, and put your host's name/IP in
+`DJANGO_ALLOWED_HOSTS` (plus `DJANGO_CSRF_TRUSTED_ORIGINS` when serving
+via a domain/proxy).
+
+First-time setup inside the container:
+
+```bash
+docker compose exec web python manage.py createsuperuser
+docker compose exec web python manage.py import_kamp_recipes   # load the recipe library
+```
+
+Or copy an existing local database into the volume instead:
+
+```bash
+docker compose cp db.sqlite3 web:/data/db.sqlite3 && docker compose restart web
+```
+
 ## Development
 
 ```powershell

@@ -1,0 +1,11 @@
+.venv/
+.git/
+.idea/
+.claude/
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+*.pyc
+db.sqlite3
+staticfiles/
+docs/

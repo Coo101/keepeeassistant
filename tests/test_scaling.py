@@ -87,7 +87,7 @@ def test_dinner_accepts_optional_dessert_course() -> None:
 
 def test_breakfast_accepts_optional_extra_course() -> None:
     camp = make_camp()
-    extra = make_recipe("Cornflakes", dish_type=DishType.BREAKFAST_EXTRA)
+    extra = make_recipe("Cornflakes", dish_type=DishType.BREAD_MEAL_EXTRA)
     entry = MenuEntry(
         camp=camp,
         date=AUG_1,
@@ -100,7 +100,7 @@ def test_breakfast_accepts_optional_extra_course() -> None:
 
 def test_breakfast_extra_rejected_in_main_breakfast_slot() -> None:
     camp = make_camp()
-    extra = make_recipe("Beleg", dish_type=DishType.BREAKFAST_EXTRA)
+    extra = make_recipe("Beleg", dish_type=DishType.BREAD_MEAL_EXTRA)
     entry = MenuEntry(
         camp=camp,
         date=AUG_1,
@@ -110,6 +110,29 @@ def test_breakfast_extra_rejected_in_main_breakfast_slot() -> None:
     )
     with pytest.raises(Exception, match="does not fit"):
         entry.full_clean()
+
+
+def test_lunch_and_dinner_accept_optional_extra_course() -> None:
+    camp = make_camp()
+    extra = make_recipe("Baksaucis", dish_type=DishType.BREAD_MEAL_EXTRA)
+    for meal_type in (MealType.LUNCH, MealType.DINNER):
+        entry = MenuEntry(
+            camp=camp,
+            date=AUG_1,
+            meal_type=meal_type,
+            course="extra",
+            recipe=extra,
+        )
+        entry.full_clean()  # must not raise
+
+
+def test_lunch_main_accepts_bread_meal() -> None:
+    camp = make_camp()
+    brood = make_recipe("Broodmaaltijd", dish_type=DishType.BREAD_MEAL)
+    entry = MenuEntry(
+        camp=camp, date=AUG_1, meal_type=MealType.LUNCH, course="main", recipe=brood
+    )
+    entry.full_clean()  # must not raise
 
 
 def test_sweet_snack_fits_tea_slot() -> None:
@@ -123,7 +146,7 @@ def test_sweet_snack_fits_tea_slot() -> None:
 
 def test_date_must_be_within_camp() -> None:
     camp = make_camp()
-    recipe = make_recipe("Pancakes", dish_type=DishType.BREAKFAST)
+    recipe = make_recipe("Pancakes", dish_type=DishType.BREAD_MEAL)
     entry = MenuEntry(
         camp=camp,
         date=camp.end_date + datetime.timedelta(days=1),

@@ -144,6 +144,13 @@ table.compact td:last-child { text-align: right; white-space: nowrap; font-varia
 }
 .slot-chip.empty-slot:hover { border-color: var(--accent); color: var(--accent); }
 
+.slot-chip.missing {
+  border-color: #dc2626;
+  color: #dc2626;
+  background: #fef2f2;
+}
+.slot-chip.missing:hover { border-color: #b91c1c; color: #b91c1c; }
+
 /* ---------- Forms ---------- */
 
 select, input[type="text"], input[type="number"] {

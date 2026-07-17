@@ -155,7 +155,7 @@ RECIPES: list[dict[str, Any]] = [
     # ---------- Ontbijt ----------
     {
         "name": "Standaardontbijt",
-        "dish_type": DishType.BREAKFAST,
+        "dish_type": DishType.BREAD_MEAL,
         "ingredients": [
             ("Wit brood", "8"),
             ("Grijs brood", "6"),
@@ -175,31 +175,31 @@ RECIPES: list[dict[str, Any]] = [
     },
     {
         "name": "Beleg (kaas, hesp, saucis)",
-        "dish_type": DishType.BREAKFAST_EXTRA,
+        "dish_type": DishType.BREAD_MEAL_EXTRA,
         "notes": "Extra bij standaardontbijt; hoeveelheden nog aan te vullen.",
     },
     {
         "name": "Cornflakes",
-        "dish_type": DishType.BREAKFAST_EXTRA,
+        "dish_type": DishType.BREAD_MEAL_EXTRA,
         "ingredients": [("Cornflakes (doos)", "8")],
         "notes": "Extra bij standaardontbijt. Ook: fruitsap en yoghurtpotjes "
         "(aantallen aan te vullen).",
     },
     {
         "name": "Speculaas & hagelslag",
-        "dish_type": DishType.BREAKFAST_EXTRA,
+        "dish_type": DishType.BREAD_MEAL_EXTRA,
         "notes": "Extra bij standaardontbijt; hagelslag in confituurpotten "
         "+ lepel. Hoeveelheden nog aan te vullen.",
     },
     {
         "name": "Eieren (ontbijt)",
-        "dish_type": DishType.BREAKFAST_EXTRA,
+        "dish_type": DishType.BREAD_MEAL_EXTRA,
         "ingredients": [("Eieren", "130")],
         "notes": "Extra bij standaardontbijt, met kaas en hesp.",
     },
     {
         "name": "Brunch",
-        "dish_type": DishType.BREAKFAST,
+        "dish_type": DishType.BREAD_MEAL,
         "ingredients": [
             ("Eieren", "132"),
             ("Spek", "4"),
@@ -217,7 +217,7 @@ RECIPES: list[dict[str, Any]] = [
     },
     {
         "name": "Spek & ei",
-        "dish_type": DishType.BREAKFAST_EXTRA,
+        "dish_type": DishType.BREAD_MEAL_EXTRA,
         "notes": "Extra bij standaardontbijt. Uit menu 2026; hoeveelheden "
         "nog aan te vullen.",
     },
@@ -369,7 +369,7 @@ RECIPES: list[dict[str, Any]] = [
     # ---------- Middag (hoofdgerechten) ----------
     {
         "name": "Balletjes in tomatensaus met puree",
-        "dish_type": DishType.MAIN,
+        "dish_type": DishType.HOT_MEAL,
         "ingredients": [
             ("Aardappelen", "17"),
             ("Gehakt", "9"),
@@ -393,7 +393,7 @@ RECIPES: list[dict[str, Any]] = [
     },
     {
         "name": "Visburgers met spinaziepuree",
-        "dish_type": DishType.MAIN,
+        "dish_type": DishType.HOT_MEAL,
         "ingredients": [
             ("Visburgers (groot)", "56"),
             ("Citroensap (fles)", "1"),
@@ -411,7 +411,7 @@ RECIPES: list[dict[str, Any]] = [
     },
     {
         "name": "Wraps kip-kebab",
-        "dish_type": DishType.MAIN,
+        "dish_type": DishType.HOT_MEAL,
         "ingredients": [
             ("Wraps", "50"),
             ("Kipschnitzel", "30"),
@@ -426,7 +426,7 @@ RECIPES: list[dict[str, Any]] = [
     },
     {
         "name": "Wraps burrito",
-        "dish_type": DishType.MAIN,
+        "dish_type": DishType.HOT_MEAL,
         "ingredients": [
             ("Wraps", "50"),
             ("Gehakt", "5"),
@@ -444,7 +444,7 @@ RECIPES: list[dict[str, Any]] = [
     },
     {
         "name": "Kroketten met videe",
-        "dish_type": DishType.MAIN,
+        "dish_type": DishType.HOT_MEAL,
         "ingredients": [
             ("Kroketten", "15"),
             ("Vloeiende bloem", "2"),
@@ -475,7 +475,7 @@ RECIPES: list[dict[str, Any]] = [
     },
     {
         "name": "Calamaris en mini-loempia's",
-        "dish_type": DishType.MAIN,
+        "dish_type": DishType.HOT_MEAL,
         "ingredients": [
             ("Calamaris (pak)", "4"),
             ("Mini-loempia's", "30"),
@@ -484,7 +484,7 @@ RECIPES: list[dict[str, Any]] = [
     },
     {
         "name": "Wokmie met kip",
-        "dish_type": DishType.MAIN,
+        "dish_type": DishType.HOT_MEAL,
         "ingredients": [
             ("Kipfilet", "8"),
             ("Woknoedels", "6.2"),
@@ -495,7 +495,7 @@ RECIPES: list[dict[str, Any]] = [
     },
     {
         "name": "Friet met stoofvlees",
-        "dish_type": DishType.MAIN,
+        "dish_type": DishType.HOT_MEAL,
         "ingredients": [
             ("Friet", "30"),
             ("Stoofvlees", "15"),
@@ -511,7 +511,7 @@ RECIPES: list[dict[str, Any]] = [
     },
     {
         "name": "Macaroni met kaas en hesp",
-        "dish_type": DishType.MAIN,
+        "dish_type": DishType.HOT_MEAL,
         "ingredients": [
             ("Macaroni", "8.5"),
             ("Melk", "9"),
@@ -525,7 +525,7 @@ RECIPES: list[dict[str, Any]] = [
     },
     {
         "name": "Wortelpuree met worst",
-        "dish_type": DishType.MAIN,
+        "dish_type": DishType.HOT_MEAL,
         "notes": "Uit menu 2026 dag 7; hoeveelheden nog aan te vullen.",
     },
     # ---------- Avond (warme maaltijden) ----------

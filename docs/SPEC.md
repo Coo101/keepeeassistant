@@ -68,10 +68,13 @@ Meals are not uniform — each meal type has its own shape:
 
 | Meal | Structure | Slots |
 |---|---|---|
-| **Breakfast** | Fixed standard breakfast, plus optional extra (beleg, cornflakes, ...) | 1 recipe + optional extra |
-| **Lunch** (midday, large) | Three courses | soup + main + dessert |
-| **Tea time** | Afternoon snack — fruit/veg, savory **or** sweet | 1 recipe |
-| **Dinner** (evening) | Simple hot meal **or** bread meal, plus optional dessert | 1 recipe + optional dessert |
+| **Breakfast** | Bread meal (standaardontbijt), plus optional extra (beleg, cornflakes, ...) | main + extra |
+| **Lunch** (midday, large) | Soup, hot or bread meal, optional extra, dessert | soup + main + extra + dessert |
+| **Tea time** | Afternoon snack — fruit/veg, savory **or** sweet | snack |
+| **Dinner** (evening) | Hot meal **or** bread meal, optional extra and dessert | main + extra + dessert |
+
+Every slot is labelled in the planner grid; the **main** slot of each meal
+(and the tea snack) is required and flagged red while empty.
 
 A recipe carries a `dish_type` so the planner only offers appropriate recipes
 for each slot (e.g. only `soup` recipes for the lunch soup slot; only
@@ -87,8 +90,10 @@ dinner).
 
 ### Recipe
 - `name`
-- `dish_type` — breakfast / breakfast_extra / soup / main / dessert /
-  snack_fruitveg / snack_savory / snack_sweet / hot_meal / bread_meal / other
+- `dish_type` — soup / hot_meal / bread_meal / bread_meal_extra / dessert /
+  snack_fruitveg / snack_savory / snack_sweet / other. Breakfast slots take
+  `bread_meal` (+ optional `bread_meal_extra`); the lunch main course and the
+  dinner main slot both take `hot_meal` (dinner also accepts `bread_meal`).
 - `base_children` — under-12 count the entered quantities feed
 - `base_teens` — 12+ count the entered quantities feed
 - `base_portions` (derived) = `base_teens + 0.7 * base_children`

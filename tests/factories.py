@@ -28,7 +28,7 @@ def make_camp(
 
 def make_recipe(
     name: str,
-    dish_type: str = DishType.MAIN,
+    dish_type: str = DishType.HOT_MEAL,
     children: int = 0,
     teens: int = 10,
     ingredients: list[tuple[str, str, str, str]] | None = None,
