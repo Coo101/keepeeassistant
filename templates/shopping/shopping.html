@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}{{ camp.name }} — Shopping{% endblock %}
+{% block content %}
+<p><a class="back-link" href="{% url 'planner' camp.pk %}">← back to menu plan</a></p>
+<h1>{{ camp.name }} — shopping</h1>
+
+<h2>Shopping days</h2>
+<p class="muted">A trip buys for the days <strong>after</strong> it, up to and including the
+next trip day — never its own day. Add a trip before the camp starts to cover the opening days.</p>
+<div class="card">
+  <form method="post">
+    {% csrf_token %}
+    <ul class="checkboxes">
+      {% for c in candidates %}
+      <li>
+        <label>
+          <input type="checkbox" name="trip_dates" value="{{ c.date|date:'Y-m-d' }}" {% if c.selected %}checked{% endif %}>
+          {{ c.date|date:"D d M" }}{% if c.pre_camp %} <span class="muted">(before camp)</span>{% endif %}
+        </label>
+      </li>
+      {% endfor %}
+    </ul>
+    <button class="btn" type="submit">Save shopping days</button>
+  </form>
+</div>
+
+{% if plan.uncovered_days %}
+<div class="warning">
+  ⚠️ <strong>Uncovered days:</strong>
+  {% for d in plan.uncovered_days %}{{ d|date:"D d M" }}{% if not forloop.last %}, {% endif %}{% endfor %}
+  — no shopping trip covers these days. Add a trip dated before them.
+</div>
+{% endif %}
+
+{% if plan.trip_lists %}
+<div class="actions">
+  <a class="btn" href="{% url 'shopping_pdf' camp.pk %}">Shopping lists PDF</a>
+</div>
+{% for tl in plan.trip_lists %}
+<h2>Shop on {{ tl.trip.date|date:"l d M" }}</h2>
+<p class="muted">Covers {{ tl.cover_start|date:"D d M" }} – {{ tl.cover_end|date:"D d M" }}
+  ({{ tl.covered_days|length }} camp day{{ tl.covered_days|length|pluralize }})</p>
+{% if tl.items_by_category %}
+  {% for category, items in tl.items_by_category.items %}
+  <div class="category-block">
+    <h3>{{ category }}</h3>
+    <table class="compact">
+      <tbody>
+        {% for item in items %}
+        <tr><td>{{ item.ingredient.name }}</td><td>{{ item.quantity }} {{ item.unit }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endfor %}
+{% else %}
+<p class="empty-slot">Nothing to buy — no menu entries in the covered days.</p>
+{% endif %}
+{% endfor %}
+{% endif %}
+{% endblock %}

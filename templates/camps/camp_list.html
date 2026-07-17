@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Camps — Camp Meal Planner{% endblock %}
+{% block content %}
+<h1>Camps</h1>
+<p class="page-meta">Create and edit camps, recipes and ingredients in the <a href="/admin/">admin</a>.</p>
+{% if camps %}
+<table>
+  <thead>
+    <tr>
+      <th>Camp</th><th>Dates</th><th>Children</th><th>Teens</th><th>Staff</th>
+      <th>Portions</th><th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for camp in camps %}
+    <tr>
+      <td><strong>{{ camp.name }}</strong></td>
+      <td>{{ camp.start_date }} – {{ camp.end_date }}</td>
+      <td>{{ camp.num_children }}</td>
+      <td>{{ camp.num_teens }}</td>
+      <td>{{ camp.num_staff }}</td>
+      <td><span class="badge">{{ camp.demand_portions }}</span></td>
+      <td>
+        <a href="{% url 'planner' camp.pk %}">Menu plan</a> ·
+        <a href="{% url 'shopping' camp.pk %}">Shopping</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="card">
+  <p>No camps yet. <a href="/admin/camps/camp/add/">Add your first camp</a>.</p>
+</div>
+{% endif %}
+{% endblock %}

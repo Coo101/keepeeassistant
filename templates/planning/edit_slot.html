@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}{{ camp.name }} — {{ day }} {{ meal_label }}{% endblock %}
+{% block content %}
+<p><a class="back-link" href="{% url 'planner' camp.pk %}">← back to menu plan</a></p>
+<h1>{{ day|date:"l d M" }} — {{ meal_label }}{% if course %} · {{ course }}{% endif %}</h1>
+<p class="page-meta">{{ camp.name }} · <strong>{{ camp.demand_portions }} portions</strong></p>
+
+<div class="card">
+  <form method="post">
+    {% csrf_token %}
+    {{ form.recipe.errors }}
+    <div class="actions">
+      {{ form.recipe }}
+      <button class="btn" type="submit">Save</button>
+    </div>
+  </form>
+</div>
+
+{% if scaled %}
+<h2>Scaled for {{ camp.demand_portions }} portions <span class="badge">× {{ scaled.scale|floatformat:2 }}</span></h2>
+<p class="muted">{{ entry.recipe.name }} — base: {{ entry.recipe.base_children }} children + {{ entry.recipe.base_teens }} teens = {{ entry.recipe.base_portions }} portions</p>
+<table class="compact">
+  <thead><tr><th>Ingredient</th><th>Quantity</th></tr></thead>
+  <tbody>
+    {% for item in scaled.ingredients %}
+    <tr>
+      <td>{{ item.ingredient.name }}</td>
+      <td>{{ item.quantity }} {{ item.unit }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% if entry.recipe.steps.all %}
+<h2>Steps <span class="badge">{{ entry.recipe.total_duration_minutes }} min total</span></h2>
+<div class="card">
+  <ol>
+    {% for step in entry.recipe.steps.all %}
+    <li>{{ step.instruction }}{% if step.duration_minutes %} <span class="muted">({{ step.duration_minutes }} min)</span>{% endif %}</li>
+    {% endfor %}
+  </ol>
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}

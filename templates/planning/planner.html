@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}{{ camp.name }} — Menu plan{% endblock %}
+{% block content %}
+<h1>{{ camp.name }} — menu plan</h1>
+<p class="page-meta">
+  {{ camp.start_date }} – {{ camp.end_date }} ·
+  {{ camp.num_children }} children + {{ camp.num_teens }} teens + {{ camp.num_staff }} staff
+  = <strong>{{ camp.demand_portions }} portions</strong>
+</p>
+<div class="actions">
+  <a class="btn btn-outline" href="{% url 'shopping' camp.pk %}">Shopping lists</a>
+  <a class="btn" href="{% url 'overview_pdf' camp.pk %}">Overview PDF</a>
+</div>
+<table class="planner-table">
+  <thead>
+    <tr>
+      <th>Day</th>
+      <th>Breakfast <span class="muted">{{ camp.breakfast_time|time:"H:i" }}</span></th>
+      <th>Lunch <span class="muted">{{ camp.lunch_time|time:"H:i" }}</span></th>
+      <th>Tea <span class="muted">{{ camp.teatime_time|time:"H:i" }}</span></th>
+      <th>Dinner <span class="muted">{{ camp.dinner_time|time:"H:i" }}</span></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in grid %}
+    <tr>
+      <th>{{ row.day|date:"D d M" }}</th>
+      {% for meal in row.meals %}
+      <td>
+        {% for slot in meal.slots %}
+          <div class="slot">
+            {% if slot.course %}<span class="slot-course">{{ slot.course }}</span> {% endif %}
+            <a class="slot-chip{% if not slot.entry %} empty-slot{% endif %}"
+               href="{% url 'edit_slot' camp.pk row.day|date:'Y-m-d' meal.meal_type %}{% if slot.course %}?course={{ slot.course }}{% endif %}">
+              {% if slot.entry %}{{ slot.entry.recipe.name }}{% else %}pick…{% endif %}
+            </a>
+          </div>
+        {% endfor %}
+      </td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

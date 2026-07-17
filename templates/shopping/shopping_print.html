@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ camp.name }} — shopping lists</title>
+  <style>
+    @page { size: A4; margin: 1.5cm; }
+    body { font-family: system-ui, sans-serif; color: #111; font-size: 10pt; }
+    h1 { font-size: 16pt; }
+    h2 { font-size: 13pt; border-bottom: 2px solid #2c6e49; padding-bottom: 2px; }
+    h3 { font-size: 11pt; margin-bottom: 0.2em; }
+    .meta { color: #555; }
+    table { border-collapse: collapse; width: 60%; margin: 0.3em 0 0.8em; }
+    td { border: 1px solid #bbb; padding: 3pt 6pt; }
+    td.qty { text-align: right; white-space: nowrap; width: 30%; }
+    .trip { page-break-before: always; }
+    .trip:first-of-type { page-break-before: avoid; }
+    .warning { border: 1.5pt solid #f59e0b; background: #fef3c7; padding: 6pt; margin: 8pt 0; }
+    .checkbox { display: inline-block; width: 9pt; height: 9pt; border: 1pt solid #333; margin-right: 4pt; vertical-align: middle; }
+    {% if pdf_fallback %}@media screen { body::before { content: "PDF engine unavailable — use your browser's Print to save as PDF."; display:block; background:#fef3c7; padding:8px; margin-bottom:12px; } }{% endif %}
+  </style>
+</head>
+<body>
+<h1>{{ camp.name }} — shopping lists</h1>
+<p class="meta">{{ camp.start_date }} – {{ camp.end_date }} · {{ camp.demand_portions }} portions</p>
+
+{% if plan.uncovered_days %}
+<div class="warning">
+  ⚠️ Uncovered days (no trip buys for them):
+  {% for d in plan.uncovered_days %}{{ d|date:"D d M" }}{% if not forloop.last %}, {% endif %}{% endfor %}
+</div>
+{% endif %}
+
+{% for tl in plan.trip_lists %}
+<div class="trip">
+  <h2>Shop on {{ tl.trip.date|date:"l d F Y" }}</h2>
+  <p class="meta">Covers {{ tl.cover_start|date:"D d M" }} – {{ tl.cover_end|date:"D d M" }}</p>
+  {% for category, items in tl.items_by_category.items %}
+  <h3>{{ category }}</h3>
+  <table>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <td><span class="checkbox"></span>{{ item.ingredient.name }}</td>
+        <td class="qty">{{ item.quantity }} {{ item.unit }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% empty %}
+  <p class="meta">Nothing to buy for this trip.</p>
+  {% endfor %}
+</div>
+{% endfor %}
+</body>
+</html>

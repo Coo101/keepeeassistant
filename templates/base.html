@@ -1,0 +1,18 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Camp Meal Planner{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+<header>
+  <a class="brand" href="{% url 'camp_list' %}">🏕️ Camp Meal Planner</a>
+  <a href="/admin/">Admin</a>
+</header>
+<main>
+{% block content %}{% endblock %}
+</main>
+</body>
+</html>
