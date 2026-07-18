@@ -48,10 +48,11 @@ volume `campdata` (mounted at `/data`), so it survives rebuilds and
 restarts. Migrations run automatically at container start, and the image
 includes the Pango libraries, so PDF export works natively.
 
-Before deploying, edit the environment in [docker-compose.yml](docker-compose.yml):
-set a real `DJANGO_SECRET_KEY`, and put your host's name/IP in
-`DJANGO_ALLOWED_HOSTS` (plus `DJANGO_CSRF_TRUSTED_ORIGINS` when serving
-via a domain/proxy).
+Secrets live in a git-ignored `.env` file (loaded by both Django via
+python-dotenv and docker compose). First time: copy
+[.env.example](.env.example) to `.env`, generate a `DJANGO_SECRET_KEY`,
+and put your host's name/IP in `DJANGO_ALLOWED_HOSTS` (plus
+`DJANGO_CSRF_TRUSTED_ORIGINS` when serving via a domain/proxy).
 
 First-time setup inside the container:
 
