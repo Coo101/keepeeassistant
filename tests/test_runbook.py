@@ -51,9 +51,7 @@ def test_runbook_shows_info_days_and_steps() -> None:
 def test_runbook_note_save_and_display() -> None:
     camp = _camp_with_menu()
     url = reverse("runbook", args=[camp.pk])
-    response = Client().post(
-        url, {"date": "2026-08-01", "text": "Te veel kiek."}
-    )
+    response = Client().post(url, {"date": "2026-08-01", "text": "Te veel kiek."})
     assert response.status_code == 302
     note = DayNote.objects.get(camp=camp, date=AUG_1)
     assert note.text == "Te veel kiek."
