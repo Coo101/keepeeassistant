@@ -5,8 +5,9 @@ import logging
 
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
-from camps.models import Camp
+from camps.models import Camp, DayNote
 from core.constants import MEAL_SLOTS, MealType
 from core.pdf import render_pdf
 from planning.forms import SlotForm
@@ -114,6 +115,73 @@ def edit_slot(
             "entry": entry,
             "scaled": scaled,
         },
+    )
+
+
+def _runbook_days(camp: Camp) -> list[dict]:
+    """Day sections for the runbook: menu grid + scaled quantities, steps
+    per planned recipe, and the day's note."""
+    grid = _build_grid(camp)
+    notes = {note.date: note for note in camp.day_notes.all()}
+    days = []
+    for number, row in enumerate(grid, start=1):
+        step_blocks = []
+        for meal in row["meals"]:
+            for cell in meal["cells"]:
+                entry = cell["entry"]
+                if not entry:
+                    continue
+                cell["scaled"] = scale_entry(entry, camp)
+                steps = list(entry.recipe.steps.all())
+                if steps:
+                    step_blocks.append(
+                        {
+                            "meal_label": meal["label"],
+                            "recipe": entry.recipe,
+                            "steps": steps,
+                        }
+                    )
+        note = notes.get(row["day"])
+        days.append(
+            {
+                "number": number,
+                "date": row["day"],
+                "meals": row["meals"],
+                "step_blocks": step_blocks,
+                "note_text": note.text if note else "",
+            }
+        )
+    return days
+
+
+def runbook(request: HttpRequest, camp_id: int) -> HttpResponse:
+    """Digital draaiboek: front-page info, per-day menu/steps/notes."""
+    camp = get_object_or_404(Camp, pk=camp_id)
+
+    if request.method == "POST":
+        day = _parse_date(request.POST.get("date", ""))
+        if day not in camp.days:
+            raise Http404(f"{day} is not a camp day")
+        text = request.POST.get("text", "").strip()
+        DayNote.objects.update_or_create(camp=camp, date=day, defaults={"text": text})
+        logger.info("Saved runbook note for %s %s", camp, day)
+        anchor = f"#day-{day.isoformat()}"
+        return redirect(reverse("runbook", args=[camp.pk]) + anchor)
+
+    return render(
+        request,
+        "planning/runbook.html",
+        {"camp": camp, "days": _runbook_days(camp)},
+    )
+
+
+def runbook_pdf(request: HttpRequest, camp_id: int) -> HttpResponse:
+    camp = get_object_or_404(Camp, pk=camp_id)
+    return render_pdf(
+        request,
+        "planning/runbook_print.html",
+        {"camp": camp, "days": _runbook_days(camp)},
+        filename=f"{camp.name}-draaiboek.pdf",
     )
 
 

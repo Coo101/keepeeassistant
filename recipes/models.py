@@ -6,7 +6,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 
 from core.constants import DishType, IngredientCategory, Unit
-from core.portions import portions
+from core.portions import format_quantity, portions
 
 
 class Ingredient(models.Model):
@@ -79,6 +79,11 @@ class RecipeIngredient(models.Model):
 
     def __str__(self) -> str:
         return f"{self.quantity} {self.unit} {self.ingredient.name}"
+
+    @property
+    def quantity_display(self) -> str:
+        """Quantity without trailing zeros (2.500 -> 2.5, 130.000 -> 130)."""
+        return format_quantity(self.quantity)
 
 
 class RecipeStep(models.Model):

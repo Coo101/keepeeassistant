@@ -21,6 +21,30 @@ class Camp(models.Model):
     teatime_time = models.TimeField(default=datetime.time(16, 0))
     dinner_time = models.TimeField(default=datetime.time(18, 30))
 
+    # Runbook front-page info (mirrors the draaiboek kookploeg documents)
+    cook_team = models.TextField(
+        blank=True,
+        verbose_name="kookploeg",
+        help_text="One member per line: name + phone number",
+    )
+    location = models.TextField(blank=True, help_text="Camp site name + address")
+    contact_leader = models.TextField(
+        blank=True,
+        verbose_name="aanspreekpunt leiding",
+        help_text="Name + phone number",
+    )
+    contact_rental = models.TextField(
+        blank=True,
+        verbose_name="aanspreekpunt verhuur",
+        help_text="Name + phone/mail",
+    )
+    bakery = models.TextField(
+        blank=True, verbose_name="bakker", help_text="Bakery name, phone, address"
+    )
+    general_notes = models.TextField(
+        blank=True, help_text="Shown on the runbook front page"
+    )
+
     class Meta:
         ordering = ["-start_date"]
 
@@ -42,3 +66,20 @@ class Camp(models.Model):
         """Every date of the camp, start to end inclusive."""
         n = (self.end_date - self.start_date).days + 1
         return [self.start_date + datetime.timedelta(days=i) for i in range(n)]
+
+
+class DayNote(models.Model):
+    """Free-form runbook notes for one camp day (the draaiboek 'no-tities')."""
+
+    camp = models.ForeignKey(Camp, on_delete=models.CASCADE, related_name="day_notes")
+    date = models.DateField()
+    text = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["date"]
+        constraints = [
+            models.UniqueConstraint(fields=["camp", "date"], name="unique_day_note"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.camp} notes {self.date}"

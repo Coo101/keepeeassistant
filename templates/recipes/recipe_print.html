@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ recipe.name }}</title>
+  <style>
+    @page { size: A4; margin: 1.5cm; }
+    body { font-family: system-ui, sans-serif; color: #111; font-size: 10.5pt; }
+    h1 { font-size: 17pt; margin-bottom: 0; }
+    h2 { font-size: 12pt; border-bottom: 2px solid #2c6e49; padding-bottom: 2px; page-break-after: avoid; }
+    .meta { color: #555; margin-top: 0.2em; }
+    .columns { display: grid; grid-template-columns: 2fr 3fr; gap: 24pt; align-items: start; }
+    table { border-collapse: collapse; width: 100%; }
+    td { border: 1px solid #bbb; padding: 3pt 6pt; }
+    td.qty { text-align: right; white-space: nowrap; }
+    ol { padding-left: 14pt; }
+    ol li { margin-bottom: 5pt; }
+    .duration { color: #555; }
+    .notes { border: 1px solid #bbb; border-radius: 4pt; padding: 6pt 8pt; white-space: pre-line; color: #333; }
+    {% if pdf_fallback %}@media screen { body::before { content: "PDF engine unavailable — use your browser's Print to save as PDF."; display:block; background:#fef3c7; padding:8px; margin-bottom:12px; } }{% endif %}
+  </style>
+</head>
+<body>
+<h1>{{ recipe.name }}</h1>
+<p class="meta">
+  {{ recipe.get_dish_type_display }} ·
+  {% if scale %}scaled to <strong>{{ portions }} portions</strong> (× {{ scale|floatformat:2 }};
+  base {{ recipe.base_portions }}){% else %}base: {{ recipe.base_children }} children +
+  {{ recipe.base_teens }} teens = <strong>{{ recipe.base_portions }} portions</strong>{% endif %}
+  {% if recipe.total_duration_minutes %} · {{ recipe.total_duration_minutes }} min total{% endif %}
+</p>
+
+<div class="columns">
+  <section>
+    <h2>Ingredients</h2>
+    {% if rows %}
+    <table>
+      <tbody>
+        {% for row in rows %}
+        <tr><td>{{ row.name }}</td><td class="qty">{{ row.quantity }} {{ row.unit }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}<p class="meta">No ingredients entered yet.</p>{% endif %}
+  </section>
+  <section>
+    <h2>Steps</h2>
+    {% if recipe.steps.all %}
+    <ol>
+      {% for step in recipe.steps.all %}
+      <li>{{ step.instruction }}{% if step.duration_minutes %} <span class="duration">({{ step.duration_minutes }} min)</span>{% endif %}</li>
+      {% endfor %}
+    </ol>
+    {% else %}<p class="meta">No steps entered yet.</p>{% endif %}
+  </section>
+</div>
+
+{% if recipe.notes %}
+<h2>Notes</h2>
+<div class="notes">{{ recipe.notes }}</div>
+{% endif %}
+</body>
+</html>

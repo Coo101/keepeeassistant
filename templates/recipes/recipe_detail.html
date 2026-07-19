@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}{{ recipe.name }} — Recipes{% endblock %}
+{% block content %}
+<div class="recipe-page">
+  <p class="no-print"><a class="back-link" href="{% url 'recipe_list' %}">← all recipes</a></p>
+  <h1>{{ recipe.name }}</h1>
+  <p class="page-meta">
+    {{ recipe.get_dish_type_display }} ·
+    base: {{ recipe.base_children }} children + {{ recipe.base_teens }} teens
+    = <strong>{{ recipe.base_portions }} portions</strong>
+    {% if recipe.total_duration_minutes %} · <span class="badge">{{ recipe.total_duration_minutes }} min total</span>{% endif %}
+  </p>
+  <div class="actions no-print">
+    <form method="get" class="actions" style="margin:0">
+      <label for="portions-input" class="muted">Scale to</label>
+      <input id="portions-input" type="number" name="portions" min="1" max="9999" step="0.1"
+             value="{{ portions|default_if_none:'' }}" placeholder="{{ recipe.base_portions }}" style="min-width:6rem;width:6rem">
+      <button class="btn" type="submit">portions</button>
+      {% if scale %}<a class="btn btn-outline" href="{% url 'recipe_detail' recipe.pk %}">Reset</a>{% endif %}
+    </form>
+    <a class="btn btn-outline" href="{% url 'recipe_pdf' recipe.pk %}{% if portions %}?portions={{ portions }}{% endif %}">PDF</a>
+    <button class="btn btn-outline" onclick="window.print()">Print</button>
+  </div>
+
+  <div class="recipe-columns">
+    <section>
+      <h2>Ingredients{% if scale %} <span class="badge">{{ portions }} portions · × {{ scale|floatformat:2 }}</span>{% endif %}</h2>
+      {% if rows %}
+      <table class="compact">
+        <tbody>
+          {% for row in rows %}
+          <tr>
+            <td>{{ row.name }}</td>
+            <td>{{ row.quantity }} {{ row.unit }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="empty-slot">No ingredients entered yet.</p>
+      {% endif %}
+    </section>
+
+    <section>
+      <h2>Steps</h2>
+      {% if recipe.steps.all %}
+      <ol class="recipe-steps">
+        {% for step in recipe.steps.all %}
+        <li>{{ step.instruction }}{% if step.duration_minutes %} <span class="muted">({{ step.duration_minutes }} min)</span>{% endif %}</li>
+        {% endfor %}
+      </ol>
+      {% else %}
+      <p class="empty-slot">No steps entered yet.</p>
+      {% endif %}
+    </section>
+  </div>
+
+  {% if recipe.notes %}
+  <h2>Notes</h2>
+  <div class="card recipe-notes">{{ recipe.notes|linebreaks }}</div>
+  {% endif %}
+</div>
+{% endblock %}

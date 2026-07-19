@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}{{ camp.name }} — Draaiboek{% endblock %}
+{% block content %}
+<h1 id="info">Draaiboek kookploeg — {{ camp.name }}</h1>
+<p class="page-meta">
+  {{ camp.start_date|date:"d M Y" }} – {{ camp.end_date|date:"d M Y" }} ·
+  {{ camp.num_children }} children + {{ camp.num_teens }} teens + {{ camp.num_staff }} staff
+  = <strong>{{ camp.demand_portions }} portions</strong>
+</p>
+<div class="actions no-print">
+  <a class="btn btn-outline" href="{% url 'planner' camp.pk %}">← menu plan</a>
+  <a class="btn" href="{% url 'runbook_pdf' camp.pk %}">Draaiboek PDF</a>
+</div>
+
+<nav class="toc no-print">
+  <a href="#info">Info</a>
+  {% for day in days %}
+  <a href="#day-{{ day.date|date:'Y-m-d' }}">Dag {{ day.number }}</a>
+  {% endfor %}
+</nav>
+
+<div class="runbook-info-grid">
+  <div class="card">
+    <h3>Kookploeg</h3>
+    {% if camp.cook_team %}<p class="prewrap">{{ camp.cook_team }}</p>
+    {% else %}<p class="empty-slot">Vul aan bij de camp-instellingen (admin).</p>{% endif %}
+  </div>
+  <div class="card">
+    <h3>Locatie</h3>
+    {% if camp.location %}<p class="prewrap">{{ camp.location }}</p>
+    {% else %}<p class="empty-slot">—</p>{% endif %}
+  </div>
+  <div class="card">
+    <h3>Aanspreekpunt leiding</h3>
+    {% if camp.contact_leader %}<p class="prewrap">{{ camp.contact_leader }}</p>
+    {% else %}<p class="empty-slot">—</p>{% endif %}
+  </div>
+  <div class="card">
+    <h3>Aanspreekpunt verhuur</h3>
+    {% if camp.contact_rental %}<p class="prewrap">{{ camp.contact_rental }}</p>
+    {% else %}<p class="empty-slot">—</p>{% endif %}
+  </div>
+  <div class="card">
+    <h3>Bakker</h3>
+    {% if camp.bakery %}<p class="prewrap">{{ camp.bakery }}</p>
+    {% else %}<p class="empty-slot">—</p>{% endif %}
+  </div>
+  <div class="card">
+    <h3>Dagklapper (maaltijden)</h3>
+    <table class="compact">
+      <tbody>
+        <tr><td>Ontbijt</td><td>{{ camp.breakfast_time|time:"H:i" }}</td></tr>
+        <tr><td>Middagmaal</td><td>{{ camp.lunch_time|time:"H:i" }}</td></tr>
+        <tr><td>Vieruurtje</td><td>{{ camp.teatime_time|time:"H:i" }}</td></tr>
+        <tr><td>Avondmaal</td><td>{{ camp.dinner_time|time:"H:i" }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% if camp.general_notes %}
+<div class="card"><h3>Algemene info</h3><p class="prewrap">{{ camp.general_notes }}</p></div>
+{% endif %}
+
+{% for day in days %}
+<section class="runbook-day" id="day-{{ day.date|date:'Y-m-d' }}">
+  <h2>Dag {{ day.number }} — {{ day.date|date:"l d F Y" }}</h2>
+
+  <table class="runbook-menu">
+    <thead>
+      <tr><th style="width:16%">Maaltijd</th><th style="width:28%">Menu</th><th>Ingrediënten ({{ camp.demand_portions }} porties)</th></tr>
+    </thead>
+    <tbody>
+      {% for meal in day.meals %}
+        {% for cell in meal.cells %}
+        <tr>
+          <td>{% if forloop.first %}<strong>{{ meal.label }}</strong>{% endif %}
+              <div class="slot-course">{{ cell.slot.label }}</div></td>
+          <td>{% if cell.entry %}<a href="{% url 'recipe_detail' cell.entry.recipe.pk %}">{{ cell.entry.recipe.name }}</a>{% else %}<span class="empty-slot">—</span>{% endif %}</td>
+          <td>{% if cell.scaled %}{% for item in cell.scaled.ingredients %}<span class="qty">{{ item.ingredient.name }} {{ item.quantity }}&nbsp;{{ item.unit }}</span>{% if not forloop.last %} · {% endif %}{% endfor %}{% endif %}</td>
+        </tr>
+        {% endfor %}
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if day.step_blocks %}
+  <h3>Stappenplan</h3>
+  {% for block in day.step_blocks %}
+  <div class="step-block">
+    <h4>{{ block.recipe.name }} <span class="muted">({{ block.meal_label }}{% if block.recipe.total_duration_minutes %} · {{ block.recipe.total_duration_minutes }} min{% endif %})</span></h4>
+    <ol>
+      {% for step in block.steps %}
+      <li>{{ step.instruction }}{% if step.duration_minutes %} <span class="muted">({{ step.duration_minutes }} min)</span>{% endif %}</li>
+      {% endfor %}
+    </ol>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <h3>No-tities</h3>
+  <form method="post" class="note-form no-print">
+    {% csrf_token %}
+    <input type="hidden" name="date" value="{{ day.date|date:'Y-m-d' }}">
+    <textarea name="text" rows="3" placeholder="Notities voor deze dag…">{{ day.note_text }}</textarea>
+    <button class="btn" type="submit">Bewaar notities</button>
+  </form>
+</section>
+{% endfor %}
+{% endblock %}

@@ -17,7 +17,8 @@
 </div>
 
 {% if scaled %}
-<h2>Scaled for {{ camp.demand_portions }} portions <span class="badge">× {{ scaled.scale|floatformat:2 }}</span></h2>
+<h2>Scaled for {{ camp.demand_portions }} portions <span class="badge">× {{ scaled.scale|floatformat:2 }}</span>
+  <a class="muted" href="{% url 'recipe_detail' entry.recipe.pk %}">recipe page →</a></h2>
 <p class="muted">{{ entry.recipe.name }} — base: {{ entry.recipe.base_children }} children + {{ entry.recipe.base_teens }} teens = {{ entry.recipe.base_portions }} portions</p>
 <table class="compact">
   <thead><tr><th>Ingredient</th><th>Quantity</th></tr></thead>

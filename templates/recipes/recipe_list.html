@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Recipes — Camp Meal Planner{% endblock %}
+{% block content %}
+<h1>Recipes</h1>
+<p class="page-meta">Browse the recipe library; edit in the <a href="/admin/recipes/recipe/">admin</a>.</p>
+<form method="get" class="actions">
+  <input type="search" name="q" value="{{ query }}" placeholder="Search recipes or ingredients…" aria-label="Search recipes">
+  <button class="btn" type="submit">Search</button>
+  {% if query %}<a class="btn btn-outline" href="{% url 'recipe_list' %}">Clear</a>{% endif %}
+</form>
+{% if query and not groups %}
+<p class="empty-slot">No recipes match "{{ query }}".</p>
+{% endif %}
+{% for group in groups %}
+<h2>{{ group.label }}</h2>
+<ul class="recipe-grid">
+  {% for recipe in group.recipes %}
+  <li>
+    <a class="recipe-card" href="{% url 'recipe_detail' recipe.pk %}">
+      <span class="recipe-name">{{ recipe.name }}</span>
+      <span class="muted">{{ recipe.base_portions }} portions{% if recipe.total_duration_minutes %} · {{ recipe.total_duration_minutes }} min{% endif %}</span>
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+{% empty %}
+<p>No recipes yet. <a href="/admin/recipes/recipe/add/">Add one in the admin</a>.</p>
+{% endfor %}
+{% endblock %}

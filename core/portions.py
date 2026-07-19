@@ -22,3 +22,11 @@ def round_quantity(quantity: Decimal, unit: str) -> Decimal:
     if unit == Unit.PIECE:
         return quantity.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
     return quantity.quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+
+
+def format_quantity(quantity: Decimal) -> str:
+    """Human display without trailing zeros (2.500 -> 2.5, 130.000 -> 130)."""
+    quantity = quantity.normalize()
+    if quantity.as_tuple().exponent > 0:
+        quantity = quantity.quantize(Decimal("1"))
+    return str(quantity)

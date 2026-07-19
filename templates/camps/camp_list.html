@@ -22,7 +22,8 @@
       <td><span class="badge">{{ camp.demand_portions }}</span></td>
       <td>
         <a href="{% url 'planner' camp.pk %}">Menu plan</a> ·
-        <a href="{% url 'shopping' camp.pk %}">Shopping</a>
+        <a href="{% url 'shopping' camp.pk %}">Shopping</a> ·
+        <a href="{% url 'runbook' camp.pk %}">Draaiboek</a>
       </td>
     </tr>
     {% endfor %}
