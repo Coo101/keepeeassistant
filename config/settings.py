@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -24,14 +25,27 @@ load_dotenv(BASE_DIR / ".env")
 # Where the SQLite database lives; a Docker volume mounts over this.
 DATA_DIR = Path(os.environ.get("DJANGO_DATA_DIR", BASE_DIR))
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-)i^kz^3!87hi8jbv%d5esv+)v$t+b&-)+rn&5b$%ng3w7b^z&j",
-)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"
+def _env_flag(name: str, default: str = "0") -> bool:
+    return os.environ.get(name, default).strip().lower() in {"1", "true", "yes", "on"}
+
+
+# SECURITY WARNING: don't run with debug turned on in production! Defaults to
+# off so a deployment is safe without configuration; dev opts in via .env.
+DEBUG = _env_flag("DJANGO_DEBUG")
+
+# SECURITY WARNING: keep the secret key used in production secret! Without an
+# explicit key we only start in DEBUG, so a missing .env fails loudly instead
+# of silently signing cookies with a key that is public in the repo history.
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ImproperlyConfigured(
+            "DJANGO_SECRET_KEY is not set. Copy .env.example to .env and "
+            'generate one: python -c "import secrets; '
+            'print(secrets.token_urlsafe(50))"'
+        )
+    SECRET_KEY = "django-insecure-dev-only-never-use-in-production"
 
 ALLOWED_HOSTS = [h for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if h]
 

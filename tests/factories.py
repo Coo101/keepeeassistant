@@ -67,6 +67,7 @@ def assign(
 
 PRODUCE = IngredientCategory.PRODUCE
 DRY = IngredientCategory.DRY_GOODS
+BAKERY = IngredientCategory.BAKERY
 KG = Unit.KG
 PIECE = Unit.PIECE
 LITER = Unit.LITER

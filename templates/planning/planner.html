@@ -12,6 +12,7 @@
   <a class="btn btn-outline" href="{% url 'runbook' camp.pk %}">Draaiboek</a>
   <a class="btn" href="{% url 'overview_pdf' camp.pk %}">Overview PDF</a>
 </div>
+<div class="table-scroll">
 <table class="planner-table">
   <thead>
     <tr>
@@ -43,4 +44,5 @@
     {% endfor %}
   </tbody>
 </table>
+</div>
 {% endblock %}

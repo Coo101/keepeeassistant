@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}{{ camp.name }} — Budget{% endblock %}
+{% block content %}
+<p><a class="back-link" href="{% url 'shopping' camp.pk %}">← shopping lists</a></p>
+<h1>{{ camp.name }} — budget</h1>
+<p class="page-meta">
+  Estimated cost:
+  <strong>€ {{ budget.total|floatformat:2 }}</strong>
+  {% if budget.cost_per_portion_day %} · € {{ budget.cost_per_portion_day|floatformat:2 }} per portion per day{% endif %}
+  · prices: Colruyt Everyday/Boni (<code>manage.py import_colruyt_prices</code>)
+</p>
+
+{% if budget.shop_totals %}
+<div class="shop-totals">
+  {% for st in budget.shop_totals %}
+  <div class="shop-total{% if st.missing_count %} shop-total-partial{% endif %}">
+    <span class="shop-total-label">{{ st.label }}</span>
+    <span class="shop-total-value">€ {{ st.total|floatformat:2 }}</span>
+    {% if st.missing_count %}<span class="shop-total-note">+ {{ st.missing_count }} without price</span>{% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if budget.missing %}
+<div class="warning">
+  ⚠️ <strong>No price yet for:</strong>
+  {% for ingredient in budget.missing %}{{ ingredient.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+  — these are not counted. Set prices in the <a href="/admin/recipes/ingredient/">ingredient admin</a>
+  or run the price import.
+</div>
+{% endif %}
+
+{% if budget.plan.uncovered_days %}
+<div class="warning">
+  ⚠️ Uncovered days are not in this budget:
+  {% for d in budget.plan.uncovered_days %}{{ d|date:"D d M" }}{% if not forloop.last %}, {% endif %}{% endfor %}
+</div>
+{% endif %}
+
+{% for tb in budget.trips %}
+<h2>Shop on {{ tb.trip_list.trip.date|date:"l d M" }} <span class="badge">€ {{ tb.total|floatformat:2 }}</span></h2>
+<p class="muted">Covers {{ tb.trip_list.cover_start|date:"D d M" }} – {{ tb.trip_list.cover_end|date:"D d M" }}</p>
+{% for shop in tb.shops %}
+<h3 class="shop-title">{{ shop.label }} <span class="badge">€ {{ shop.total|floatformat:2 }}</span>{% if shop.missing_count %} <span class="muted">+ {{ shop.missing_count }} without price</span>{% endif %}</h3>
+{% for category, lines in shop.lines_by_category.items %}
+<div class="category-block">
+  <h4>{{ category }}</h4>
+  <table class="budget-table">
+    <thead><tr><th>Ingredient</th><th>Qty</th><th>Unit price</th><th>Cost</th></tr></thead>
+    <tbody>
+      {% for line in lines %}
+      <tr{% if line.cost is None %} class="row-missing"{% endif %}>
+        <td>{{ line.ingredient.name }}</td>
+        <td>{{ line.quantity }} {{ line.unit }}</td>
+        <td>{% if line.unit_price is not None %}€ {{ line.unit_price|floatformat:2 }}/{{ line.unit }}{% else %}—{% endif %}</td>
+        <td>{% if line.cost is not None %}€ {{ line.cost|floatformat:2 }}{% else %}<span class="muted">no price</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endfor %}
+{% endfor %}
+{% empty %}
+<p class="empty-slot">No shopping trips selected yet — pick shopping days on the
+<a href="{% url 'shopping' camp.pk %}">shopping page</a> first.</p>
+{% endfor %}
+{% endblock %}

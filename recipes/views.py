@@ -17,7 +17,7 @@ DISH_TYPE_LABELS = dict(DishType.CHOICES)
 def recipe_list(request: HttpRequest) -> HttpResponse:
     """All recipes grouped by dish type; ?q= filters on recipe or ingredient."""
     query = request.GET.get("q", "").strip()
-    recipes = Recipe.objects.all()
+    recipes = Recipe.objects.prefetch_related("steps")
     if query:
         recipes = recipes.filter(
             Q(name__icontains=query) | Q(ingredients__ingredient__name__icontains=query)

@@ -35,24 +35,32 @@ next trip day — never its own day. Add a trip before the camp starts to cover 
 {% if plan.trip_lists %}
 <div class="actions">
   <a class="btn" href="{% url 'shopping_pdf' camp.pk %}">Shopping lists PDF</a>
+  <a class="btn btn-outline" href="{% url 'budget' camp.pk %}">Budget</a>
 </div>
 {% for tl in plan.trip_lists %}
 <h2>Shop on {{ tl.trip.date|date:"l d M" }}</h2>
 <p class="muted">Covers {{ tl.cover_start|date:"D d M" }} – {{ tl.cover_end|date:"D d M" }}
   ({{ tl.covered_days|length }} camp day{{ tl.covered_days|length|pluralize }})</p>
-{% if tl.items_by_category %}
-  {% for category, items in tl.items_by_category.items %}
-  <div class="category-block">
-    <h3>{{ category }}</h3>
-    <table class="compact">
-      <tbody>
-        {% for item in items %}
-        <tr><td>{{ item.ingredient.name }}</td><td>{{ item.quantity }} {{ item.unit }}</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+{% if tl.shop_sections %}
+  <div class="shop-grid">
+    {% for section in tl.shop_sections %}
+    <section class="shop-section">
+      <h3 class="shop-title">{{ section.label }} <span class="muted">{{ section.item_count }} item{{ section.item_count|pluralize }}</span></h3>
+      {% for category, items in section.items_by_category.items %}
+      <div class="category-block">
+        <h4>{{ category }}</h4>
+        <table class="compact">
+          <tbody>
+            {% for item in items %}
+            <tr><td>{{ item.ingredient.name }}</td><td>{{ item.quantity }} {{ item.unit }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endfor %}
+    </section>
+    {% endfor %}
   </div>
-  {% endfor %}
 {% else %}
 <p class="empty-slot">Nothing to buy — no menu entries in the covered days.</p>
 {% endif %}

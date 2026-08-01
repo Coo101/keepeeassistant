@@ -19,7 +19,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN python manage.py collectstatic --noinput
+# collectstatic needs a key but never signs anything; the real key comes from
+# the environment at runtime. This throwaway value stays in the build step.
+RUN DJANGO_SECRET_KEY=build-time-only-not-a-secret \
+    python manage.py collectstatic --noinput
 
 VOLUME /data
 EXPOSE 8000

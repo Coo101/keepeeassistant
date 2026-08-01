@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from camps.models import Camp
 from core.pdf import render_pdf
+from shopping.budget import build_budget
 from shopping.models import ShoppingTrip
 from shopping.services import build_shopping_plan
 
@@ -59,6 +60,16 @@ def shopping(request: HttpRequest, camp_id: int) -> HttpResponse:
                 for d in candidates
             ],
         },
+    )
+
+
+def budget(request: HttpRequest, camp_id: int) -> HttpResponse:
+    """Estimated cost per shopping trip based on ingredient prices."""
+    camp = get_object_or_404(Camp, pk=camp_id)
+    return render(
+        request,
+        "shopping/budget.html",
+        {"camp": camp, "budget": build_budget(camp)},
     )
 
 

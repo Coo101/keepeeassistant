@@ -6,6 +6,9 @@ services:
     # Secrets and host config come from .env (see .env.example)
     env_file:
       - .env
+    environment:
+      # Overrides env_file: never inherit a developer's DJANGO_DEBUG=1.
+      DJANGO_DEBUG: "0"
     volumes:
       - campdata:/data
     restart: unless-stopped

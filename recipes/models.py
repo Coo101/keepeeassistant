@@ -4,8 +4,9 @@ from decimal import Decimal
 
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.utils.functional import cached_property
 
-from core.constants import DishType, IngredientCategory, Unit
+from core.constants import DishType, IngredientCategory, Shop, Unit
 from core.portions import format_quantity, portions
 
 
@@ -17,6 +18,35 @@ class Ingredient(models.Model):
         choices=IngredientCategory.CHOICES,
         default=IngredientCategory.OTHER,
     )
+
+    # Budgeting (SPEC §13): EUR per canonical unit (kg / liter / piece).
+    shop = models.CharField(
+        max_length=12,
+        choices=Shop.CHOICES,
+        default=Shop.COLRUYT,
+        help_text="Where this ingredient is bought; only Colruyt items get "
+        "automatic price updates",
+    )
+    price_per_unit = models.DecimalField(
+        max_digits=8,
+        decimal_places=4,
+        null=True,
+        blank=True,
+        help_text="EUR per kg/liter/piece",
+    )
+    product_details = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name="product details",
+        help_text="Name, [brand] ([LOS] = loose/unpackaged) and container "
+        "volume or other details",
+    )
+    colruyt_product_id = models.CharField(
+        max_length=20,
+        blank=True,
+        help_text="Pin a Colruyt productId; price updates follow this product",
+    )
+    price_updated = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ["name"]
@@ -52,8 +82,10 @@ class Recipe(models.Model):
     def base_portions(self) -> Decimal:
         return portions(children=self.base_children, teens=self.base_teens)
 
-    @property
+    @cached_property
     def total_duration_minutes(self) -> int:
+        # Cached: templates read this twice (test + display) per recipe, and
+        # it walks the prefetched steps rather than re-querying.
         return sum(step.duration_minutes or 0 for step in self.steps.all())
 
 

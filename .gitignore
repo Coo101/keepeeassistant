@@ -3,7 +3,11 @@
 __pycache__/
 *.pyc
 db.sqlite3
+colruyt-products.json
 .idea/
 .pytest_cache/
 .ruff_cache/
 staticfiles/
+
+# Duplicates left behind by the file-sync tool ("... (# Name clash ... #).py")
+*# Name clash *

@@ -86,7 +86,7 @@ INGREDIENTS: dict[str, tuple[str, str]] = {
     "Pitavlees": (KG, MEAT),
     "Stoofvlees": (KG, MEAT),
     "BBQ-vlees (pak)": (P, MEAT),
-    "Braadworst": (P, MEAT),
+    "Chipolata": (P, MEAT),
     "Hamburgers": (P, MEAT),
     "Kipschnitzel": (P, MEAT),
     "Visburgers (groot)": (P, MEAT),
@@ -958,7 +958,7 @@ RECIPES: list[dict[str, Any]] = [
             ("Aardappelen", "8"),
             ("Boter", "0.5"),
             ("Melk", "1"),
-            ("Braadworst", "80"),
+            ("Chipolata", "80"),
         ],
         "steps": [
             (

@@ -5,9 +5,18 @@ from recipes.models import Ingredient, Recipe, RecipeIngredient, RecipeStep
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = ["name", "unit", "category"]
-    list_filter = ["category", "unit"]
-    search_fields = ["name"]
+    list_display = [
+        "name",
+        "unit",
+        "category",
+        "shop",
+        "price_per_unit",
+        "product_details",
+        "price_updated",
+    ]
+    list_filter = ["shop", "category", "unit"]
+    search_fields = ["name", "product_details"]
+    list_editable = ["shop", "price_per_unit"]
 
 
 class RecipeIngredientInline(admin.TabularInline):

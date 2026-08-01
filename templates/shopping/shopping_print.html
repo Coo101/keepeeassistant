@@ -15,6 +15,9 @@
     td.qty { text-align: right; white-space: nowrap; width: 30%; }
     .trip { page-break-before: always; }
     .trip:first-of-type { page-break-before: avoid; }
+    .shop-block { page-break-inside: avoid; margin-bottom: 10pt; }
+    .shop-title { font-size: 12pt; background: #e6f0ea; color: #1e4d33;
+                  padding: 3pt 6pt; border-radius: 3pt; margin-bottom: 4pt; }
     .warning { border: 1.5pt solid #f59e0b; background: #fef3c7; padding: 6pt; margin: 8pt 0; }
     .checkbox { display: inline-block; width: 9pt; height: 9pt; border: 1pt solid #333; margin-right: 4pt; vertical-align: middle; }
     {% if pdf_fallback %}@media screen { body::before { content: "PDF engine unavailable — use your browser's Print to save as PDF."; display:block; background:#fef3c7; padding:8px; margin-bottom:12px; } }{% endif %}
@@ -35,18 +38,23 @@
 <div class="trip">
   <h2>Shop on {{ tl.trip.date|date:"l d F Y" }}</h2>
   <p class="meta">Covers {{ tl.cover_start|date:"D d M" }} – {{ tl.cover_end|date:"D d M" }}</p>
-  {% for category, items in tl.items_by_category.items %}
-  <h3>{{ category }}</h3>
-  <table>
-    <tbody>
-      {% for item in items %}
-      <tr>
-        <td><span class="checkbox"></span>{{ item.ingredient.name }}</td>
-        <td class="qty">{{ item.quantity }} {{ item.unit }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  {% for section in tl.shop_sections %}
+  <div class="shop-block">
+    <h2 class="shop-title">{{ section.label }}</h2>
+    {% for category, items in section.items_by_category.items %}
+    <h3>{{ category }}</h3>
+    <table>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td><span class="checkbox"></span>{{ item.ingredient.name }}</td>
+          <td class="qty">{{ item.quantity }} {{ item.unit }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endfor %}
+  </div>
   {% empty %}
   <p class="meta">Nothing to buy for this trip.</p>
   {% endfor %}

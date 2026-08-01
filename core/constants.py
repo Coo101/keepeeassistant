@@ -18,6 +18,20 @@ class Unit:
     ]
 
 
+class Shop:
+    VANZON = "vanzon"
+    COLRUYT = "colruyt"
+    BAKKER = "bakker"
+    BEENHOUWER = "beenhouwer"
+
+    CHOICES = [
+        (VANZON, "Van Zon"),
+        (COLRUYT, "Colruyt"),
+        (BAKKER, "Bakker"),
+        (BEENHOUWER, "Beenhouwer"),
+    ]
+
+
 class IngredientCategory:
     PRODUCE = "produce"
     DAIRY = "dairy"

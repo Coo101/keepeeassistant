@@ -26,12 +26,18 @@ def _parse_date(value: str) -> datetime.date:
         raise Http404(f"Invalid date: {value}") from exc
 
 
-def _build_grid(camp: Camp) -> list[dict]:
-    """Rows = camp days; each row has the four meals with their slots."""
-    entries = {
-        (e.date, e.meal_type, e.course): e
-        for e in camp.menu_entries.select_related("recipe")
-    }
+def _build_grid(camp: Camp, with_recipe_details: bool = False) -> list[dict]:
+    """Rows = camp days; each row has the four meals with their slots.
+
+    `with_recipe_details` prefetches ingredients and steps for callers that
+    render them (runbook, overview PDF); the plain grid only needs names.
+    """
+    queryset = camp.menu_entries.select_related("recipe")
+    if with_recipe_details:
+        queryset = queryset.prefetch_related(
+            "recipe__ingredients__ingredient", "recipe__steps"
+        )
+    entries = {(e.date, e.meal_type, e.course): e for e in queryset}
     grid = []
     for day in camp.days:
         meals = []
@@ -121,7 +127,7 @@ def edit_slot(
 def _runbook_days(camp: Camp) -> list[dict]:
     """Day sections for the runbook: menu grid + scaled quantities, steps
     per planned recipe, and the day's note."""
-    grid = _build_grid(camp)
+    grid = _build_grid(camp, with_recipe_details=True)
     notes = {note.date: note for note in camp.day_notes.all()}
     days = []
     for number, row in enumerate(grid, start=1):
@@ -188,7 +194,7 @@ def runbook_pdf(request: HttpRequest, camp_id: int) -> HttpResponse:
 def overview_pdf(request: HttpRequest, camp_id: int) -> HttpResponse:
     """Camp/day overview with scaled quantities per meal (SPEC §9.5)."""
     camp = get_object_or_404(Camp, pk=camp_id)
-    grid = _build_grid(camp)
+    grid = _build_grid(camp, with_recipe_details=True)
     for row in grid:
         for meal in row["meals"]:
             for cell in meal["cells"]:

@@ -28,6 +28,14 @@ their own pages.
   list per trip (a trip buys for the days *after* it, up to the next trip);
   uncovered days are flagged.
 - **PDF export** — camp overview and shopping lists via WeasyPrint.
+- **Budgeting** — per-camp cost estimate (`/camps/<id>/budget/`) from
+  ingredient prices. `manage.py import_colruyt_prices` fills prices from
+  the nightly public Colruyt product dump
+  ([colruyt-products-scraper](https://github.com/BelgianNoise/colruyt-products-scraper)),
+  preferring the Everyday/Boni house brands and the fresh assortment.
+  Review matches in the ingredient admin; pin a `colruyt_product_id` to
+  lock an ingredient to a specific product, or set prices manually.
+  `--rematch` redoes the matching from scratch.
 
 ### PDF export on Windows
 
@@ -53,6 +61,13 @@ python-dotenv and docker compose). First time: copy
 [.env.example](.env.example) to `.env`, generate a `DJANGO_SECRET_KEY`,
 and put your host's name/IP in `DJANGO_ALLOWED_HOSTS` (plus
 `DJANGO_CSRF_TRUSTED_ORIGINS` when serving via a domain/proxy).
+
+`DJANGO_DEBUG` is **off** unless explicitly enabled, and without a
+`DJANGO_SECRET_KEY` the app refuses to start rather than falling back to a
+key that is public in this repo. So a missing or incomplete `.env` fails
+loudly at startup instead of quietly running an insecure instance. Compose
+pins `DJANGO_DEBUG=0` for the container even if your local `.env` turns it
+on for development.
 
 First-time setup inside the container:
 
