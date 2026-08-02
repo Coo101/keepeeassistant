@@ -76,6 +76,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "core.middleware.LoginRequiredForWritesMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -161,6 +162,19 @@ if not DEBUG:
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Authentication: reading is public, writing needs a login (see
+# core.middleware.LoginRequiredForWritesMiddleware). Sessions last a month
+# and refresh on use, so the kookploeg logs in once per device per camp.
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "camp_list"
+LOGOUT_REDIRECT_URL = "camp_list"
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 30
+SESSION_SAVE_EVERY_REQUEST = True
+
+# Send cookies over HTTPS only when serving over TLS (set in .env).
+SESSION_COOKIE_SECURE = _env_flag("DJANGO_SECURE_COOKIES")
+CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE
 
 # Logging (SPEC §10: Python logging, no print)
 LOGGING = {

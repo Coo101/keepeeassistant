@@ -3,6 +3,7 @@
 import datetime
 
 import pytest
+from django.contrib.auth.models import User
 from django.test import Client
 from django.urls import reverse
 
@@ -13,6 +14,14 @@ from tests.factories import KG, PRODUCE, assign, make_camp, make_recipe
 pytestmark = pytest.mark.django_db
 
 AUG_1 = datetime.date(2026, 8, 1)
+
+
+def _editor_client() -> Client:
+    """Saving notes needs a login (see core.middleware)."""
+    User.objects.create_user("kok", password="soep-en-brood")
+    client = Client()
+    client.login(username="kok", password="soep-en-brood")
+    return client
 
 
 def _camp_with_menu():
@@ -51,16 +60,19 @@ def test_runbook_shows_info_days_and_steps() -> None:
 def test_runbook_note_save_and_display() -> None:
     camp = _camp_with_menu()
     url = reverse("runbook", args=[camp.pk])
-    response = Client().post(url, {"date": "2026-08-01", "text": "Te veel kiek."})
+    response = _editor_client().post(
+        url, {"date": "2026-08-01", "text": "Te veel kiek."}
+    )
     assert response.status_code == 302
     note = DayNote.objects.get(camp=camp, date=AUG_1)
     assert note.text == "Te veel kiek."
+    # the saved note is visible to readers too
     assert "Te veel kiek." in Client().get(url).content.decode()
 
 
 def test_runbook_note_rejects_non_camp_day() -> None:
     camp = _camp_with_menu()
-    response = Client().post(
+    response = _editor_client().post(
         reverse("runbook", args=[camp.pk]),
         {"date": "2030-01-01", "text": "nope"},
     )

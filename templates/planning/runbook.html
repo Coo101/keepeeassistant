@@ -100,12 +100,17 @@
   {% endif %}
 
   <h3>No-tities</h3>
+  {% if user.is_authenticated %}
   <form method="post" class="note-form no-print">
     {% csrf_token %}
     <input type="hidden" name="date" value="{{ day.date|date:'Y-m-d' }}">
     <textarea name="text" rows="3" placeholder="Notities voor deze dag…">{{ day.note_text }}</textarea>
     <button class="btn" type="submit">Bewaar notities</button>
   </form>
+  {% else %}
+    {% if day.note_text %}<p class="prewrap">{{ day.note_text }}</p>
+    {% else %}<p class="empty-slot">Geen notities.</p>{% endif %}
+  {% endif %}
 </section>
 {% endfor %}
 {% endblock %}

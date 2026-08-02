@@ -17,6 +17,29 @@ Then open http://localhost:8100/ — recipes, ingredients and camps are managed 
 the [admin](http://localhost:8100/admin/); menu planning and shopping lists have
 their own pages.
 
+## Access
+
+Browsing is open to everyone on the network — recipes, menu plans, the
+runbook and shopping lists can be read without logging in, so a shared
+tablet in the kitchen needs no password. **Changing** anything (menu
+slots, day notes, shopping days, and the admin) requires a login.
+
+This is enforced by HTTP method in
+[core/middleware.py](core/middleware.py): any non-GET request from an
+anonymous visitor is redirected to the login page, so a new form added
+later is protected automatically. Sessions last 30 days and refresh on
+use, so each device logs in once per camp.
+
+Create accounts for the kookploeg with:
+
+```bash
+docker compose exec web python manage.py createsuperuser
+```
+
+Use `createsuperuser` only for people who should also reach `/admin/`;
+for planners who only edit menus, add a normal user in the admin. Set
+`DJANGO_SECURE_COOKIES=1` in `.env` when serving over HTTPS.
+
 ## Features (v1)
 
 - **Recipe library** — recipes with dish types, ingredients (piece/kg/liter),

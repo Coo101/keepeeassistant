@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Log in — Camp Meal Planner{% endblock %}
+{% block content %}
+<h1>Log in</h1>
+<p class="page-meta">Browsing is open to everyone; logging in lets you change
+menus, notes and shopping days.</p>
+
+<div class="card login-card">
+  {% if form.errors %}
+  <div class="warning">Wrong username or password — try again.</div>
+  {% endif %}
+  <form method="post">
+    {% csrf_token %}
+    <p>
+      <label for="{{ form.username.id_for_label }}">Username</label><br>
+      {{ form.username }}
+    </p>
+    <p>
+      <label for="{{ form.password.id_for_label }}">Password</label><br>
+      {{ form.password }}
+    </p>
+    <input type="hidden" name="next" value="{{ next }}">
+    <button class="btn" type="submit">Log in</button>
+  </form>
+</div>
+{% endblock %}

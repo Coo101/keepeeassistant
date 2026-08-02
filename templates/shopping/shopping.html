@@ -8,6 +8,7 @@
 <p class="muted">A trip buys for the days <strong>after</strong> it, up to and including the
 next trip day — never its own day. Add a trip before the camp starts to cover the opening days.</p>
 <div class="card">
+  {% if user.is_authenticated %}
   <form method="post">
     {% csrf_token %}
     <ul class="checkboxes">
@@ -22,6 +23,17 @@ next trip day — never its own day. Add a trip before the camp starts to cover 
     </ul>
     <button class="btn" type="submit">Save shopping days</button>
   </form>
+  {% else %}
+  <ul class="checkboxes">
+    {% for c in candidates %}{% if c.selected %}
+    <li><label>{{ c.date|date:"D d M" }}{% if c.pre_camp %} <span class="muted">(before camp)</span>{% endif %}</label></li>
+    {% endif %}{% endfor %}
+  </ul>
+  <p class="readonly-hint">
+    <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">Log in</a>
+    to change the shopping days.
+  </p>
+  {% endif %}
 </div>
 
 {% if plan.uncovered_days %}

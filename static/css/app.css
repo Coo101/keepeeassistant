@@ -41,6 +41,46 @@ header .brand { font-weight: 700; font-size: 1.15rem; letter-spacing: 0.01em; op
 
 main { padding: 1.75rem 1.5rem 3rem; max-width: 1150px; margin: 0 auto; }
 
+.header-auth {
+  margin-left: auto;
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+.header-auth form { display: inline; }
+.muted-light { color: rgb(255 255 255 / 0.75); font-size: 0.9rem; }
+
+.linklike {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: white;
+  opacity: 0.9;
+  cursor: pointer;
+  text-decoration: none;
+}
+.linklike:hover { opacity: 1; text-decoration: underline; }
+
+.login-card { max-width: 22rem; }
+.login-card input[type="text"],
+.login-card input[type="password"] {
+  width: 100%;
+  font: inherit;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.readonly-hint {
+  background: var(--accent-soft);
+  border-left: 4px solid var(--accent);
+  border-radius: 6px;
+  padding: 0.6rem 0.9rem;
+  margin: 0.6rem 0;
+  font-size: 0.92rem;
+}
+
 /* ---------- Typography ---------- */
 
 h1 { font-size: 1.6rem; margin: 0 0 0.25rem; letter-spacing: -0.01em; }

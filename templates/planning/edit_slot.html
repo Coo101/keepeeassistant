@@ -6,6 +6,7 @@
 <p class="page-meta">{{ camp.name }} · <strong>{{ camp.demand_portions }} portions</strong></p>
 
 <div class="card">
+  {% if user.is_authenticated %}
   <form method="post">
     {% csrf_token %}
     {{ form.recipe.errors }}
@@ -14,6 +15,13 @@
       <button class="btn" type="submit">Save</button>
     </div>
   </form>
+  {% else %}
+  <p>{% if entry %}<strong>{{ entry.recipe.name }}</strong>{% else %}<span class="empty-slot">No recipe picked yet.</span>{% endif %}</p>
+  <p class="readonly-hint">
+    <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">Log in</a>
+    to change this slot.
+  </p>
+  {% endif %}
 </div>
 
 {% if scaled %}

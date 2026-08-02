@@ -11,6 +11,17 @@
   <a class="brand" href="{% url 'camp_list' %}">🏕️ Camp Meal Planner</a>
   <a href="{% url 'recipe_list' %}">Recipes</a>
   <a href="/admin/">Admin</a>
+  <span class="header-auth">
+    {% if user.is_authenticated %}
+      <span class="muted-light">{{ user.get_username }}</span>
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button class="linklike" type="submit">Log out</button>
+      </form>
+    {% else %}
+      <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">Log in</a>
+    {% endif %}
+  </span>
 </header>
 <main>
 {% block content %}{% endblock %}
