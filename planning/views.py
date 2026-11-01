@@ -66,7 +66,11 @@ def planner(request: HttpRequest, camp_id: int) -> HttpResponse:
     return render(
         request,
         "planning/planner.html",
-        {"camp": camp, "grid": _build_grid(camp)},
+        {
+            "camp": camp,
+            "grid": _build_grid(camp),
+            "outside_entries": camp.entries_outside_dates(),
+        },
     )
 
 

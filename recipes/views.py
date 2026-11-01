@@ -43,7 +43,8 @@ def _parse_portions(request: HttpRequest) -> Decimal | None:
         portions = Decimal(raw)
     except InvalidOperation:
         return None
-    return portions if 0 < portions < 10000 else None
+    # NaN can't be compared, so check is_finite before the range.
+    return portions if portions.is_finite() and 0 < portions < 10000 else None
 
 
 def _recipe_context(request: HttpRequest, recipe_id: int) -> dict:

@@ -6,14 +6,15 @@ A summer camp meal planner — see [docs/SPEC.md](docs/SPEC.md) for the full spe
 ## Setup
 
 ```powershell
-py -3.13 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install "Django>=5.1,<6" weasyprint pytest pytest-django ruff black
+uv sync   # creates .venv from pyproject.toml and uv.lock
+Copy-Item .env.example .env   # then set DJANGO_DEBUG=1 for local development
 .\.venv\Scripts\python.exe manage.py migrate
 .\.venv\Scripts\python.exe manage.py seed_demo   # optional: demo data + dev admin (admin/admin)
 .\.venv\Scripts\python.exe manage.py runserver 8100
 ```
 
-Then open http://localhost:8100/ — recipes, ingredients and camps are managed in
+In PyCharm, use the shared **Dev server** run configuration (`.run/`), which
+runs the same command. Then open http://localhost:8100/ — recipes, ingredients and camps are managed in
 the [admin](http://localhost:8100/admin/); menu planning and shopping lists have
 their own pages.
 
@@ -22,7 +23,10 @@ their own pages.
 Browsing is open to everyone on the network — recipes, menu plans, the
 runbook and shopping lists can be read without logging in, so a shared
 tablet in the kitchen needs no password. **Changing** anything (menu
-slots, day notes, shopping days, and the admin) requires a login.
+slots, day notes, shopping days, and the admin) requires a login. So does
+reading the runbook's contact details: the kookploeg, location, contacts,
+bakery and general notes are left out of the page and PDF for anonymous
+visitors.
 
 This is enforced by HTTP method in
 [core/middleware.py](core/middleware.py): any non-GET request from an
@@ -52,13 +56,9 @@ for planners who only edit menus, add a normal user in the admin. Set
   uncovered days are flagged.
 - **PDF export** — camp overview and shopping lists via WeasyPrint.
 - **Budgeting** — per-camp cost estimate (`/camps/<id>/budget/`) from
-  ingredient prices. `manage.py import_colruyt_prices` fills prices from
-  the nightly public Colruyt product dump
-  ([colruyt-products-scraper](https://github.com/BelgianNoise/colruyt-products-scraper)),
-  preferring the Everyday/Boni house brands and the fresh assortment.
-  Review matches in the ingredient admin; pin a `colruyt_product_id` to
-  lock an ingredient to a specific product, or set prices manually.
-  `--rematch` redoes the matching from scratch.
+  ingredient prices, which are set by hand in the
+  [ingredient admin](http://localhost:8100/admin/recipes/ingredient/). See
+  [docs/TODO.md](docs/TODO.md) for the prices that need checking.
 
 ### PDF export on Windows
 
@@ -70,11 +70,14 @@ and restart the server.
 
 ## Docker
 
+This compose file builds the production image for a local check with
+Docker Desktop; production itself is deployed by CI (see below).
+
 ```bash
 docker compose up -d --build
 ```
 
-Then open http://localhost:8000/. The SQLite database lives on the named
+Then open http://localhost:8010/. The SQLite database lives on the named
 volume `campdata` (mounted at `/data`), so it survives rebuilds and
 restarts. Migrations run automatically at container start, and the image
 includes the Pango libraries, so PDF export works natively.
@@ -104,6 +107,17 @@ Or copy an existing local database into the volume instead:
 ```bash
 docker compose cp db.sqlite3 web:/data/db.sqlite3 && docker compose restart web
 ```
+
+## Branches and deployment
+
+- `dev` is where work happens; run it locally from PyCharm.
+- Every push and PR runs the tests in Gitea Actions
+  ([.gitea/workflows/ci-cd.yml](.gitea/workflows/ci-cd.yml)).
+- A push to `main` also builds the image, pushes it to the Gitea registry
+  and deploys it to the homelab Docker host. Merging into `main` therefore
+  **is** a production release.
+
+The open work is tracked in [docs/TODO.md](docs/TODO.md).
 
 ## Development
 

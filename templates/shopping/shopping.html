@@ -4,6 +4,21 @@
 <p><a class="back-link" href="{% url 'planner' camp.pk %}">← back to menu plan</a></p>
 <h1>{{ camp.name }} — shopping</h1>
 
+{% if outside_entries %}
+<div class="warning">
+  ⚠️ <strong>Planned outside the camp dates</strong> (not shown in the menu plan and not on any shopping list):
+  {% for entry in outside_entries %}{{ entry.date|date:"D d M Y" }} {{ entry.recipe.name }}{% if not forloop.last %}, {% endif %}{% endfor %}.
+  Change the camp dates or remove them in the <a href="/admin/planning/menuentry/">admin</a>.
+</div>
+{% endif %}
+{% if outside_trips %}
+<div class="warning">
+  ⚠️ <strong>Shopping days outside the dates below:</strong>
+  {% for d in outside_trips %}{{ d|date:"D d M Y" }}{% if not forloop.last %}, {% endif %}{% endfor %}.
+  They still count; change or remove them in the <a href="/admin/shopping/shoppingtrip/">admin</a>.
+</div>
+{% endif %}
+
 <h2>Shopping days</h2>
 <p class="muted">A trip buys for the days <strong>after</strong> it, up to and including the
 next trip day — never its own day. Add a trip before the camp starts to cover the opening days.</p>

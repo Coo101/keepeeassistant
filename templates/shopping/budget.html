@@ -7,7 +7,7 @@
   Estimated cost:
   <strong>€ {{ budget.total|floatformat:2 }}</strong>
   {% if budget.cost_per_portion_day %} · € {{ budget.cost_per_portion_day|floatformat:2 }} per portion per day{% endif %}
-  · prices: Colruyt Everyday/Boni (<code>manage.py import_colruyt_prices</code>)
+  · prices are set by hand in the <a href="/admin/recipes/ingredient/">ingredient admin</a>
 </p>
 
 {% if budget.shop_totals %}
@@ -26,8 +26,15 @@
 <div class="warning">
   ⚠️ <strong>No price yet for:</strong>
   {% for ingredient in budget.missing %}{{ ingredient.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
-  — these are not counted. Set prices in the <a href="/admin/recipes/ingredient/">ingredient admin</a>
-  or run the price import.
+  — these are not counted. Set prices in the <a href="/admin/recipes/ingredient/">ingredient admin</a>.
+</div>
+{% endif %}
+
+{% if budget.unit_conflicts %}
+<div class="warning">
+  ⚠️ <strong>Recipe and price use different units:</strong>
+  {% for ingredient in budget.unit_conflicts %}{{ ingredient.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+  — these are not counted. Make the units match in the admin.
 </div>
 {% endif %}
 

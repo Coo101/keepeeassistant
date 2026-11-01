@@ -67,6 +67,13 @@ class Camp(models.Model):
         n = (self.end_date - self.start_date).days + 1
         return [self.start_date + datetime.timedelta(days=i) for i in range(n)]
 
+    def entries_outside_dates(self) -> models.QuerySet:
+        """Menu entries stranded by a change of camp dates: not shown in the
+        planner and not bought, so pages warn about them."""
+        return self.menu_entries.exclude(
+            date__range=(self.start_date, self.end_date)
+        ).select_related("recipe")
+
 
 class DayNote(models.Model):
     """Free-form runbook notes for one camp day (the draaiboek 'no-tities')."""

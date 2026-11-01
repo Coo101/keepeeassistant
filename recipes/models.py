@@ -2,6 +2,7 @@
 
 from decimal import Decimal
 
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.functional import cached_property
@@ -19,13 +20,12 @@ class Ingredient(models.Model):
         default=IngredientCategory.OTHER,
     )
 
-    # Budgeting (SPEC §13): EUR per canonical unit (kg / liter / piece).
+    # Budgeting (SPEC §9.6): EUR per canonical unit, set by hand in the admin.
     shop = models.CharField(
         max_length=12,
         choices=Shop.CHOICES,
         default=Shop.COLRUYT,
-        help_text="Where this ingredient is bought; only Colruyt items get "
-        "automatic price updates",
+        help_text="Where this ingredient is bought",
     )
     price_per_unit = models.DecimalField(
         max_digits=8,
@@ -40,11 +40,6 @@ class Ingredient(models.Model):
         verbose_name="product details",
         help_text="Name, [brand] ([LOS] = loose/unpackaged) and container "
         "volume or other details",
-    )
-    colruyt_product_id = models.CharField(
-        max_length=20,
-        blank=True,
-        help_text="Pin a Colruyt productId; price updates follow this product",
     )
     price_updated = models.DateTimeField(null=True, blank=True)
 
@@ -111,6 +106,18 @@ class RecipeIngredient(models.Model):
 
     def __str__(self) -> str:
         return f"{self.quantity} {self.unit} {self.ingredient.name}"
+
+    def clean(self) -> None:
+        # The ingredient's price is per its own unit, so a different unit here
+        # could not be costed (SPEC §3: no conversions).
+        if self.ingredient_id and self.unit != self.ingredient.unit:
+            raise ValidationError(
+                {
+                    "unit": f"{self.ingredient.name} is measured in "
+                    f"{self.ingredient.unit}; use that unit or change the "
+                    "ingredient."
+                }
+            )
 
     @property
     def quantity_display(self) -> str:

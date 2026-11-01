@@ -6,8 +6,9 @@ import logging
 from decimal import Decimal
 from typing import Any
 
+from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
 from camps.models import Camp
 from core.constants import Course, DishType, IngredientCategory, MealType, Unit
@@ -192,6 +193,11 @@ class Command(BaseCommand):
     help = "Seed demo data (dev admin, ingredients, recipes, one planned camp)."
 
     def handle(self, *args: Any, **options: Any) -> None:
+        if not settings.DEBUG:
+            raise CommandError(
+                "seed_demo creates the login admin/admin, so it only runs with "
+                "DJANGO_DEBUG=1."
+            )
         if not User.objects.filter(username="admin").exists():
             User.objects.create_superuser("admin", password="admin")
             self.stdout.write("Created dev superuser admin/admin — change it!")

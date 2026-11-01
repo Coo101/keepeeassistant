@@ -37,7 +37,10 @@ DEBUG = _env_flag("DJANGO_DEBUG")
 # SECURITY WARNING: keep the secret key used in production secret! Without an
 # explicit key we only start in DEBUG, so a missing .env fails loudly instead
 # of silently signing cookies with a key that is public in the repo history.
+# The .env.example placeholder counts as missing: it is public too.
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
+if SECRET_KEY == "change-me":
+    SECRET_KEY = ""
 if not SECRET_KEY:
     if not DEBUG:
         raise ImproperlyConfigured(
@@ -47,7 +50,12 @@ if not SECRET_KEY:
         )
     SECRET_KEY = "django-insecure-dev-only-never-use-in-production"
 
-ALLOWED_HOSTS = [h for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if h]
+# Loopback is always allowed: the container healthcheck calls 127.0.0.1.
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    *(h for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if h),
+]
 
 CSRF_TRUSTED_ORIGINS = [
     o for o in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if o

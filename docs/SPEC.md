@@ -2,7 +2,7 @@
 
 **Status:** v1.0 — Ready for build (via Claude Code)
 **Author:** Yonick
-**Last updated:** 2026-07-17
+**Last updated:** 2026-11-01
 
 > This document is the source of truth for the build. Keep it in the repo (e.g.
 > `docs/SPEC.md`) and reference it from `../CLAUDE.md` so the coding agent always
@@ -39,7 +39,7 @@ templates fit it well.
 
 | Layer | Choice |
 |---|---|
-| Language | Python 3.12 |
+| Language | Python 3.12+ (the Docker image uses 3.13) |
 | Framework | Django 5.x |
 | Database | SQLite (dev) -> Postgres if ever multi-user |
 | Templating | Django templates (+ HTMX optional for snappier UI) |
@@ -87,6 +87,10 @@ dinner).
 - `name` (unique)
 - `unit` — one of **{piece, kg, liter}** (fixed set; no conversions)
 - `category` — produce / dairy / meat / bakery / dry goods / other (for grouping)
+- `shop` — Van Zon / Colruyt / bakker / beenhouwer (lists are split per shop)
+- `price_per_unit` — EUR per `unit`, optional, set by hand
+- `product_details` — free text describing the product the price is for
+- `price_updated` — when the price was last updated
 
 ### Recipe
 - `name`
@@ -102,6 +106,8 @@ dinner).
 
 ### RecipeIngredient
 - `recipe`, `ingredient`, `quantity`, `unit`
+- `unit` must match the ingredient's unit (validated), because the price is per
+  that unit and there are no conversions.
 
 ### RecipeStep
 - `recipe`, `order`, `instruction`, `duration_minutes` (optional)
@@ -111,6 +117,11 @@ dinner).
 - `num_children` (under 12), `num_teens` (12+), `num_staff`
 - meal times: `breakfast_time`, `lunch_time`, `teatime_time`, `dinner_time`
 - `demand_portions` (derived) = `num_teens + num_staff + 0.7 * num_children`
+- runbook info: `cook_team`, `location`, `contact_leader`, `contact_rental`,
+  `bakery`, `general_notes`
+
+### DayNote
+- `camp`, `date`, `text` — free-form runbook notes per camp day
 
 ### MenuEntry
 - `camp`, `date`, `meal_type` (breakfast/lunch/tea/dinner)
@@ -199,6 +210,21 @@ covers** so nothing silently falls through the cracks.
 - **Camp / day overview** -> **PDF** (WeasyPrint) for printing.
 - **Shopping lists** -> printable, PDF export as well.
 
+### 9.6 Budget
+- Cost per shop, per trip and per camp: shopping-list quantity x ingredient price.
+- Prices are entered by hand in the admin.
+- Ingredients without a price, or priced per a different unit than a recipe uses,
+  are listed and left out of the total. Uncovered days are not in the budget, and
+  the cost per portion per day divides by covered days only.
+
+### 9.7 Runbook (draaiboek)
+- Per camp: practical info, then per day the menu with scaled quantities, the
+  recipe steps and editable notes. Available as a page and a PDF.
+
+### 9.8 Access
+- Reading is public, except the runbook's contact details and general notes.
+- Changing anything needs a login. All logged-in users have the same rights.
+
 ## 10. Non-functional Requirements
 
 - **Logging:** Python `logging`, no `print`.
@@ -246,5 +272,7 @@ Suggested shared constant: `CHILD_PORTION_FACTOR = 0.7` in `core/`.
   meal and per day, with simple threshold warnings in the planner.
 - Dietary restrictions / allergies handling.
 - "Pantry on hand" subtraction (exclude what you already have).
-- Cost estimation / budgeting.
-- Multi-user accounts / permissions.
+- **Automatic price updates.** Fetch up-to-date ingredient prices from a
+  reliable source. An earlier import from a third-party Colruyt product dump
+  was removed: it is unmaintained and its product matches were unreliable.
+- Per-user roles and permissions.

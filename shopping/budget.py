@@ -1,4 +1,4 @@
-"""Camp budget: shopping-list quantities x ingredient prices (SPEC §13).
+"""Camp budget: shopping-list quantities x ingredient prices (SPEC §9.6).
 
 Costs roll up per shop (so you know what each errand costs), per trip, and
 per camp.
@@ -60,11 +60,15 @@ class CampBudget:
     total: Decimal
     shop_totals: list[ShopTotal]  # per shop across the whole camp
     missing: list[Ingredient]  # unique ingredients without a price
+    # priced per another unit than a recipe uses, so left out of the total
+    unit_conflicts: list[Ingredient] = field(default_factory=list)
 
     @property
     def cost_per_portion_day(self) -> Decimal | None:
+        # Only covered days are in the total, so only they may divide it.
         camp = self.plan.camp
-        divisor = camp.demand_portions * len(camp.days)
+        covered_days = len(camp.days) - len(self.plan.uncovered_days)
+        divisor = camp.demand_portions * covered_days
         if divisor <= 0:
             return None
         return (self.total / divisor).quantize(CENT, rounding=ROUND_HALF_UP)
@@ -76,6 +80,7 @@ def build_budget(camp: Camp) -> CampBudget:
     camp_total = Decimal("0")
     shop_totals: dict[str, ShopTotal] = {}
     missing: dict[int, Ingredient] = {}
+    unit_conflicts: dict[int, Ingredient] = {}
 
     for trip_list in plan.trip_lists:
         shops: list[ShopBudget] = []
@@ -88,6 +93,10 @@ def build_budget(camp: Camp) -> CampBudget:
                 lines = []
                 for item in items:
                     price = item.ingredient.price_per_unit
+                    conflict = item.unit != item.ingredient.unit
+                    if conflict:
+                        price = None
+                        unit_conflicts[item.ingredient.pk] = item.ingredient
                     cost = None
                     if price is not None:
                         cost = (item.quantity * price).quantize(
@@ -97,7 +106,8 @@ def build_budget(camp: Camp) -> CampBudget:
                     else:
                         shop_budget.missing_count += 1
                         trip_missing[item.ingredient.pk] = item.ingredient
-                        missing[item.ingredient.pk] = item.ingredient
+                        if not conflict:
+                            missing[item.ingredient.pk] = item.ingredient
                     lines.append(
                         BudgetLine(
                             ingredient=item.ingredient,
@@ -132,4 +142,5 @@ def build_budget(camp: Camp) -> CampBudget:
         total=camp_total,
         shop_totals=list(shop_totals.values()),
         missing=sorted(missing.values(), key=lambda i: i.name),
+        unit_conflicts=sorted(unit_conflicts.values(), key=lambda i: i.name),
     )

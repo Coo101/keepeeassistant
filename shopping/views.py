@@ -36,7 +36,10 @@ def shopping(request: HttpRequest, camp_id: int) -> HttpResponse:
             except ValueError:
                 logger.warning("Ignoring invalid trip date %r", value)
         selected &= set(candidates)
-        camp.shopping_trips.exclude(date__in=selected).delete()
+        # Trips outside the offered dates weren't on the form: keep them.
+        camp.shopping_trips.filter(date__in=candidates).exclude(
+            date__in=selected
+        ).delete()
         existing = set(camp.shopping_trips.values_list("date", flat=True))
         ShoppingTrip.objects.bulk_create(
             ShoppingTrip(camp=camp, date=d) for d in selected - existing
@@ -51,6 +54,8 @@ def shopping(request: HttpRequest, camp_id: int) -> HttpResponse:
         {
             "camp": camp,
             "plan": plan,
+            "outside_entries": camp.entries_outside_dates(),
+            "outside_trips": sorted(trip_dates - set(candidates)),
             "candidates": [
                 {
                     "date": d,

@@ -43,7 +43,7 @@ def _camp_with_menu():
 
 def test_runbook_shows_info_days_and_steps() -> None:
     camp = _camp_with_menu()
-    response = Client().get(reverse("runbook", args=[camp.pk]))
+    response = _editor_client().get(reverse("runbook", args=[camp.pk]))
     assert response.status_code == 200
     content = response.content.decode()
     assert "Chiro Opoeteren" in content
