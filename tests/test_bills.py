@@ -18,7 +18,7 @@ from accounts.models import Chiro, Role
 from bills.models import Bill, BillLine, LineMatch
 from bills.parsing import parse_pack, parse_text
 from bills.reading import read_with_ollama
-from bills.services import camp_spending
+from bills.services import apply_review, camp_spending, store_parsed_bill
 from camps.models import Camp
 from core.constants import PriceSource, Shop, Unit
 from recipes.models import Ingredient, IngredientPrice
@@ -150,6 +150,152 @@ def test_parse_text_handles_quantity_and_unit_price_columns() -> None:
     assert line.description == "BLOEM"
     assert line.quantity == 3
     assert line.line_total == Decimal("3.60")
+
+
+INVOICE_TEXT = [
+    "BTW BE0123456789",
+    "EENH. PRIJS EXC BEDRAG EXC",
+    "BTW ART. NR OMSCHRIJVING HOEV.",
+    "A 16840 BONI smeerkaas 24st 400g 10 2.54 25.38",
+    "C 5021 CRISTAL pils 5.0%vol 24x25cl 2 12.69 25.37",
+    "leeggoed 5021 2 4.50 9.00",
+    "A000313903-SCP- Korting B0101843 33.34% -3.35",
+    "S_0",
+    "A 5154 VERSE KIPFILET ±1kg 15.084 6.60 99.60",
+    "A 29809 trostomaten 5.000 1.09 5.47",
+    "25633 WAARBORG PLUS BOX COGO 10 6.95 69.50",
+    "A 9191 Servicekost Collect&Go 1 6.56 6.56",
+    "Totale korting met Xtra: € 3.35",
+    "BTW BEDRAG EXC BEDRAG BTW TOTAAL",
+    "A 6% € 137.01 € 8.22 € 145.23",
+    "C 21% € 25.37 € 5.33 € 30.70",
+    "Totaal goederen € 162.38 € 13.55 € 175.93",
+    "Totaal leeggoed € 78.50 € 0.00 € 78.50",
+    "TOTAAL € 240.88 € 13.55 € 254.43",
+    "Totaal bonnen € -3.55",
+    "Te betalen: € 250.89",
+    "14:07:47 Bancontact € 250.89",
+]
+
+
+def test_parse_text_reads_an_invoice_without_vat() -> None:
+    parsed = parse_text("\n".join(INVOICE_TEXT))
+    assert [
+        (line.description, line.quantity, line.line_total, line.is_other)
+        for line in parsed.lines
+    ] == [
+        ("BONI smeerkaas 24st 400g", 10, Decimal("26.90"), False),
+        ("CRISTAL pils 5.0%vol 24x25cl", 2, Decimal("30.70"), False),
+        ("leeggoed 5021", 2, Decimal("9.00"), True),
+        ("Korting B0101843 33.34%", 1, Decimal("-3.55"), True),
+        ("VERSE KIPFILET ±1kg", Decimal("15.084"), Decimal("105.58"), False),
+        ("trostomaten", 5, Decimal("5.80"), False),
+        ("WAARBORG PLUS BOX COGO", 10, Decimal("69.50"), True),
+        ("Servicekost Collect&Go", 1, Decimal("6.95"), True),
+        ("VAT rounding", 1, Decimal("0.01"), True),
+    ]
+    assert [line.weighed for line in parsed.lines[4:6]] == [True, True]
+    assert parsed.printed_total == Decimal("250.89")
+    assert sum(line.line_total for line in parsed.lines) == parsed.printed_total
+
+
+def test_invoice_lines_keep_their_article_number() -> None:
+    parsed = parse_text("\n".join(INVOICE_TEXT))
+    assert [line.article for line in parsed.lines] == [
+        "16840",
+        "5021",
+        "",  # a deposit that prints no article of its own
+        "",  # a discount's promotion code isn't an article
+        "5154",
+        "29809",
+        "25633",
+        "9191",
+        "",
+    ]
+
+
+def test_a_match_follows_the_article_number_when_the_name_changes(camp) -> None:
+    cheese = Ingredient.objects.create(name="Smeerkaas", unit=KG)
+    old = Bill.objects.create(camp=camp, shop=Shop.COLRUYT)
+    store_parsed_bill(old, parse_text("\n".join(INVOICE_TEXT)))
+    line = old.lines.get(article="16840")
+    line.ingredient, line.pack_amount = cheese, Decimal("0.400")
+    line.save()
+    apply_review(old)
+    assert LineMatch.objects.get(ingredient=cheese).key == "16840"
+
+    renamed = "\n".join(INVOICE_TEXT).replace("BONI smeerkaas", "BONI kaasportie")
+    new = Bill.objects.create(camp=camp, shop=Shop.COLRUYT)
+    store_parsed_bill(new, parse_text(renamed))
+    line = new.lines.get(article="16840")
+    assert line.ingredient == cheese
+    assert line.pack_amount == Decimal("0.400")
+
+
+WHOLESALE_TEXT = [
+    "Art. Nr. Omschrijving Aantal Eh Ehp Promo Subtotaal korting Totaal Code",
+    "51640 BRANDPASTA BLIKJE 200G 4 CU 1,2354 4,94 5,00 4,69 21 %",
+    "75467 NACHO SALSA MILD DIP 2 CU 1,8409 3,68 5,00 3,50 6 %",
+    "300G",
+    "37597 GEBAKKEN HAM 1/2 PPKG 2,424 WUK 11,9460 28,96 5,00 27,51 6 %",
+    "962 VISTIP 24X125G 3 CU 28,4956 3,00 82,92 5,00 78,78 6 %",
+    "Alle BIO producten van Inkoopcentra",
+    "497,11 24,86 109,79 6,59 6 116,38 EUR",
+    "4,94 0,25 4,69 0,98 21 5,67 EUR",
+    "502,05 25,11 114,48 7,57 122,06 EUR",
+]
+
+
+def test_parse_text_reads_a_wholesale_invoice() -> None:
+    parsed = parse_text("\n".join(WHOLESALE_TEXT))
+    assert [
+        (line.article, line.description, line.quantity, line.line_total, line.weighed)
+        for line in parsed.lines
+    ] == [
+        ("51640", "BRANDPASTA BLIKJE 200G", 4, Decimal("5.67"), False),
+        ("75467", "NACHO SALSA MILD DIP 300G", 2, Decimal("3.71"), False),
+        ("37597", "GEBAKKEN HAM 1/2 PPKG", Decimal("2.424"), Decimal("29.16"), True),
+        ("962", "VISTIP 24X125G", 3, Decimal("83.51"), False),
+        ("", "VAT rounding", 1, Decimal("0.01"), False),
+    ]
+    assert parsed.printed_total == Decimal("122.06")
+    assert sum(line.line_total for line in parsed.lines) == parsed.printed_total
+
+
+def test_invoice_that_is_far_off_keeps_the_difference_visible() -> None:
+    text = "\n".join(INVOICE_TEXT).replace(
+        "Te betalen: € 250.89", "Te betalen: € 300.00"
+    )
+    parsed = parse_text(text)
+    assert "VAT rounding" not in [line.description for line in parsed.lines]
+    assert sum(line.line_total for line in parsed.lines) != parsed.printed_total
+
+
+def test_invoice_lines_suggest_amounts(camp) -> None:
+    chicken = Ingredient.objects.create(name="Kipfilet", unit=KG)
+    cheese = Ingredient.objects.create(name="Smeerkaas", unit=KG)
+    tomatoes = Ingredient.objects.create(name="Trostomaten", unit=KG)
+    bill = Bill.objects.create(camp=camp, shop=Shop.COLRUYT)
+    store_parsed_bill(bill, parse_text("\n".join(INVOICE_TEXT)))
+    # The weight is the quantity, so one item is one kg of it.
+    line = bill.lines.get(ingredient=chicken)
+    assert (line.quantity, line.pack_amount) == (Decimal("15.084"), 1)
+    assert line.unit_price == Decimal("6.9995")
+    assert bill.lines.get(ingredient=tomatoes).pack_amount == 1
+    # 400 g counts for a price per kg, not the 24 portions.
+    assert bill.lines.get(ingredient=cheese).pack_amount == Decimal("0.400")
+
+
+@pytest.mark.parametrize(
+    ("text", "unit", "expected"),
+    [
+        ("KAAS 24ST 400G", Unit.KG, (Decimal("0.400"), Unit.KG)),
+        ("KAAS 24ST 400G", Unit.PIECE, (Decimal("24"), Unit.PIECE)),
+        ("KAAS 400G", Unit.LITER, None),
+    ],
+)
+def test_parse_pack_in_a_unit(text: str, unit: str, expected) -> None:
+    assert parse_pack(text, unit) == expected
 
 
 @pytest.mark.parametrize(

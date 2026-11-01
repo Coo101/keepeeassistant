@@ -29,9 +29,12 @@ def _guess_ingredient(description: str, ingredients: list[Ingredient]):
     return None
 
 
-def _guess_amount(description: str, ingredient: Ingredient) -> Decimal | None:
-    pack = parse_pack(description)
-    if pack and pack[1] == ingredient.unit:
+def _guess_amount(parsed: ParsedLine, ingredient: Ingredient) -> Decimal | None:
+    if parsed.weighed:
+        # The quantity already is the weight, whatever '±1kg' the name mentions.
+        return Decimal("1") if ingredient.unit == Unit.KG else None
+    pack = parse_pack(parsed.description, ingredient.unit)
+    if pack:
         return pack[0]
     return Decimal("1") if ingredient.unit == Unit.PIECE else None
 
@@ -45,20 +48,21 @@ def _new_line(
     line = BillLine(
         bill=bill,
         description=parsed.description,
+        article=parsed.article,
         quantity=parsed.quantity,
         line_total=parsed.line_total,
     )
     if parsed.is_other:
         line.category = BillLine.Category.OTHER
         return line
-    match = matches.get(normalise(parsed.description))
+    match = matches.get(parsed.article) or matches.get(normalise(parsed.description))
     if match and match.unit == match.ingredient.unit:
         line.ingredient = match.ingredient
         line.pack_amount = match.pack_amount
         return line
     line.ingredient = _guess_ingredient(parsed.description, ingredients)
     if line.ingredient:
-        line.pack_amount = _guess_amount(parsed.description, line.ingredient)
+        line.pack_amount = _guess_amount(parsed, line.ingredient)
     return line
 
 
@@ -112,7 +116,7 @@ def _remember_match(line: BillLine) -> None:
         return
     LineMatch.objects.update_or_create(
         shop=line.bill.shop,
-        key=normalise(line.description),
+        key=line.article or normalise(line.description),
         defaults={
             "ingredient": line.ingredient,
             "pack_amount": line.pack_amount,

@@ -71,6 +71,8 @@ class BillLine(models.Model):
 
     bill = models.ForeignKey(Bill, on_delete=models.CASCADE, related_name="lines")
     description = models.CharField(max_length=200)
+    # The shop's own number, when the bill prints one: names change, this doesn't.
+    article = models.CharField(max_length=20, blank=True, editable=False)
     quantity = models.DecimalField(
         max_digits=8,
         decimal_places=3,
@@ -133,7 +135,7 @@ class LineMatch(models.Model):
     """A confirmed match per shop, so the next bill needs less checking."""
 
     shop = models.CharField(max_length=12, choices=Shop.CHOICES)
-    key = models.CharField(max_length=200)
+    key = models.CharField(max_length=200)  # article number, else the description
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     pack_amount = models.DecimalField(max_digits=8, decimal_places=3)
     unit = models.CharField(max_length=10, choices=Unit.CHOICES)

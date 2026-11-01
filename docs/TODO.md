@@ -45,7 +45,8 @@ a wrong old one stays until you delete it on the ingredient's page in the admin.
 
 - [ ] Fetch up-to-date ingredient prices automatically: needs a reliable source first
 - [ ] Install an Ollama vision model; none is installed yet, so photos can't be read
-- [ ] Send real bills, so the reader can be tuned to their layout
+- [ ] Send real bills of other shops, so the reader can be tuned to their layout
+      (Collect&Go and Van Zon invoices are done)
 - [ ] Before going public: add the Cloudflare tunnel, set `DJANGO_SECURE_COOKIES=1`,
       `DJANGO_BEHIND_TLS_PROXY=1`, `DJANGO_ALLOWED_HOSTS` and `DJANGO_CSRF_TRUSTED_ORIGINS`, set the `EMAIL_*` values,
       and check login and upload through the tunnel

@@ -278,7 +278,9 @@ covers** so nothing silently falls through the cracks.
   while keeping the amounts, and goes when its bill or camp is deleted.
 - PDFs with text are read in plain Python. Scans and photos wait for an Ollama
   vision model (`manage.py read_bills`), and stay waiting while it's unreachable.
-  Lines can always be added by hand.
+  Lines can always be added by hand. Invoices listing amounts without VAT (Collect&Go,
+  Van Zon) get the VAT added per line, so the lines add up to what was paid. Where a bill
+  prints article numbers, the remembered match per shop follows the number.
 - A person reviews every line: ingredient, amount per item in the ingredient's
   unit, and category. Saving sets the camp's price (paid / total amount) and
   remembers the match per shop. Nothing changes a price before that.
