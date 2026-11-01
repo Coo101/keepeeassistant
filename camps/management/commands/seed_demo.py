@@ -10,6 +10,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
 
+from accounts.models import Chiro, Membership
 from camps.models import Camp
 from core.constants import Course, DishType, IngredientCategory, MealType, Unit
 from planning.models import MenuEntry
@@ -201,6 +202,10 @@ class Command(BaseCommand):
         if not User.objects.filter(username="admin").exists():
             User.objects.create_superuser("admin", password="admin")
             self.stdout.write("Created dev superuser admin/admin — change it!")
+        chiro, _ = Chiro.objects.get_or_create(name="Demo Chiro")
+        Membership.objects.get_or_create(
+            user=User.objects.get(username="admin"), chiro=chiro
+        )
 
         for name, unit, category in INGREDIENTS:
             Ingredient.objects.get_or_create(
@@ -239,6 +244,7 @@ class Command(BaseCommand):
         camp, created = Camp.objects.get_or_create(
             name="Summer Camp 2026",
             defaults={
+                "chiro": chiro,
                 "start_date": start,
                 "end_date": start + datetime.timedelta(days=6),
                 "num_children": 28,

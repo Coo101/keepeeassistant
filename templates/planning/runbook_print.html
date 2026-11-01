@@ -43,13 +43,11 @@
 <div class="info-page">
   <h1>Praktische info</h1>
   <div class="info-grid">
-    {% if user.is_authenticated %}
     <div><h3>Kookploeg</h3><p class="prewrap">{% if camp.cook_team %}{{ camp.cook_team }}{% else %}—{% endif %}</p></div>
     <div><h3>Locatie</h3><p class="prewrap">{% if camp.location %}{{ camp.location }}{% else %}—{% endif %}</p></div>
     <div><h3>Aanspreekpunt leiding</h3><p class="prewrap">{% if camp.contact_leader %}{{ camp.contact_leader }}{% else %}—{% endif %}</p></div>
     <div><h3>Aanspreekpunt verhuur</h3><p class="prewrap">{% if camp.contact_rental %}{{ camp.contact_rental }}{% else %}—{% endif %}</p></div>
     <div><h3>Bakker</h3><p class="prewrap">{% if camp.bakery %}{{ camp.bakery }}{% else %}—{% endif %}</p></div>
-    {% endif %}
     <div>
       <h3>Dagklapper (maaltijden)</h3>
       <table>
@@ -62,7 +60,7 @@
       </table>
     </div>
   </div>
-  {% if camp.general_notes and user.is_authenticated %}
+  {% if camp.general_notes %}
   <h3>Algemene info</h3>
   <p class="prewrap">{{ camp.general_notes }}</p>
   {% endif %}

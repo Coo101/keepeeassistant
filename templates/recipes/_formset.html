@@ -1,0 +1,23 @@
+{{ formset.management_form }}
+{{ formset.non_form_errors }}
+<div class="table-scroll">
+<table class="compact">
+  <thead>
+    <tr>
+      {% for field in formset.empty_form.visible_fields %}<th>{{ field.label }}</th>{% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in formset %}
+    <tr>
+      {% for field in row.visible_fields %}
+      <td>
+        {% if forloop.first %}{% for hidden in row.hidden_fields %}{{ hidden }}{% endfor %}{{ row.non_field_errors }}{% endif %}
+        {{ field }}{{ field.errors }}
+      </td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>

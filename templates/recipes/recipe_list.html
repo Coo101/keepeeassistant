@@ -2,7 +2,7 @@
 {% block title %}Recipes — Camp Meal Planner{% endblock %}
 {% block content %}
 <h1>Recipes</h1>
-<p class="page-meta">Browse the recipe library; edit in the <a href="/admin/recipes/recipe/">admin</a>.</p>
+<p class="page-meta">The recipe library is shared between all Chiros. <a href="{% url 'recipe_create' %}">Add a recipe</a>.</p>
 <form method="get" class="actions">
   <input type="search" name="q" value="{{ query }}" placeholder="Search recipes or ingredients…" aria-label="Search recipes">
   <button class="btn" type="submit">Search</button>
@@ -24,6 +24,6 @@
   {% endfor %}
 </ul>
 {% empty %}
-<p>No recipes yet. <a href="/admin/recipes/recipe/add/">Add one in the admin</a>.</p>
+<p>No recipes yet. <a href="{% url 'recipe_create' %}">Add the first one</a>.</p>
 {% endfor %}
 {% endblock %}

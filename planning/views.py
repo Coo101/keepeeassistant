@@ -62,7 +62,7 @@ def _build_grid(camp: Camp, with_recipe_details: bool = False) -> list[dict]:
 
 
 def planner(request: HttpRequest, camp_id: int) -> HttpResponse:
-    camp = get_object_or_404(Camp, pk=camp_id)
+    camp = get_object_or_404(Camp.objects.for_user(request.user), pk=camp_id)
     return render(
         request,
         "planning/planner.html",
@@ -77,7 +77,7 @@ def planner(request: HttpRequest, camp_id: int) -> HttpResponse:
 def edit_slot(
     request: HttpRequest, camp_id: int, date: str, meal_type: str
 ) -> HttpResponse:
-    camp = get_object_or_404(Camp, pk=camp_id)
+    camp = get_object_or_404(Camp.objects.for_user(request.user), pk=camp_id)
     day = _parse_date(date)
     course = request.GET.get("course", "")
     if meal_type not in MealType.ORDER:
@@ -166,7 +166,7 @@ def _runbook_days(camp: Camp) -> list[dict]:
 
 def runbook(request: HttpRequest, camp_id: int) -> HttpResponse:
     """Digital draaiboek: front-page info, per-day menu/steps/notes."""
-    camp = get_object_or_404(Camp, pk=camp_id)
+    camp = get_object_or_404(Camp.objects.for_user(request.user), pk=camp_id)
 
     if request.method == "POST":
         day = _parse_date(request.POST.get("date", ""))
@@ -186,7 +186,7 @@ def runbook(request: HttpRequest, camp_id: int) -> HttpResponse:
 
 
 def runbook_pdf(request: HttpRequest, camp_id: int) -> HttpResponse:
-    camp = get_object_or_404(Camp, pk=camp_id)
+    camp = get_object_or_404(Camp.objects.for_user(request.user), pk=camp_id)
     return render_pdf(
         request,
         "planning/runbook_print.html",
@@ -197,7 +197,7 @@ def runbook_pdf(request: HttpRequest, camp_id: int) -> HttpResponse:
 
 def overview_pdf(request: HttpRequest, camp_id: int) -> HttpResponse:
     """Camp/day overview with scaled quantities per meal (SPEC §9.5)."""
-    camp = get_object_or_404(Camp, pk=camp_id)
+    camp = get_object_or_404(Camp.objects.for_user(request.user), pk=camp_id)
     grid = _build_grid(camp, with_recipe_details=True)
     for row in grid:
         for meal in row["meals"]:

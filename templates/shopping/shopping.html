@@ -8,14 +8,14 @@
 <div class="warning">
   ⚠️ <strong>Planned outside the camp dates</strong> (not shown in the menu plan and not on any shopping list):
   {% for entry in outside_entries %}{{ entry.date|date:"D d M Y" }} {{ entry.recipe.name }}{% if not forloop.last %}, {% endif %}{% endfor %}.
-  Change the camp dates or remove them in the <a href="/admin/planning/menuentry/">admin</a>.
+  {% if user.is_staff %}Change the camp dates or remove them in the <a href="/admin/planning/menuentry/">admin</a>.{% else %}Ask an administrator to change the camp dates or remove them.{% endif %}
 </div>
 {% endif %}
 {% if outside_trips %}
 <div class="warning">
   ⚠️ <strong>Shopping days outside the dates below:</strong>
   {% for d in outside_trips %}{{ d|date:"D d M Y" }}{% if not forloop.last %}, {% endif %}{% endfor %}.
-  They still count; change or remove them in the <a href="/admin/shopping/shoppingtrip/">admin</a>.
+  They still count; {% if user.is_staff %}change or remove them in the <a href="/admin/shopping/shoppingtrip/">admin</a>.{% else %}ask an administrator to change or remove them.{% endif %}
 </div>
 {% endif %}
 
@@ -23,7 +23,6 @@
 <p class="muted">A trip buys for the days <strong>after</strong> it, up to and including the
 next trip day — never its own day. Add a trip before the camp starts to cover the opening days.</p>
 <div class="card">
-  {% if user.is_authenticated %}
   <form method="post">
     {% csrf_token %}
     <ul class="checkboxes">
@@ -38,17 +37,6 @@ next trip day — never its own day. Add a trip before the camp starts to cover 
     </ul>
     <button class="btn" type="submit">Save shopping days</button>
   </form>
-  {% else %}
-  <ul class="checkboxes">
-    {% for c in candidates %}{% if c.selected %}
-    <li><label>{{ c.date|date:"D d M" }}{% if c.pre_camp %} <span class="muted">(before camp)</span>{% endif %}</label></li>
-    {% endif %}{% endfor %}
-  </ul>
-  <p class="readonly-hint">
-    <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">Log in</a>
-    to change the shopping days.
-  </p>
-  {% endif %}
 </div>
 
 {% if plan.uncovered_days %}

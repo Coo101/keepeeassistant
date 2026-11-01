@@ -20,7 +20,6 @@
 </nav>
 
 <div class="runbook-info-grid">
-  {% if user.is_authenticated %}
   <div class="card">
     <h3>Kookploeg</h3>
     {% if camp.cook_team %}<p class="prewrap">{{ camp.cook_team }}</p>
@@ -46,15 +45,6 @@
     {% if camp.bakery %}<p class="prewrap">{{ camp.bakery }}</p>
     {% else %}<p class="empty-slot">—</p>{% endif %}
   </div>
-  {% else %}
-  <div class="card">
-    <h3>Contactgegevens</h3>
-    <p class="readonly-hint">
-      <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">Log in</a>
-      om de kookploeg, locatie en contactpersonen te zien.
-    </p>
-  </div>
-  {% endif %}
   <div class="card">
     <h3>Dagklapper (maaltijden)</h3>
     <table class="compact">
@@ -67,7 +57,7 @@
     </table>
   </div>
 </div>
-{% if camp.general_notes and user.is_authenticated %}
+{% if camp.general_notes %}
 <div class="card"><h3>Algemene info</h3><p class="prewrap">{{ camp.general_notes }}</p></div>
 {% endif %}
 
@@ -110,17 +100,12 @@
   {% endif %}
 
   <h3>No-tities</h3>
-  {% if user.is_authenticated %}
   <form method="post" class="note-form no-print">
     {% csrf_token %}
     <input type="hidden" name="date" value="{{ day.date|date:'Y-m-d' }}">
     <textarea name="text" rows="3" placeholder="Notities voor deze dag…">{{ day.note_text }}</textarea>
     <button class="btn" type="submit">Bewaar notities</button>
   </form>
-  {% else %}
-    {% if day.note_text %}<p class="prewrap">{{ day.note_text }}</p>
-    {% else %}<p class="empty-slot">Geen notities.</p>{% endif %}
-  {% endif %}
 </section>
 {% endfor %}
 {% endblock %}

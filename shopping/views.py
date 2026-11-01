@@ -25,7 +25,7 @@ def _candidate_dates(camp: Camp) -> list[datetime.date]:
 
 
 def shopping(request: HttpRequest, camp_id: int) -> HttpResponse:
-    camp = get_object_or_404(Camp, pk=camp_id)
+    camp = get_object_or_404(Camp.objects.for_user(request.user), pk=camp_id)
     candidates = _candidate_dates(camp)
 
     if request.method == "POST":
@@ -70,7 +70,7 @@ def shopping(request: HttpRequest, camp_id: int) -> HttpResponse:
 
 def budget(request: HttpRequest, camp_id: int) -> HttpResponse:
     """Estimated cost per shopping trip based on ingredient prices."""
-    camp = get_object_or_404(Camp, pk=camp_id)
+    camp = get_object_or_404(Camp.objects.for_user(request.user), pk=camp_id)
     return render(
         request,
         "shopping/budget.html",
@@ -79,7 +79,7 @@ def budget(request: HttpRequest, camp_id: int) -> HttpResponse:
 
 
 def shopping_pdf(request: HttpRequest, camp_id: int) -> HttpResponse:
-    camp = get_object_or_404(Camp, pk=camp_id)
+    camp = get_object_or_404(Camp.objects.for_user(request.user), pk=camp_id)
     plan = build_shopping_plan(camp)
     return render_pdf(
         request,

@@ -7,6 +7,7 @@ from camps.models import Camp, DayNote
 class CampAdmin(admin.ModelAdmin):
     list_display = [
         "name",
+        "chiro",
         "start_date",
         "end_date",
         "num_children",
@@ -14,9 +15,10 @@ class CampAdmin(admin.ModelAdmin):
         "num_staff",
         "demand_portions",
     ]
+    list_filter = ["chiro"]
     search_fields = ["name"]
     fieldsets = (
-        (None, {"fields": ("name", "start_date", "end_date")}),
+        (None, {"fields": ("chiro", "name", "start_date", "end_date")}),
         ("Headcount", {"fields": ("num_children", "num_teens", "num_staff")}),
         (
             "Meal times",

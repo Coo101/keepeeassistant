@@ -7,14 +7,22 @@ import pytest
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.core.management import CommandError, call_command
-from django.test import Client
 from django.urls import reverse
 
 from core.constants import DishType, MealType
 from planning.models import MenuEntry
 from recipes.models import Ingredient, RecipeIngredient
 from shopping.models import ShoppingTrip
-from tests.factories import KG, PIECE, PRODUCE, assign, make_camp, make_recipe
+from tests.factories import (
+    KG,
+    PIECE,
+    PRODUCE,
+    account_client,
+    assign,
+    make_camp,
+    make_recipe,
+    member_client,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -22,17 +30,10 @@ AUG = lambda d: datetime.date(2026, 8, d)  # noqa: E731
 SECRET = "Jan 0470 12 34 56"
 
 
-@pytest.fixture
-def logged_in() -> Client:
-    client = Client()
-    client.force_login(User.objects.create_user("kok"))
-    return client
-
-
 @pytest.mark.parametrize("value", ["NaN", "sNaN", "Infinity", "-1", "abc"])
 def test_invalid_portions_show_the_unscaled_recipe(value: str) -> None:
     recipe = make_recipe("Soep", ingredients=[("Wortel", "2", KG, PRODUCE)])
-    response = Client().get(
+    response = account_client().get(
         reverse("recipe_detail", args=[recipe.pk]), {"portions": value}
     )
     assert response.status_code == 200
@@ -46,9 +47,7 @@ def test_seed_demo_refuses_outside_debug() -> None:
 
 
 @pytest.mark.parametrize("url_name", ["runbook", "runbook_pdf"])
-def test_contact_details_need_a_login(
-    monkeypatch, logged_in: Client, url_name: str
-) -> None:
+def test_contact_details_shown_to_members(monkeypatch, url_name: str) -> None:
     # Force the HTML fallback so the rendered text can be inspected.
     monkeypatch.setattr("core.pdf.weasyprint_available", lambda: False)
     camp = make_camp()
@@ -64,10 +63,7 @@ def test_contact_details_need_a_login(
     camp.save()
     url = reverse(url_name, args=[camp.pk])
 
-    anonymous = Client().get(url)
-    assert anonymous.status_code == 200
-    assert SECRET not in anonymous.content.decode()
-    assert logged_in.get(url).content.decode().count(SECRET) == 6
+    assert member_client(camp).get(url).content.decode().count(SECRET) == 6
 
 
 def test_recipe_unit_must_match_the_ingredient() -> None:
@@ -88,22 +84,24 @@ def test_pages_warn_about_entries_outside_the_camp_dates() -> None:
     recipe = make_recipe("Stoofpot", dish_type=DishType.HOT_MEAL)
     assign(camp, AUG(5), MealType.DINNER, recipe)
     url_names = ("planner", "shopping")
+    client = member_client(camp)
     for url_name in url_names:
-        content = Client().get(reverse(url_name, args=[camp.pk])).content.decode()
+        content = client.get(reverse(url_name, args=[camp.pk])).content.decode()
         assert "Planned outside the camp dates" not in content
 
     camp.end_date = AUG(2)
     camp.save()
 
     for url_name in url_names:
-        content = Client().get(reverse(url_name, args=[camp.pk])).content.decode()
+        content = client.get(reverse(url_name, args=[camp.pk])).content.decode()
         assert "Planned outside the camp dates" in content
         assert "Stoofpot" in content
     assert MenuEntry.objects.count() == 1
 
 
-def test_saving_shopping_days_keeps_trips_outside_the_form(logged_in: Client) -> None:
+def test_saving_shopping_days_keeps_trips_outside_the_form() -> None:
     camp = make_camp()  # Aug 1-5; the form offers Jul 29 - Aug 5
+    logged_in = member_client(camp)
     early = datetime.date(2026, 7, 20)
     ShoppingTrip.objects.create(camp=camp, date=early)
     ShoppingTrip.objects.create(camp=camp, date=AUG(1))

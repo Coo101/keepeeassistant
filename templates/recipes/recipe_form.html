@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}{% if recipe.pk %}{{ recipe.name }}{% else %}New recipe{% endif %} — Recipes{% endblock %}
+{% block content %}
+{% if recipe.pk %}
+<p><a class="back-link" href="{% url 'recipe_detail' recipe.pk %}">← back to recipe</a></p>
+<h1>Edit {{ recipe.name }}</h1>
+{% else %}
+<p><a class="back-link" href="{% url 'recipe_list' %}">← all recipes</a></p>
+<h1>New recipe</h1>
+{% endif %}
+
+{% if camp_count %}
+<div class="warning">
+  ⚠️ <strong>Planned in {{ camp_count }} camp{{ camp_count|pluralize }}.</strong>
+  Changes also update the shopping lists and budgets of those camps, including other Chiros' camps.
+  To leave them as they are, save a copy of this recipe instead.
+</div>
+{% endif %}
+
+<form method="post">
+  {% csrf_token %}
+  <div class="card">{{ form.as_p }}</div>
+  <h2>Ingredients</h2>
+  <div class="card">{% include "recipes/_formset.html" with formset=ingredients %}</div>
+  <h2>Steps</h2>
+  <div class="card">{% include "recipes/_formset.html" with formset=steps %}</div>
+  <button class="btn" type="submit">Save recipe</button>
+</form>
+{% endblock %}

@@ -7,5 +7,5 @@ from camps.models import Camp
 
 
 def camp_list(request: HttpRequest) -> HttpResponse:
-    camps = Camp.objects.all()
+    camps = Camp.objects.for_user(request.user)
     return render(request, "camps/camp_list.html", {"camps": camps})

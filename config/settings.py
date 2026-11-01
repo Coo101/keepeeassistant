@@ -71,6 +71,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "accounts",
     "recipes",
     "camps",
     "planning",
@@ -84,7 +85,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "core.middleware.LoginRequiredForWritesMiddleware",
+    "django.contrib.auth.middleware.LoginRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -171,9 +172,9 @@ if not DEBUG:
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Authentication: reading is public, writing needs a login (see
-# core.middleware.LoginRequiredForWritesMiddleware). Sessions last a month
-# and refresh on use, so the kookploeg logs in once per device per camp.
+# Authentication: every page needs a login unless its view is marked
+# login_not_required, so a new page is private by default. Sessions last a
+# month and refresh on use, so the kookploeg logs in once per device per camp.
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "camp_list"
 LOGOUT_REDIRECT_URL = "camp_list"

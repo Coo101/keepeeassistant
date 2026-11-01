@@ -6,10 +6,18 @@ from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from accounts.models import Chiro
 from core.portions import portions
 
 
+class CampQuerySet(models.QuerySet):
+    def for_user(self, user) -> "CampQuerySet":
+        """Only the camps of the user's Chiros (SPEC §9.8)."""
+        return self.filter(chiro__members=user)
+
+
 class Camp(models.Model):
+    chiro = models.ForeignKey(Chiro, on_delete=models.PROTECT, related_name="camps")
     name = models.CharField(max_length=200)
     start_date = models.DateField()
     end_date = models.DateField()
@@ -44,6 +52,8 @@ class Camp(models.Model):
     general_notes = models.TextField(
         blank=True, help_text="Shown on the runbook front page"
     )
+
+    objects = CampQuerySet.as_manager()
 
     class Meta:
         ordering = ["-start_date"]

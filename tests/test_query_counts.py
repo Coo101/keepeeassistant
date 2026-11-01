@@ -7,12 +7,20 @@ style regressions, not small refactors.
 import datetime
 
 import pytest
-from django.test import Client
 from django.urls import reverse
 
 from core.constants import DishType, MealType
 from shopping.models import ShoppingTrip
-from tests.factories import KG, PIECE, PRODUCE, assign, make_camp, make_recipe
+from tests.factories import (
+    KG,
+    PIECE,
+    PRODUCE,
+    account_client,
+    assign,
+    make_camp,
+    make_recipe,
+    member_client,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -58,7 +66,7 @@ def _busy_camp():
 @pytest.mark.parametrize(
     ("url_name", "max_queries"),
     [
-        ("planner", 6),
+        ("planner", 9),
         ("runbook", 12),
         ("shopping", 12),
         ("budget", 12),
@@ -70,8 +78,9 @@ def test_page_query_count_is_bounded(
 ) -> None:
     camp = _busy_camp()
     url = reverse(url_name, args=[camp.pk])
+    client = member_client(camp)
     with django_assert_max_num_queries(max_queries):
-        assert Client().get(url).status_code == 200
+        assert client.get(url).status_code == 200
 
 
 def test_recipe_list_does_not_query_per_recipe(
@@ -80,5 +89,6 @@ def test_recipe_list_does_not_query_per_recipe(
     for i in range(15):
         recipe = make_recipe(f"Recept {i}", dish_type=DishType.HOT_MEAL, teens=10)
         recipe.steps.create(order=1, instruction="Koken", duration_minutes=20)
-    with django_assert_max_num_queries(4):
-        assert Client().get(reverse("recipe_list")).status_code == 200
+    client = account_client()
+    with django_assert_max_num_queries(7):
+        assert client.get(reverse("recipe_list")).status_code == 200

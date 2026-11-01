@@ -9,6 +9,8 @@
     base: {{ recipe.base_children }} children + {{ recipe.base_teens }} teens
     = <strong>{{ recipe.base_portions }} portions</strong>
     {% if recipe.total_duration_minutes %} · <span class="badge">{{ recipe.total_duration_minutes }} min total</span>{% endif %}
+    {% if recipe.author %} · by {{ recipe.author.get_username }}{% endif %}
+    {% if not can_edit %} · <span class="badge">read-only</span>{% endif %}
   </p>
   <div class="actions no-print">
     <form method="get" class="actions" style="margin:0">
@@ -20,7 +22,15 @@
     </form>
     <a class="btn btn-outline" href="{% url 'recipe_pdf' recipe.pk %}{% if portions %}?portions={{ portions }}{% endif %}">PDF</a>
     <button class="btn btn-outline" onclick="window.print()">Print</button>
+    {% if can_edit %}<a class="btn btn-outline" href="{% url 'recipe_edit' recipe.pk %}">Edit</a>{% endif %}
   </div>
+  <form method="post" action="{% url 'recipe_copy' recipe.pk %}" class="actions no-print">
+    {% csrf_token %}
+    <label for="{{ copy_form.name.id_for_label }}" class="muted">Save a copy as</label>
+    {{ copy_form.name }}
+    <button class="btn btn-outline" type="submit">Save copy</button>
+    {{ copy_form.name.errors }}
+  </form>
 
   <div class="recipe-columns">
     <section>

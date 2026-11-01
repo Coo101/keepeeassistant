@@ -18,6 +18,23 @@ In the order to tackle them. From the project review of 2026-11-01.
 - [x] Cost per portion per day counts covered days only
 - [x] CI: test job starts without secrets; ruff, black and the tests run on every push
 - [x] README and spec updated
+- [x] Every page needs a login; camps are limited to the members of their Chiro
+- [x] Recipes shared between Chiros: author, read-only or editable, save a copy
+- [x] Recipe create and edit screens outside the admin
+- [x] Logging out after the session expired no longer ends in a 405
+
+## 0. Make it workable for normal users (SPEC §9.9)
+
+- [ ] Rename the placeholder Chiro `Mijn Chiro` in the admin and move camps and
+      users to the right Chiros
+- [ ] Screens for camps (create, edit), so users don't need the admin
+- [ ] A way to add ingredients without the admin; recipes can only pick existing ones
+- [ ] Delete a recipe (blocked while a camp plans it)
+- [ ] Decide how to protect camps from changes to a shared recipe: the edit page
+      warns, but a changed recipe still changes other Chiros' shopping lists
+- [ ] Home page with posts, a getting started page and docs; move the camp list off `/`
+- [ ] Mail backend, then "Mijn account": email login, password reset, invitations,
+      list of your Chiros
 
 ## 1. First production deploy
 
@@ -51,8 +68,6 @@ import, so don't trust the budget totals until these are done.
 
 - [ ] Posting a menu slot for a date outside the camp returns a 500
       (`planning/views.py`, `entry.full_clean()`)
-- [ ] Logging out after the session expired ends in a 405 after logging back in
-      (`core/middleware.py`)
 - [ ] Small quantities can round to `0` on shopping lists (below 0.05 kg/liter or
       0.5 piece); consider showing or rounding them up
 - [ ] Check the PDF filename with special characters in a camp or recipe name
@@ -70,8 +85,11 @@ import, so don't trust the budget totals until these are done.
 
 - [ ] Run the container as a non-root user
 - [ ] Rate-limit login attempts
-- [ ] Production is plain HTTP on the LAN, so logins and sessions aren't encrypted;
-      add TLS and `DJANGO_SECURE_COOKIES=1` if that changes
+- [ ] Production is plain HTTP on the LAN, so logins and sessions aren't encrypted.
+      Going public through a Cloudflare tunnel handles TLS, but Django still needs
+      `DJANGO_SECURE_COOKIES=1`, `DJANGO_ALLOWED_HOSTS`, `DJANGO_CSRF_TRUSTED_ORIGINS`
+      and `SECURE_PROXY_SSL_HEADER` (not in settings yet)
+- [ ] Before going public, decide whether SQLite is still enough
 - [ ] Set `TIME_ZONE` to `Europe/Brussels` (currently UTC)
 
 ## Future features

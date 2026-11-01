@@ -34,6 +34,8 @@ class RecipeStepInline(admin.TabularInline):
 class RecipeAdmin(admin.ModelAdmin):
     list_display = [
         "name",
+        "author",
+        "others_can_edit",
         "dish_type",
         "base_children",
         "base_teens",
@@ -42,6 +44,7 @@ class RecipeAdmin(admin.ModelAdmin):
     ]
     list_filter = ["dish_type"]
     search_fields = ["name"]
+    autocomplete_fields = ["author"]
     inlines = [RecipeIngredientInline, RecipeStepInline]
 
     @admin.display(description="Base portions")

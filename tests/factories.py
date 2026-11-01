@@ -2,7 +2,12 @@
 
 import datetime
 from decimal import Decimal
+from typing import Any
 
+from django.contrib.auth.models import User
+from django.test import Client
+
+from accounts.models import Chiro, Membership
 from camps.models import Camp
 from core.constants import DishType, IngredientCategory, Unit
 from planning.models import MenuEntry
@@ -15,8 +20,10 @@ def make_camp(
     children: int = 20,
     teens: int = 30,
     staff: int = 8,
+    chiro: Chiro | None = None,
 ) -> Camp:
     return Camp.objects.create(
+        chiro=chiro or Chiro.objects.get_or_create(name="Test Chiro")[0],
         name="Test Camp",
         start_date=start,
         end_date=start + datetime.timedelta(days=days - 1),
@@ -24,6 +31,23 @@ def make_camp(
         num_teens=teens,
         num_staff=staff,
     )
+
+
+def account_client(username: str = "kok", **extra: Any) -> Client:
+    """Logged in, but not linked to any Chiro."""
+    user, _ = User.objects.get_or_create(username=username, defaults=extra)
+    client = Client()
+    client.force_login(user)
+    return client
+
+
+def member_client(camp: Camp, username: str = "kok") -> Client:
+    """Logged in as a member of the camp's Chiro."""
+    client = account_client(username)
+    Membership.objects.get_or_create(
+        user=User.objects.get(username=username), chiro=camp.chiro
+    )
+    return client
 
 
 def make_recipe(

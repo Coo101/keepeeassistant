@@ -14,40 +14,35 @@ Copy-Item .env.example .env   # then set DJANGO_DEBUG=1 for local development
 ```
 
 In PyCharm, use the shared **Dev server** run configuration (`.run/`), which
-runs the same command. Then open http://localhost:8100/ — recipes, ingredients and camps are managed in
-the [admin](http://localhost:8100/admin/); menu planning and shopping lists have
+runs the same command. Then open http://localhost:8100/ — Chiros, users, ingredients and camps are
+managed in the [admin](http://localhost:8100/admin/); recipes, menu planning and shopping lists have
 their own pages.
 
 ## Access
 
-Browsing is open to everyone on the network — recipes, menu plans, the
-runbook and shopping lists can be read without logging in, so a shared
-tablet in the kitchen needs no password. **Changing** anything (menu
-slots, day notes, shopping days, and the admin) requires a login. So does
-reading the runbook's contact details: the kookploeg, location, contacts,
-bakery and general notes are left out of the page and PDF for anonymous
-visitors.
+Every page needs a login, enforced by Django's `LoginRequiredMiddleware`, so a
+new page is private by default. Mark a public page with `login_not_required`.
+Sessions last 30 days and refresh on use, so each device logs in once per camp.
 
-This is enforced by HTTP method in
-[core/middleware.py](core/middleware.py): any non-GET request from an
-anonymous visitor is redirected to the login page, so a new form added
-later is protected automatically. Sessions last 30 days and refresh on
-use, so each device logs in once per camp.
+- **Camps** belong to a Chiro. Only its members can see or change them, and staff
+  get no exception outside the admin.
+- **Recipes** are shared between all accounts, who can read them and save a renamed
+  copy. The author chooses whether a recipe is read-only or editable by everyone.
 
-Create accounts for the kookploeg with:
+Access is by invitation. Create the first administrator with:
 
 ```bash
 docker compose exec web python manage.py createsuperuser
 ```
 
-Use `createsuperuser` only for people who should also reach `/admin/`;
-for planners who only edit menus, add a normal user in the admin. Set
+Then add Chiros and normal users in the admin, and link each user to their Chiro on
+the user's page. Only give staff status to people who should reach `/admin/`. Set
 `DJANGO_SECURE_COOKIES=1` in `.env` when serving over HTTPS.
 
 ## Features (v1)
 
 - **Recipe library** — recipes with dish types, ingredients (piece/kg/liter),
-  ordered steps with durations; managed in the Django admin.
+  ordered steps with durations; shared between Chiros.
 - **Camps** — dates, headcount (children x0.7 / teens / staff), meal times.
 - **Menu planner** — day x meal grid; each slot only offers recipes of the
   right dish type; shows quantities scaled to the camp's portions.

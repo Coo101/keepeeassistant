@@ -83,6 +83,12 @@ dinner).
 
 ## 6. Data Model
 
+### Chiro
+- `name` (unique); created in the admin only
+
+### Membership
+- `user`, `chiro` (unique together); a user can belong to several Chiros
+
 ### Ingredient
 - `name` (unique)
 - `unit` — one of **{piece, kg, liter}** (fixed set; no conversions)
@@ -102,6 +108,7 @@ dinner).
 - `base_teens` — 12+ count the entered quantities feed
 - `base_portions` (derived) = `base_teens + 0.7 * base_children`
 - `notes`
+- `author` (optional), `others_can_edit` (see §9.8)
 - has many **RecipeIngredient**, many **RecipeStep**
 
 ### RecipeIngredient
@@ -113,7 +120,7 @@ dinner).
 - `recipe`, `order`, `instruction`, `duration_minutes` (optional)
 
 ### Camp
-- `name`, `start_date`, `end_date`
+- `chiro`, `name`, `start_date`, `end_date`
 - `num_children` (under 12), `num_teens` (12+), `num_staff`
 - meal times: `breakfast_time`, `lunch_time`, `teatime_time`, `dinner_time`
 - `demand_portions` (derived) = `num_teens + num_staff + 0.7 * num_children`
@@ -222,8 +229,25 @@ covers** so nothing silently falls through the cracks.
   recipe steps and editable notes. Available as a page and a PDF.
 
 ### 9.8 Access
-- Reading is public, except the runbook's contact details and general notes.
-- Changing anything needs a login. All logged-in users have the same rights.
+- Every page needs a login; new pages are private by default. Access is by
+  invitation: staff create accounts and Chiros in the admin.
+- A user belongs to one or more Chiros. Camps can only be seen and changed by
+  members of the camp's Chiro; other users get a 404. Staff get no exception
+  outside the admin.
+- Recipes are shared: anyone with an account can read and copy them. A copy
+  needs a new name and belongs to the user who made it.
+- A recipe's author (or staff) chooses between read-only and editable by everyone
+  with an account. A recipe without an author can only be changed by staff.
+- Editing a recipe affects every camp that plans it, also those of other Chiros.
+  The edit page warns about this and points to saving a copy instead.
+- Recipe names are unique, so they can be told apart in the planner.
+
+### 9.9 Planned: public site and accounts
+- Public home page with posts, a getting started page and docs (no CMS: a `Post`
+  model edited in the admin, and Markdown files for the docs).
+- "Mijn account": log in by email, reset a password, see your Chiros. Needs a
+  mail backend.
+- Screens for camps and ingredients, so normal users no longer need the admin.
 
 ## 10. Non-functional Requirements
 
@@ -275,4 +299,5 @@ Suggested shared constant: `CHILD_PORTION_FACTOR = 0.7` in `core/`.
 - **Automatic price updates.** Fetch up-to-date ingredient prices from a
   reliable source. An earlier import from a third-party Colruyt product dump
   was removed: it is unmaintained and its product matches were unreliable.
-- Per-user roles and permissions.
+- Roles within a Chiro, and recipe edit rights per user.
+- Open sign-up and creating a Chiro without staff.

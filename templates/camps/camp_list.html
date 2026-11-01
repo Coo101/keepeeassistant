@@ -2,7 +2,7 @@
 {% block title %}Camps — Camp Meal Planner{% endblock %}
 {% block content %}
 <h1>Camps</h1>
-<p class="page-meta">Create and edit camps, recipes and ingredients in the <a href="/admin/">admin</a>.</p>
+{% if user.is_staff %}<p class="page-meta">Create and edit camps and ingredients in the <a href="/admin/">admin</a>.</p>{% endif %}
 {% if camps %}
 <table>
   <thead>
@@ -31,7 +31,11 @@
 </table>
 {% else %}
 <div class="card">
-  <p>No camps yet. <a href="/admin/camps/camp/add/">Add your first camp</a>.</p>
+  {% if user.is_staff %}
+  <p>No camps for your Chiro yet. <a href="/admin/camps/camp/add/">Add a camp</a>, and make sure your account is linked to its Chiro.</p>
+  {% else %}
+  <p>No camps for your Chiro yet. Ask an administrator to add one or to link your account to your Chiro.</p>
+  {% endif %}
 </div>
 {% endif %}
 {% endblock %}
