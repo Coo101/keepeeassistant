@@ -1,10 +1,14 @@
 """Settings for pytest: the same whatever the local .env says."""
 
 import os
+import tempfile
 
 os.environ["DJANGO_SECRET_KEY"] = "test-only-not-a-secret"
 
 from config.settings import *  # noqa: E402, F403
+
+MEDIA_ROOT = tempfile.mkdtemp(prefix="keepee-test-media-")
+OLLAMA_URL = ""
 
 # The manifest storage needs collectstatic, which tests don't run.
 STORAGES = {

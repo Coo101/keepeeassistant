@@ -9,6 +9,7 @@ colruyt-products.json
 .pytest_cache/
 .ruff_cache/
 staticfiles/
+media/
 
 # Duplicates left behind by the file-sync tool ("... (# Name clash ... #).py")
 *# Name clash *

@@ -13,5 +13,21 @@ services:
       - campdata:/data
     restart: unless-stopped
 
+  # Reads scans and photos of bills through Ollama whenever it's reachable.
+  bill-reader:
+    build: .
+    command: python manage.py read_bills --loop
+    env_file:
+      - .env
+    environment:
+      DJANGO_DEBUG: "0"
+      # localhost would be this container; the PC's address goes here.
+      OLLAMA_URL: ${OLLAMA_URL_FROM_DOCKER:-http://host.docker.internal:11434}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - campdata:/data
+    restart: unless-stopped
+
 volumes:
   campdata:

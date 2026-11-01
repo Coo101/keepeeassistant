@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}{{ camp.name }} — Bills{% endblock %}
+{% block content %}
+<p><a class="back-link" href="{% url 'planner' camp.pk %}">← back to menu plan</a></p>
+<h1>{{ camp.name }} — bills</h1>
+<p class="page-meta">
+  Paid for food: <strong>€ {{ spending.food|floatformat:2 }}</strong>
+  · <a href="{% url 'budget' camp.pk %}">estimated</a>: € {{ spending.estimate|floatformat:2 }}
+  {% if spending.open_bills %}· <span class="badge">{{ spending.open_bills }} bill{{ spending.open_bills|pluralize }} still open</span>{% endif %}
+</p>
+
+{% if spending.shops %}
+<h2>Paid and estimated per shop</h2>
+<div class="table-scroll">
+<table class="compact">
+  <thead><tr><th>Shop</th><th>Estimated</th><th>Paid for food</th></tr></thead>
+  <tbody>
+    {% for shop in spending.shops %}
+    <tr>
+      <td>{{ shop.label }}</td>
+      <td>{% if shop.estimate is None %}—{% else %}€ {{ shop.estimate|floatformat:2 }}{% endif %}</td>
+      <td>€ {{ shop.paid|floatformat:2 }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+<h2>Paid per category</h2>
+<div class="table-scroll">
+<table class="compact">
+  <tbody>
+    {% for label, amount in spending.by_category %}
+    <tr><td>{{ label }}</td><td>€ {{ amount|floatformat:2 }}</td></tr>
+    {% endfor %}
+    <tr><td><strong>Total</strong></td><td><strong>€ {{ spending.total|floatformat:2 }}</strong></td></tr>
+  </tbody>
+</table>
+</div>
+{% endif %}
+
+<h2>Bills</h2>
+{% if bills %}
+<div class="table-scroll">
+<table>
+  <thead><tr><th>Date</th><th>Shop</th><th>Status</th><th>Lines total</th><th></th></tr></thead>
+  <tbody>
+    {% for bill in bills %}
+    <tr>
+      <td>{{ bill.date|date:"d M Y" }}</td>
+      <td>{{ bill.get_shop_display }}</td>
+      <td>{{ bill.get_status_display }}</td>
+      <td>€ {{ bill.lines_total|floatformat:2 }}</td>
+      <td><a href="{% url 'bill_detail' camp.pk bill.pk %}">Review</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p class="empty-slot">No bills yet.</p>
+{% endif %}
+
+<h2>Add a bill</h2>
+<div class="warning">
+  ⚠️ <strong>Bills can hold personal data</strong>, such as names, addresses and loyalty card numbers.
+  Crop those out of photos where you can. The file is stored on this server and every member of this camp's Chiro can open it.
+  Scans and photos are read by an AI model on the administrator's own computer, not by an outside service.
+  You can remove the file after reviewing and keep the amounts.
+</div>
+<form method="post" enctype="multipart/form-data" class="stacked-form">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  <div class="card">
+    {% for field in form %}<div class="form-row">{{ field.as_field_group }}</div>{% endfor %}
+  </div>
+  <button class="btn" type="submit">Upload bill</button>
+</form>
+{% endblock %}

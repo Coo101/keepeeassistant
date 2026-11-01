@@ -76,6 +76,7 @@ INSTALLED_APPS = [
     "camps",
     "planning",
     "shopping",
+    "bills",
 ]
 
 MIDDLEWARE = [
@@ -166,6 +167,15 @@ if not DEBUG:
             "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
         },
     }
+
+# Uploaded bills. No MEDIA_URL on purpose: files are only served by a view that
+# checks access (bills.views.bill_file).
+MEDIA_ROOT = DATA_DIR / "media"
+
+# The AI model that reads scans and photos of bills. Empty switches it off.
+OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
+OLLAMA_VISION_MODEL = os.environ.get("OLLAMA_VISION_MODEL", "llama3.2-vision")
+OLLAMA_TIMEOUT = int(os.environ.get("OLLAMA_TIMEOUT", "300"))
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

@@ -55,6 +55,7 @@ def camp_delete(request: HttpRequest, camp_id: int) -> HttpResponse:
             f"{camp.menu_entries.count()} planned meals",
             f"{camp.shopping_trips.count()} shopping days",
             f"{camp.day_notes.count()} day notes",
+            f"{camp.bills.count()} bills and their files",
             "The contact details and other runbook info",
         ],
     )

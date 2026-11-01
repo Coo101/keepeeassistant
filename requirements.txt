@@ -9,7 +9,12 @@ brotlicffi==1.2.1.0 ; platform_python_implementation != 'CPython'
 cffi==2.1.1
     # via
     #   brotlicffi
+    #   cryptography
     #   weasyprint
+charset-normalizer==3.5.2
+    # via pdfminer-six
+cryptography==50.0.2
+    # via pdfminer-six
 cssselect2==0.10.1
     # via weasyprint
 django==5.2.18
@@ -18,12 +23,20 @@ fonttools==4.68.0
     # via weasyprint
 gunicorn==26.2.0
     # via campmealplanner
+pdfminer-six==20250506
+    # via pdfplumber
+pdfplumber==0.11.7
+    # via campmealplanner
 pillow==13.0.0
-    # via weasyprint
+    # via
+    #   pdfplumber
+    #   weasyprint
 pycparser==3.12 ; implementation_name != 'PyPy'
     # via cffi
 pydyf==0.13.0
     # via weasyprint
+pypdfium2==5.14.0
+    # via pdfplumber
 pyphen==0.18.1
     # via weasyprint
 python-dotenv==1.2.4

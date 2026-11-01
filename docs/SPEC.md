@@ -266,6 +266,20 @@ covers** so nothing silently falls through the cracks.
 - "Mijn account": log in by email, reset a password, see your Chiros. Needs a
   mail backend.
 
+### 9.10 Financing
+- Per camp: upload bills (PDF or photo) with a privacy warning. Only members of
+  the camp's Chiro can open them, always as a download. A file can be removed
+  while keeping the amounts, and goes when its bill or camp is deleted.
+- PDFs with text are read in plain Python. Scans and photos wait for an Ollama
+  vision model (`manage.py read_bills`), and stay waiting while it's unreachable.
+  Lines can always be added by hand.
+- A person reviews every line: ingredient, amount per item in the ingredient's
+  unit, and category. Saving sets the camp's price (paid / total amount) and
+  remembers the match per shop. Nothing changes a price before that.
+- Categories: camp food, activity, personal, other. Only camp food sets prices.
+  Camp food and other (deposits, discounts) count towards the food total compared
+  with the budget. Skipped lines count for nothing.
+
 ## 10. Non-functional Requirements
 
 - **Logging:** Python `logging`, no `print`.

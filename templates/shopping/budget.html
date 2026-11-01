@@ -7,7 +7,8 @@
   Estimated cost:
   <strong>€ {{ budget.total|floatformat:2 }}</strong>
   {% if budget.cost_per_portion_day %} · € {{ budget.cost_per_portion_day|floatformat:2 }} per portion per day{% endif %}
-  · prices are set by hand on the <a href="{% url 'ingredient_list' %}">ingredients page</a>
+  · <a href="{% url 'bill_list' camp.pk %}">compare with the bills</a>
+  · prices are on the <a href="{% url 'ingredient_list' %}">ingredients page</a>
 </p>
 
 {% if budget.shop_totals %}

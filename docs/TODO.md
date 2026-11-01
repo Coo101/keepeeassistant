@@ -34,35 +34,6 @@ a wrong old one stays until you delete it on the ingredient's page in the admin.
 - [ ] Create or check the admin account:
       `docker exec -it keepeeassistant python manage.py createsuperuser`
 
-## 5. Financing: bills and actual costs
-
-Upload a camp's bills, read them, record the prices on that camp and compare actual cost
-with the budget.
-
-- [ ] Test on real bills first: Collect&Go PDFs, other PDFs and photos, including a bad
-      one. Which Ollama vision model reads them well enough?
-- [ ] Bill model and upload per camp, visible only to that camp's Chiro. Limit file type
-      and size, store files on the data volume, never under `static/`, and serve them
-      only through a view that checks access
-- [ ] Privacy warning on the upload form: bills can include names, addresses and loyalty
-      card numbers; say where they're stored and who can see them. Decide how long to
-      keep them and include them in deleting a camp
-- [ ] Read text PDFs in plain Python (`pdfplumber`); send scans and photos to Ollama
-- [ ] Ollama runs on a PC that isn't always on: make the URL and model settings, keep a
-      bill waiting with a clear status until it can be read, and retry. There's no
-      background worker yet, so choose how this runs. Check the server can reach the PC
-- [ ] Review screen: match each line to an ingredient, convert pack size to the price
-      per kg, liter or piece, skip deposits and discounts, and let a person confirm.
-      Nothing changes a price without that
-- [ ] Remember confirmed matches per shop, so the next bill needs less checking
-- [ ] Show total paid per camp and per shop, next to the budget
-
-## 6. Purchase categories
-
-- [ ] Split bill lines into camp food, activities (pizza evening, marshmallows at the
-      campfire) and personal items, so only camp food counts towards the meal budget
-      and only camp food updates ingredient prices
-
 ## 7. Before inviting other Chiros
 
 - [ ] Protect camps from changes to a shared recipe: the edit page warns, but a changed
@@ -138,3 +109,7 @@ with the budget.
 - [x] The recipe form uses the same stacked layout as the camp form
 - [x] Prices per camp: price history, a camp's own price wins, otherwise the latest,
       and the budget shows which one it used
+- [x] Financing: upload bills with a privacy warning, read PDFs in Python and scans
+      through Ollama, review lines, set camp prices, remember matches, compare paid
+      with estimated per shop
+- [x] Purchase categories: camp food, activity, personal and other

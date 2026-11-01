@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}{{ bill }} — {{ camp.name }}{% endblock %}
+{% block content %}
+<p><a class="back-link" href="{% url 'bill_list' camp.pk %}">← all bills</a></p>
+<h1>{{ bill }}</h1>
+<p class="page-meta">
+  {{ bill.get_status_display }} · lines total <strong>€ {{ total|floatformat:2 }}</strong>
+  {% if bill.printed_total is not None %}· printed total € {{ bill.printed_total|floatformat:2 }}{% endif %}
+</p>
+
+{% if bill.status == "waiting" %}
+<div class="warning">
+  ⏳ <strong>Waiting to be read.</strong> This file has no readable text, so it goes to the AI model when that computer is on.
+  You don't have to wait: you can add the lines below by hand.
+</div>
+{% elif bill.status == "failed" %}
+<div class="warning">
+  ⚠️ <strong>This bill couldn't be read.</strong> {{ bill.error }}
+  {% if bill.file %}
+  <form method="post" action="{% url 'bill_retry' camp.pk bill.pk %}">
+    {% csrf_token %}
+    <button class="btn btn-outline btn-small" type="submit">Try again</button>
+  </form>
+  {% endif %}
+</div>
+{% endif %}
+{% if total_differs %}
+<div class="warning">⚠️ The lines don't add up to the printed total: check for missing or misread lines.</div>
+{% endif %}
+
+<p class="muted">
+  Check every line. <strong>Amount per item</strong> is in the ingredient's unit: a bottle of 1.5 L is 1.5, a bag of 500 g priced per kg is 0.5.
+  A camp-food line with an ingredient sets this camp's price for it when you save. Use the category for anything else, and "skipped" for text that isn't a purchase.
+</p>
+<form method="post">
+  {% csrf_token %}
+  {% include "recipes/_formset.html" with formset=formset %}
+  <div class="actions"><button class="btn" type="submit">Save review</button></div>
+</form>
+
+<div class="actions">
+  {% if bill.file %}
+  <a class="btn btn-outline" href="{% url 'bill_file' camp.pk bill.pk %}">Download file</a>
+  <form method="post" action="{% url 'bill_remove_file' camp.pk bill.pk %}">
+    {% csrf_token %}
+    <button class="btn btn-outline" type="submit">Remove file, keep amounts</button>
+  </form>
+  {% else %}
+  <span class="muted">The file was removed.</span>
+  {% endif %}
+  <a class="btn btn-danger-outline" href="{% url 'bill_delete' camp.pk bill.pk %}">Delete bill</a>
+</div>
+{% endblock %}
