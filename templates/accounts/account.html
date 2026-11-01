@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Your account — Camp Meal Planner{% endblock %}
+{% block content %}
+<h1>Your account</h1>
+{% for message in messages %}<p class="badge">{{ message }}</p>{% endfor %}
+<p class="page-meta">Logged in as <strong>{{ user.get_username }}</strong></p>
+
+<h2>Your Chiros</h2>
+{% if chiros %}
+<div class="card">
+  <ul>{% for chiro in chiros %}<li>{{ chiro.name }}</li>{% endfor %}</ul>
+</div>
+{% else %}
+<p class="empty-slot">You aren't linked to a Chiro yet. Ask an administrator for an invitation.</p>
+{% endif %}
+
+<h2>Your details</h2>
+{% if not user.email %}<div class="warning">⚠️ Add an email address, or you can't reset your password when you forget it.</div>{% endif %}
+<form method="post" class="stacked-form">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  <div class="card">
+    {% for field in form %}<div class="form-row">{{ field.as_field_group }}</div>{% endfor %}
+  </div>
+  <button class="btn" type="submit">Save details</button>
+</form>
+
+<h2>Password</h2>
+<p><a class="btn btn-outline" href="{% url 'password_change' %}">Change password</a></p>
+{% endblock %}

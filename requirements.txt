@@ -23,6 +23,8 @@ fonttools==4.68.0
     # via weasyprint
 gunicorn==26.2.0
     # via campmealplanner
+markdown==3.8
+    # via campmealplanner
 pdfminer-six==20250506
     # via pdfplumber
 pdfplumber==0.11.7

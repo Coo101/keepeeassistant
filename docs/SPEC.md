@@ -238,8 +238,12 @@ covers** so nothing silently falls through the cracks.
   recipe steps and editable notes. Available as a page and a PDF.
 
 ### 9.8 Access
-- Every page needs a login; new pages are private by default. Access is by
-  invitation: staff create accounts and Chiros in the admin.
+- Every page needs a login, except the home page, news, docs and the login,
+  password reset and invitation pages. New pages are private by default.
+- Access is by invitation: staff create Chiros and invitations in the admin. The
+  one-time link works for 14 days.
+- Log in with a username or email address. Changing your address needs your
+  password; addresses aren't verified by mail yet.
 - A user belongs to one or more Chiros. Camps can only be seen and changed by
   members of the camp's Chiro; other users get a 404. Staff get no exception
   outside the admin.
@@ -247,8 +251,10 @@ covers** so nothing silently falls through the cracks.
   needs a new name and belongs to the user who made it.
 - A recipe's author (or staff) chooses between read-only and editable by everyone
   with an account. A recipe without an author can only be changed by staff.
-- Editing a recipe affects every camp that plans it, also those of other Chiros.
-  The edit page warns about this and points to saving a copy instead.
+- While another Chiro has a current or future camp planning a recipe, nobody but
+  staff can change it, so their lists and budgets don't change under them; a copy
+  can. Finished camps don't lock it. The edit page warns about the
+  camps it does affect.
 - Recipe names are unique, so they can be told apart in the planner.
 - Members create and edit their Chiro's camps; a camp can't move to another Chiro
   outside the admin.
@@ -260,11 +266,11 @@ covers** so nothing silently falls through the cracks.
   no camp plans it. Anyone with an account can delete an ingredient no recipe uses.
 - Members can remove meals and shopping days left outside the camp dates.
 
-### 9.9 Planned: public site and accounts
-- Public home page with posts, a getting started page and docs (no CMS: a `Post`
-  model edited in the admin, and Markdown files for the docs).
-- "Mijn account": log in by email, reset a password, see your Chiros. Needs a
-  mail backend.
+### 9.9 Public site and accounts
+- Public home page, news posts (Markdown, written in the admin) and docs (Markdown
+  files in `pages/content/`). No CMS.
+- Account page: your details, your Chiros, changing your password. Password resets
+  by email; mail only prints to the log until `EMAIL_HOST` is set.
 
 ### 9.10 Financing
 - Per camp: upload bills (PDF or photo) with a privacy warning. Only members of

@@ -10,6 +10,7 @@ dependencies = [
     "python-dotenv==1.2.4",
     "gunicorn==26.2.0",
     "pdfplumber==0.11.7",
+    "markdown==3.8",
 ]
 
 [dependency-groups]

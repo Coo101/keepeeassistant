@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Invitation — Camp Meal Planner{% endblock %}
+{% block content %}
+<h1>Join {{ invitation.chiro }}</h1>
+<p>You're logged in as <strong>{{ user.get_username }}</strong>. Add this account to {{ invitation.chiro }}?</p>
+<form method="post">
+  {% csrf_token %}
+  <button class="btn" type="submit">Join {{ invitation.chiro }}</button>
+</form>
+{% endblock %}

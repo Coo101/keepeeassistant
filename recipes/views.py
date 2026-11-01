@@ -99,6 +99,9 @@ def _render_detail(
     recipe = context["recipe"]
     context["can_edit"] = recipe.can_edit(request.user)
     context["can_delete"] = recipe.can_manage_access(request.user)
+    context["locked_by_others"] = not context["can_edit"] and (
+        recipe.others_can_edit or recipe.author_id == request.user.pk
+    )
     context["copy_form"] = copy_form or CopyRecipeForm(
         initial={"name": f"{recipe.name} (kopie)"}
     )
@@ -150,6 +153,9 @@ def _recipe_form_page(request: HttpRequest, recipe: Recipe) -> HttpResponse:
             "ingredients": ingredients,
             "steps": steps,
             "camp_count": camp_count,
+            "planned_by_others": (
+                recipe.pk and recipe.planned_by_other_chiros(request.user)
+            ),
             "new_ingredient_form": IngredientForm(
                 prefix=NEW_INGREDIENT_PREFIX, user=request.user
             ),
@@ -164,7 +170,7 @@ def recipe_create(request: HttpRequest) -> HttpResponse:
 def recipe_edit(request: HttpRequest, recipe_id: int) -> HttpResponse:
     recipe = get_object_or_404(Recipe, pk=recipe_id)
     if not recipe.can_edit(request.user):
-        raise PermissionDenied("This recipe is read-only; save a copy to change it.")
+        raise PermissionDenied("This recipe can't be changed; save a copy instead.")
     return _recipe_form_page(request, recipe)
 
 

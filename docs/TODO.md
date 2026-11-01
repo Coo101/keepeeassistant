@@ -34,17 +34,6 @@ a wrong old one stays until you delete it on the ingredient's page in the admin.
 - [ ] Create or check the admin account:
       `docker exec -it keepeeassistant python manage.py createsuperuser`
 
-## 7. Before inviting other Chiros
-
-- [ ] Protect camps from changes to a shared recipe: the edit page warns, but a changed
-      recipe still changes other Chiros' shopping lists. A recipe that another Chiro has
-      planned also can't be deleted by its author
-- [ ] Decide who may change a shared ingredient's category, shop and product details;
-      today it's anyone with an account
-- [ ] Mail backend, then "Mijn account": email login, password reset, invitations and a
-      list of your Chiros
-- [ ] Home page with posts, a getting started page and docs; move the camp list off `/`
-
 ## 8. Going public through the Cloudflare tunnel
 
 - [ ] Rate-limit login attempts
@@ -113,3 +102,8 @@ a wrong old one stays until you delete it on the ingredient's page in the admin.
       through Ollama, review lines, set camp prices, remember matches, compare paid
       with estimated per shop
 - [x] Purchase categories: camp food, activity, personal and other
+- [x] A recipe another Chiro has planned can't be changed, except by staff
+- [x] Decision: anyone with an account may change a shared ingredient's category, shop
+      and product details. Prices no longer affect other camps' own prices
+- [x] Mail backend, email login, password reset, account page and invitations
+- [x] Public home page, news and docs; the camp list moved to `/camps/`

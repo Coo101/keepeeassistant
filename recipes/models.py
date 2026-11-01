@@ -157,8 +157,22 @@ class Recipe(models.Model):
     def can_manage_access(self, user) -> bool:
         return user.is_staff or self.author_id == user.pk
 
+    def planned_by_other_chiros(self, user) -> bool:
+        """Finished camps don't count: nobody shops for them anymore."""
+        return (
+            self.menuentry_set.exclude(camp__chiro__in=user.chiros.all())
+            .filter(camp__end_date__gte=timezone.localdate())
+            .exists()
+        )
+
     def can_edit(self, user) -> bool:
-        return self.others_can_edit or self.can_manage_access(user)
+        """Once another Chiro plans a recipe it stays as it is, so their lists and
+        budgets don't change under them; a copy can still be changed. Staff can fix
+        mistakes, with a warning on the edit page."""
+        if user.is_staff:
+            return True
+        allowed = self.others_can_edit or self.author_id == user.pk
+        return allowed and not self.planned_by_other_chiros(user)
 
 
 class RecipeIngredient(models.Model):

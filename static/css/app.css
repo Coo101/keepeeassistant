@@ -441,3 +441,21 @@ ul.recipe-grid {
   .card { box-shadow: none; }
   .recipe-columns { grid-template-columns: 1fr 1fr; }
 }
+
+/* ---------- Public pages ---------- */
+
+.hero { padding: 2rem 0 1rem; max-width: 42rem; }
+.hero h1 { font-size: 2rem; margin: 0 0 0.75rem; }
+.hero p { font-size: 1.05rem; }
+.feature-grid {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+.feature-grid .card { margin: 0; }
+.prose { max-width: 42rem; line-height: 1.6; }
+.toc a[aria-current="page"] { font-weight: 700; }
+.header-auth a { color: inherit; }

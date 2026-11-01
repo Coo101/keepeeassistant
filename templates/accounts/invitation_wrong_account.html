@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Invitation — Camp Meal Planner{% endblock %}
+{% block content %}
+<h1>This invitation is for another account</h1>
+<p>You're logged in as <strong>{{ user.get_username }}</strong>, and this link is for {{ invitation.email }}.</p>
+<p>Log out and open the link again. If this is your address, add it to <a href="{% url 'account' %}">your account</a> first.</p>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }} — Camp Meal Planner{% endblock %}
+{% block content %}
+<p><a class="back-link" href="{% url 'post_list' %}">← all news</a></p>
+<h1>{{ post.title }}</h1>
+<p class="page-meta">{{ post.published_at|date:"d F Y" }}</p>
+<div class="prose">{{ body }}</div>
+{% endblock %}

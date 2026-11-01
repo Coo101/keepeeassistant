@@ -77,6 +77,7 @@ INSTALLED_APPS = [
     "planning",
     "shopping",
     "bills",
+    "pages",
 ]
 
 MIDDLEWARE = [
@@ -168,6 +169,21 @@ if not DEBUG:
         },
     }
 
+# Email: printed to the console until EMAIL_HOST is set.
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
+EMAIL_BACKEND = (
+    "django.core.mail.backends.smtp.EmailBackend"
+    if EMAIL_HOST
+    else "django.core.mail.backends.console.EmailBackend"
+)
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = _env_flag("EMAIL_USE_TLS", "1")
+# Mails are sent during the request, so a dead mail server must fail quickly.
+EMAIL_TIMEOUT = 10
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL") or "noreply@localhost"
+
 # Uploaded bills. No MEDIA_URL on purpose: files are only served by a view that
 # checks access (bills.views.bill_file).
 MEDIA_ROOT = DATA_DIR / "media"
@@ -187,13 +203,19 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # month and refresh on use, so the kookploeg logs in once per device per camp.
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "camp_list"
-LOGOUT_REDIRECT_URL = "camp_list"
+LOGOUT_REDIRECT_URL = "home"
+AUTHENTICATION_BACKENDS = ["accounts.backends.EmailOrUsernameBackend"]
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 30
 SESSION_SAVE_EVERY_REQUEST = True
 
 # Send cookies over HTTPS only when serving over TLS (set in .env).
 SESSION_COOKIE_SECURE = _env_flag("DJANGO_SECURE_COOKIES")
 CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE
+
+# Behind a proxy that ends TLS (Cloudflare tunnel, Caddy), so emailed links use
+# https. Only switch this on when the proxy always sets this header itself.
+if _env_flag("DJANGO_BEHIND_TLS_PROXY"):
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Logging (SPEC §10: Python logging, no print)
 LOGGING = {

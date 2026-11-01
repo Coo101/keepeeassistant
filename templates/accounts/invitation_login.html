@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}Invitation — Camp Meal Planner{% endblock %}
+{% block content %}
+<h1>Join {{ invitation.chiro }}</h1>
+<p>An account already uses this email address. <a href="{% url 'login' %}?next={{ request.path|urlencode }}">Log in</a> to join.</p>
+{% endblock %}

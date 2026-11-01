@@ -13,7 +13,8 @@
 {% if camp_count %}
 <div class="warning">
   ⚠️ <strong>Planned in {{ camp_count }} camp{{ camp_count|pluralize }}.</strong>
-  Changes also update the shopping lists and budgets of those camps, including other Chiros' camps.
+  Changes also update the shopping lists and budgets of those camps.
+  {% if planned_by_others %}<strong>Some belong to other Chiros.</strong>{% endif %}
   To leave them as they are, save a copy of this recipe instead.
 </div>
 {% endif %}

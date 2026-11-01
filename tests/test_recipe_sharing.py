@@ -1,5 +1,6 @@
 """Shared recipes: any account reads and copies; the author decides who edits."""
 
+import datetime
 from decimal import Decimal
 
 import pytest
@@ -7,7 +8,7 @@ from django.contrib.auth.models import User
 from django.test import Client
 from django.urls import reverse
 
-from accounts.models import Chiro
+from accounts.models import Chiro, Membership
 from core.constants import DishType, MealType
 from recipes.models import Ingredient, Recipe
 from tests.factories import (
@@ -17,6 +18,7 @@ from tests.factories import (
     assign,
     make_camp,
     make_recipe,
+    member_client,
 )
 
 pytestmark = pytest.mark.django_db
@@ -178,14 +180,51 @@ def test_edit_rejects_a_unit_that_does_not_match(author_client, recipe) -> None:
     assert item.quantity == Decimal("2.5")
 
 
-def test_edit_warns_when_camps_use_the_recipe(author_client, recipe: Recipe) -> None:
+def test_edit_warns_when_your_own_camp_uses_the_recipe(
+    author_client, recipe: Recipe
+) -> None:
     url = reverse("recipe_edit", args=[recipe.pk])
     assert "Planned in" not in author_client.get(url).content.decode()
 
-    camp = make_camp(chiro=Chiro.objects.create(name="Andere Chiro"))
+    camp = make_camp()
+    Membership.objects.create(
+        user=User.objects.get(username="auteur"), chiro=camp.chiro
+    )
     assign(camp, camp.start_date, MealType.DINNER, recipe)
 
     assert "Planned in 1 camp." in author_client.get(url).content.decode()
+
+
+def test_recipe_planned_by_another_chiro_cannot_change(
+    author_client, recipe: Recipe
+) -> None:
+    camp = make_camp(
+        start=datetime.date(2099, 8, 1),
+        chiro=Chiro.objects.create(name="Andere Chiro"),
+    )
+    assign(camp, camp.start_date, MealType.DINNER, recipe)
+    url = reverse("recipe_edit", args=[recipe.pk])
+
+    assert author_client.post(url, _recipe_data("Anders")).status_code == 403
+    recipe.refresh_from_db()
+    assert recipe.name == "Stoofpot"
+    detail = author_client.get(reverse("recipe_detail", args=[recipe.pk]))
+    assert "Another Chiro has planned" in detail.content.decode()
+
+    # staff can still fix a mistake, and everyone can still copy
+    assert account_client("baas", is_staff=True).get(url).status_code == 200
+    author_client.post(reverse("recipe_copy", args=[recipe.pk]), {"name": "Mijn pot"})
+    copy = Recipe.objects.get(name="Mijn pot")
+    assert author_client.get(reverse("recipe_edit", args=[copy.pk])).status_code == 200
+
+
+def test_planning_by_your_own_chiro_does_not_lock_an_open_recipe(recipe) -> None:
+    recipe.others_can_edit = True
+    recipe.save()
+    camp = make_camp()
+    assign(camp, camp.start_date, MealType.DINNER, recipe)
+    url = reverse("recipe_edit", args=[recipe.pk])
+    assert member_client(camp).get(url).status_code == 200
 
 
 def test_anyone_can_save_a_renamed_copy(author_client, recipe: Recipe) -> None:
@@ -223,3 +262,15 @@ def test_copy_needs_a_free_name(recipe: Recipe) -> None:
 def test_copy_refuses_get(recipe: Recipe) -> None:
     response = account_client().get(reverse("recipe_copy", args=[recipe.pk]))
     assert response.status_code == 405
+
+
+def test_finished_camp_of_another_chiro_does_not_lock_a_recipe(
+    author_client, recipe: Recipe
+) -> None:
+    camp = make_camp(
+        start=datetime.date(2020, 8, 1),
+        chiro=Chiro.objects.create(name="Andere Chiro"),
+    )
+    assign(camp, camp.start_date, MealType.DINNER, recipe)
+    url = reverse("recipe_edit", args=[recipe.pk])
+    assert author_client.get(url).status_code == 200

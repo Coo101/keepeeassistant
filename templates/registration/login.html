@@ -2,17 +2,16 @@
 {% block title %}Log in — Camp Meal Planner{% endblock %}
 {% block content %}
 <h1>Log in</h1>
-<p class="page-meta">Browsing is open to everyone; logging in lets you change
-menus, notes and shopping days.</p>
+<p class="page-meta">Camp Meal Planner is by invitation. Your camps are only visible to members of your Chiro.</p>
 
 <div class="card login-card">
   {% if form.errors %}
-  <div class="warning">Wrong username or password — try again.</div>
+  <div class="warning">{% for error in form.non_field_errors %}{{ error }}{% empty %}Check the fields below.{% endfor %}</div>
   {% endif %}
   <form method="post">
     {% csrf_token %}
     <p>
-      <label for="{{ form.username.id_for_label }}">Username</label><br>
+      <label for="{{ form.username.id_for_label }}">Username or email</label><br>
       {{ form.username }}
     </p>
     <p>
@@ -22,5 +21,6 @@ menus, notes and shopping days.</p>
     <input type="hidden" name="next" value="{{ next }}">
     <button class="btn" type="submit">Log in</button>
   </form>
+  <p><a href="{% url 'password_reset' %}">Forgot your password?</a></p>
 </div>
 {% endblock %}
