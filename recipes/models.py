@@ -6,10 +6,23 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.utils import timezone
 from django.utils.functional import cached_property
 
-from core.constants import DishType, IngredientCategory, Shop, Unit
+from core.constants import DishType, IngredientCategory, PriceSource, Shop, Unit
 from core.portions import format_quantity, portions
+
+
+class IngredientQuerySet(models.QuerySet):
+    def with_latest_price(self) -> "IngredientQuerySet":
+        """Adds `latest_price` and `latest_price_date`, None without a price."""
+        latest = IngredientPrice.objects.filter(
+            ingredient=models.OuterRef("pk"), unit=models.OuterRef("unit")
+        )
+        return self.annotate(
+            latest_price=models.Subquery(latest.values("price")[:1]),
+            latest_price_date=models.Subquery(latest.values("date")[:1]),
+        )
 
 
 class Ingredient(models.Model):
@@ -28,13 +41,6 @@ class Ingredient(models.Model):
         default=Shop.COLRUYT,
         help_text="Where this ingredient is bought",
     )
-    price_per_unit = models.DecimalField(
-        max_digits=8,
-        decimal_places=4,
-        null=True,
-        blank=True,
-        help_text="EUR per kg/liter/piece",
-    )
     product_details = models.CharField(
         max_length=200,
         blank=True,
@@ -42,13 +48,62 @@ class Ingredient(models.Model):
         help_text="Name, [brand] ([LOS] = loose/unpackaged) and container "
         "volume or other details",
     )
-    price_updated = models.DateTimeField(null=True, blank=True)
+
+    objects = IngredientQuerySet.as_manager()
 
     class Meta:
         ordering = ["name"]
 
     def __str__(self) -> str:
         return f"{self.name} ({self.unit})"
+
+
+class IngredientPrice(models.Model):
+    """One price at one moment. Without a camp it's a general price, entered on
+    the ingredients page; with a camp it's what that camp paid (SPEC §9.6)."""
+
+    ingredient = models.ForeignKey(
+        Ingredient, on_delete=models.CASCADE, related_name="prices"
+    )
+    price = models.DecimalField(
+        max_digits=8,
+        decimal_places=4,
+        validators=[MinValueValidator(Decimal("0"))],
+        help_text="EUR per kg/liter/piece",
+    )
+    # A price stays per the unit it was entered in; after the ingredient's unit
+    # changes it's history only, never used to calculate a cost.
+    unit = models.CharField(max_length=10, choices=Unit.CHOICES, editable=False)
+    source = models.CharField(
+        max_length=10, choices=PriceSource.CHOICES, default=PriceSource.MANUAL
+    )
+    date = models.DateField(default=timezone.localdate)
+    # Kept when a camp is deleted: the price is still useful for estimates.
+    camp = models.ForeignKey(
+        "camps.Camp",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="ingredient_prices",
+    )
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
+    )
+
+    class Meta:
+        ordering = ["-date", "-pk"]
+
+    def __str__(self) -> str:
+        return f"{self.ingredient.name}: {self.price} on {self.date}"
+
+    def save(self, *args, **kwargs) -> None:
+        if not self.unit:
+            self.unit = self.ingredient.unit
+        super().save(*args, **kwargs)
 
 
 class Recipe(models.Model):

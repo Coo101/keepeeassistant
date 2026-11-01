@@ -18,9 +18,12 @@
 </div>
 {% endif %}
 
-<form method="post">
+<form method="post" class="stacked-form">
   {% csrf_token %}
-  <div class="card">{{ form.as_p }}</div>
+  {{ form.non_field_errors }}
+  <div class="card">
+    {% for field in form %}<div class="form-row">{{ field.as_field_group }}</div>{% endfor %}
+  </div>
   <h2>Ingredients</h2>
   <p class="muted">Missing one? <button class="btn btn-outline btn-small" type="button" id="new-ingredient-open">New ingredient</button></p>
   <div class="card">{% include "recipes/_formset.html" with formset=ingredients %}</div>

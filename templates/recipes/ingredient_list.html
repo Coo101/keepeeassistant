@@ -2,7 +2,7 @@
 {% block title %}Ingredients — Camp Meal Planner{% endblock %}
 {% block content %}
 <h1>Ingredients</h1>
-<p class="page-meta">Shared between all Chiros, so a changed price also changes their budgets.</p>
+<p class="page-meta">Shared between all Chiros. A new price goes into the history and is used for estimates in any camp without its own price for that ingredient.</p>
 <form method="get" class="actions">
   <input type="search" name="q" value="{{ query }}" placeholder="Search ingredients…" aria-label="Search ingredients">
   <button class="btn" type="submit">Search</button>
@@ -13,7 +13,7 @@
 <div class="table-scroll">
 <table>
   <thead>
-    <tr><th>Ingredient</th><th>Unit</th><th>Category</th><th>Shop</th><th>Price</th><th>Product</th><th>Price updated</th><th></th></tr>
+    <tr><th>Ingredient</th><th>Unit</th><th>Category</th><th>Shop</th><th>Price</th><th>Product</th><th>Price date</th><th></th></tr>
   </thead>
   <tbody>
     {% for ingredient in ingredients %}
@@ -22,9 +22,9 @@
       <td>{{ ingredient.get_unit_display }}</td>
       <td>{{ ingredient.get_category_display }}</td>
       <td>{{ ingredient.get_shop_display }}</td>
-      <td>{% if ingredient.price_per_unit is None %}<span class="empty-slot">no price</span>{% else %}€ {{ ingredient.price_per_unit|floatformat:2 }}{% endif %}</td>
+      <td>{% if ingredient.latest_price is None %}<span class="empty-slot">no price</span>{% else %}€ {{ ingredient.latest_price|floatformat:2 }}{% endif %}</td>
       <td>{{ ingredient.product_details }}</td>
-      <td>{{ ingredient.price_updated|date:"d M Y"|default:"—" }}</td>
+      <td>{{ ingredient.latest_price_date|date:"d M Y"|default:"—" }}</td>
       <td><a href="{% url 'ingredient_edit' ingredient.pk %}">Edit</a></td>
     </tr>
     {% endfor %}

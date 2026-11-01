@@ -1,9 +1,8 @@
 """Forms for recipes and ingredients (SPEC §9.1, §9.6)."""
 
-from decimal import Decimal
-
 from django import forms
 from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.forms import inlineformset_factory
 from django.utils import timezone
 
@@ -53,6 +52,14 @@ class IngredientForm(forms.ModelForm):
     """Ingredients are shared by all recipes, so an existing one keeps its name
     and unit here: changing those would alter other people's recipes."""
 
+    price = forms.DecimalField(
+        required=False,
+        max_digits=8,
+        decimal_places=4,
+        min_value=0,
+        help_text="EUR per kg/liter/piece",
+    )
+
     class Meta:
         model = Ingredient
         fields = [
@@ -60,15 +67,22 @@ class IngredientForm(forms.ModelForm):
             "unit",
             "category",
             "shop",
-            "price_per_unit",
             "product_details",
         ]
 
-    def __init__(self, *args, **kwargs) -> None:
+    field_order = ["name", "unit", "category", "shop", "price", "product_details"]
+
+    def __init__(self, *args, user, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+        self.user = user
         if self.instance.pk:
             self.fields["name"].disabled = True
             self.fields["unit"].disabled = True
+            self.fields["price"].label = "New price"
+            self.fields["price"].help_text = (
+                "EUR per kg/liter/piece. Added to the price history; "
+                "leave empty to keep the current price."
+            )
 
     def clean_name(self) -> str:
         name = self.cleaned_data["name"]
@@ -77,16 +91,18 @@ class IngredientForm(forms.ModelForm):
             raise ValidationError("An ingredient with this name already exists.")
         return name
 
-    def clean_price_per_unit(self) -> Decimal | None:
-        price = self.cleaned_data["price_per_unit"]
-        if price is not None and price < 0:
-            raise ValidationError("A price can't be negative.")
-        return price
-
+    @transaction.atomic
     def save(self, commit: bool = True) -> Ingredient:
-        if "price_per_unit" in self.changed_data:
-            self.instance.price_updated = timezone.now()
-        return super().save(commit)
+        ingredient = super().save(commit)
+        price = self.cleaned_data["price"]
+        if commit and price is not None:
+            # Entering the same price on a later day confirms it's still right.
+            today = timezone.localdate()
+            if not ingredient.prices.filter(
+                price=price, date=today, camp=None
+            ).exists():
+                ingredient.prices.create(price=price, created_by=self.user)
+        return ingredient
 
 
 IngredientFormSet = inlineformset_factory(

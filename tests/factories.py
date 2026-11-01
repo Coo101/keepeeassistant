@@ -11,7 +11,7 @@ from accounts.models import Chiro, Membership
 from camps.models import Camp
 from core.constants import DishType, IngredientCategory, Unit
 from planning.models import MenuEntry
-from recipes.models import Ingredient, Recipe, RecipeIngredient
+from recipes.models import Ingredient, IngredientPrice, Recipe, RecipeIngredient
 
 
 def make_camp(
@@ -72,6 +72,20 @@ def make_recipe(
             unit=unit,
         )
     return recipe
+
+
+def set_price(
+    name: str,
+    price: str,
+    camp: Camp | None = None,
+    date: datetime.date = datetime.date(2026, 1, 1),
+) -> IngredientPrice:
+    return IngredientPrice.objects.create(
+        ingredient=Ingredient.objects.get(name=name),
+        price=Decimal(price),
+        camp=camp,
+        date=date,
+    )
 
 
 def assign(

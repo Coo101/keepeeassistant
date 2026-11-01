@@ -60,7 +60,8 @@
       <tr{% if line.cost is None %} class="row-missing"{% endif %}>
         <td>{{ line.ingredient.name }}</td>
         <td>{{ line.quantity }} {{ line.unit }}</td>
-        <td>{% if line.unit_price is not None %}€ {{ line.unit_price|floatformat:2 }}/{{ line.unit }}{% else %}—{% endif %}</td>
+        <td>{% if line.unit_price is not None %}€ {{ line.unit_price|floatformat:2 }}/{{ line.unit }}
+          <span class="muted">{% if line.price.is_camp_price %}this camp{% else %}latest{% endif %}, {{ line.price.date|date:"d M Y" }}</span>{% else %}—{% endif %}</td>
         <td>{% if line.cost is not None %}€ {{ line.cost|floatformat:2 }}{% else %}<span class="muted">no price</span>{% endif %}</td>
       </tr>
       {% endfor %}

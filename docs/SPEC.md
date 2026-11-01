@@ -94,9 +94,14 @@ dinner).
 - `unit` — one of **{piece, kg, liter}** (fixed set; no conversions)
 - `category` — produce / dairy / meat / bakery / dry goods / other (for grouping)
 - `shop` — Van Zon / Colruyt / bakker / beenhouwer (lists are split per shop)
-- `price_per_unit` — EUR per `unit`, optional, set by hand
 - `product_details` — free text describing the product the price is for
-- `price_updated` — when the price was last updated
+
+### IngredientPrice
+- `ingredient`, `price`, `unit`, `source` (by hand / earlier stored / bill), `date`,
+  `created_by`. Only prices in the ingredient's current unit are used for costs.
+- `camp` — optional: without one it's a general price, with one it's what that
+  camp paid. Kept without a camp when the camp is deleted.
+- The latest price is the most recent one, across all camps and Chiros.
 
 ### Recipe
 - `name`
@@ -220,7 +225,10 @@ covers** so nothing silently falls through the cracks.
 
 ### 9.6 Budget
 - Cost per shop, per trip and per camp: shopping-list quantity x ingredient price.
-- Prices are entered by hand on the ingredients page.
+- A camp uses its own price for an ingredient if it has one, otherwise the latest
+  price, and each line shows which one. A camp's own price is a history record:
+  it doesn't change when other camps get new prices.
+- A new price on the ingredients page adds to the history; it never overwrites.
 - Ingredients without a price, or priced per a different unit than a recipe uses,
   are listed and left out of the total. Uncovered days are not in the budget, and
   the cost per portion per day divides by covered days only.
@@ -244,8 +252,8 @@ covers** so nothing silently falls through the cracks.
 - Recipe names are unique, so they can be told apart in the planner.
 - Members create and edit their Chiro's camps; a camp can't move to another Chiro
   outside the admin.
-- Ingredients are shared: anyone with an account can add one and change its
-  category, shop, price and product details. Its name and unit are fixed after
+- Ingredients are shared: anyone with an account can add one, add a price, and
+  change its category, shop and product details. Its name and unit are fixed after
   creation, because recipes rely on them; staff can change them in the admin.
 - Deleting asks for confirmation first. Members can delete their Chiro's camps,
   with everything planned in them. A recipe's author (or staff) can delete it once

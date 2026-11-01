@@ -21,4 +21,20 @@
     {% if ingredient %}<a class="btn btn-danger-outline" href="{% url 'ingredient_delete' ingredient.pk %}">Delete ingredient</a>{% endif %}
   </div>
 </form>
+
+{% if prices %}
+<h2>Price history</h2>
+<table class="compact">
+  <thead><tr><th>Date</th><th>Price</th><th>Source</th></tr></thead>
+  <tbody>
+    {% for price in prices %}
+    <tr>
+      <td>{{ price.date|date:"d M Y" }}</td>
+      <td>€ {{ price.price|floatformat:2 }}/{{ price.get_unit_display }}</td>
+      <td>{{ price.get_source_display }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
 {% endblock %}

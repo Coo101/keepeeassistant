@@ -41,7 +41,7 @@ def _ingredient_data(**extra) -> dict:
         "unit": KG,
         "category": IngredientCategory.PRODUCE,
         "shop": Shop.COLRUYT,
-        "price_per_unit": "",
+        "price": "",
         "product_details": "",
         **extra,
     }
@@ -154,13 +154,11 @@ def test_ingredients_need_an_account() -> None:
 
 def test_account_without_chiro_can_add_an_ingredient() -> None:
     client = account_client()
-    response = client.post(
-        reverse("ingredient_create"), _ingredient_data(price_per_unit="1.20")
-    )
+    response = client.post(reverse("ingredient_create"), _ingredient_data(price="1.20"))
     assert response.status_code == 302
     ingredient = Ingredient.objects.get()
     assert ingredient.name == "Wortel"
-    assert ingredient.price_updated is not None
+    assert ingredient.prices.get().price == Decimal("1.20")
     assert "Wortel" in client.get(reverse("ingredient_list")).content.decode()
 
 
@@ -187,49 +185,114 @@ def test_ingredient_name_is_unique_ignoring_case() -> None:
 
 def test_negative_price_is_rejected() -> None:
     response = account_client().post(
-        reverse("ingredient_create"), _ingredient_data(price_per_unit="-1")
+        reverse("ingredient_create"), _ingredient_data(price="-1")
     )
     assert response.status_code == 200
     assert not Ingredient.objects.exists()
 
 
-def test_edit_changes_price_but_not_name_or_unit() -> None:
+def test_edit_adds_a_price_but_keeps_name_and_unit() -> None:
     ingredient = Ingredient.objects.create(name="Wortel", unit=KG)
 
     response = account_client().post(
         reverse("ingredient_edit", args=[ingredient.pk]),
-        _ingredient_data(name="Kaas", unit=PIECE, price_per_unit="2.50"),
+        _ingredient_data(name="Kaas", unit=PIECE, price="2.50"),
     )
 
     assert response.status_code == 302
     ingredient.refresh_from_db()
     assert ingredient.name == "Wortel"
     assert ingredient.unit == KG
-    assert ingredient.price_per_unit == Decimal("2.50")
-    assert ingredient.price_updated is not None
+    price = ingredient.prices.get()
+    assert price.price == Decimal("2.50")
+    assert price.created_by.username == "kok"
+    assert price.camp is None
 
 
-def test_price_updated_only_moves_when_the_price_changes() -> None:
-    ingredient = Ingredient.objects.create(
-        name="Wortel", unit=KG, price_per_unit=Decimal("1.2000")
-    )
-    account_client().post(
-        reverse("ingredient_edit", args=[ingredient.pk]),
-        _ingredient_data(price_per_unit="1.20", product_details="Boni"),
-    )
+def test_new_price_goes_into_the_history() -> None:
+    ingredient = Ingredient.objects.create(name="Wortel", unit=KG)
+    client = account_client()
+    url = reverse("ingredient_edit", args=[ingredient.pk])
+    client.post(url, _ingredient_data(price="1.20"))
+    client.post(url, _ingredient_data(price="1.50"))
+
+    assert [p.price for p in ingredient.prices.all()] == [
+        Decimal("1.50"),
+        Decimal("1.20"),
+    ]
+    content = client.get(url).content.decode()
+    assert "Price history" in content and "1.20" in content
+    listing = Ingredient.objects.with_latest_price().get(pk=ingredient.pk)
+    assert listing.latest_price == Decimal("1.50")
+
+
+def test_empty_or_same_price_adds_nothing() -> None:
+    ingredient = Ingredient.objects.create(name="Wortel", unit=KG)
+    ingredient.prices.create(price=Decimal("1.2000"))
+    client = account_client()
+    url = reverse("ingredient_edit", args=[ingredient.pk])
+
+    client.post(url, _ingredient_data(price="", product_details="Boni"))
+    client.post(url, _ingredient_data(price="1.20", product_details="Boni"))
+
     ingredient.refresh_from_db()
     assert ingredient.product_details == "Boni"
-    assert ingredient.price_updated is None
+    assert ingredient.prices.count() == 1
 
 
-def test_admin_sets_price_updated() -> None:
+def test_ingredient_admin_pages_work() -> None:
+    ingredient = Ingredient.objects.create(name="Wortel", unit=KG)
+    ingredient.prices.create(price=Decimal("3"))
+    client = Client()
+    client.force_login(User.objects.create_superuser("baas"))
+    assert client.get("/admin/recipes/ingredient/").status_code == 200
+    change = f"/admin/recipes/ingredient/{ingredient.pk}/change/"
+    assert client.get(change).status_code == 200
+
+
+def test_same_price_on_a_later_day_confirms_it() -> None:
+    ingredient = Ingredient.objects.create(name="Wortel", unit=KG)
+    ingredient.prices.create(price=Decimal("1.20"), date=datetime.date(2026, 3, 1))
+    account_client().post(
+        reverse("ingredient_edit", args=[ingredient.pk]),
+        _ingredient_data(price="1.20"),
+    )
+    assert ingredient.prices.count() == 2
+    assert ingredient.prices.first().date > datetime.date(2026, 3, 1)
+
+
+def test_admin_price_records_who_added_it() -> None:
     ingredient = Ingredient.objects.create(name="Wortel", unit=KG)
     client = Client()
     client.force_login(User.objects.create_superuser("baas"))
     response = client.post(
         f"/admin/recipes/ingredient/{ingredient.pk}/change/",
-        _ingredient_data(price_per_unit="3"),
+        {
+            **_ingredient_data(),
+            "prices-TOTAL_FORMS": "1",
+            "prices-INITIAL_FORMS": "0",
+            "prices-0-price": "3",
+            "prices-0-source": "manual",
+            "prices-0-date": "2026-11-01",
+        },
     )
     assert response.status_code == 302
-    ingredient.refresh_from_db()
-    assert ingredient.price_updated is not None
+    price = ingredient.prices.get()
+    assert price.created_by.username == "baas"
+    assert price.unit == KG
+
+
+def test_ingredient_with_camp_prices_cannot_be_deleted() -> None:
+    camp = make_camp()
+    ingredient = Ingredient.objects.create(name="Wortel", unit=KG)
+    price = ingredient.prices.create(price=Decimal("1"), camp=camp)
+    client = account_client()
+    url = reverse("ingredient_delete", args=[ingredient.pk])
+
+    assert client.post(url).status_code == 409
+    assert Ingredient.objects.filter(pk=ingredient.pk).exists()
+
+    price.camp = None
+    price.save()
+    assert client.post(url).status_code == 302
+    assert not Ingredient.objects.filter(pk=ingredient.pk).exists()

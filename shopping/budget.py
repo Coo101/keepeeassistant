@@ -1,5 +1,7 @@
 """Camp budget: shopping-list quantities x ingredient prices (SPEC §9.6).
 
+A camp's own price wins; otherwise the estimate uses the latest known price.
+
 Costs roll up per shop (so you know what each errand costs), per trip, and
 per camp.
 """
@@ -10,6 +12,7 @@ from decimal import ROUND_HALF_UP, Decimal
 
 from camps.models import Camp
 from recipes.models import Ingredient
+from recipes.prices import ResolvedPrice, resolve_prices
 from shopping.services import ShoppingPlan, TripShoppingList, build_shopping_plan
 
 logger = logging.getLogger(__name__)
@@ -24,6 +27,7 @@ class BudgetLine:
     unit: str
     unit_price: Decimal | None
     cost: Decimal | None  # None when the ingredient has no price yet
+    price: ResolvedPrice | None = None
 
 
 @dataclass
@@ -81,6 +85,16 @@ def build_budget(camp: Camp) -> CampBudget:
     shop_totals: dict[str, ShopTotal] = {}
     missing: dict[int, Ingredient] = {}
     unit_conflicts: dict[int, Ingredient] = {}
+    prices = resolve_prices(
+        camp,
+        {
+            item.ingredient.pk
+            for trip_list in plan.trip_lists
+            for section in trip_list.shop_sections
+            for items in section.items_by_category.values()
+            for item in items
+        },
+    )
 
     for trip_list in plan.trip_lists:
         shops: list[ShopBudget] = []
@@ -92,10 +106,11 @@ def build_budget(camp: Camp) -> CampBudget:
             for category, items in section.items_by_category.items():
                 lines = []
                 for item in items:
-                    price = item.ingredient.price_per_unit
+                    resolved = prices.get(item.ingredient.pk)
+                    price = resolved.price if resolved else None
                     conflict = item.unit != item.ingredient.unit
                     if conflict:
-                        price = None
+                        resolved = price = None
                         unit_conflicts[item.ingredient.pk] = item.ingredient
                     cost = None
                     if price is not None:
@@ -115,6 +130,7 @@ def build_budget(camp: Camp) -> CampBudget:
                             unit=item.unit,
                             unit_price=price,
                             cost=cost,
+                            price=resolved,
                         )
                     )
                 shop_budget.lines_by_category[category] = lines

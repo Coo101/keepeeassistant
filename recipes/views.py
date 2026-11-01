@@ -150,7 +150,9 @@ def _recipe_form_page(request: HttpRequest, recipe: Recipe) -> HttpResponse:
             "ingredients": ingredients,
             "steps": steps,
             "camp_count": camp_count,
-            "new_ingredient_form": IngredientForm(prefix=NEW_INGREDIENT_PREFIX),
+            "new_ingredient_form": IngredientForm(
+                prefix=NEW_INGREDIENT_PREFIX, user=request.user
+            ),
         },
     )
 
@@ -192,7 +194,7 @@ def recipe_delete(request: HttpRequest, recipe_id: int) -> HttpResponse:
 def ingredient_list(request: HttpRequest) -> HttpResponse:
     """All ingredients; ?q= filters on name or product details."""
     query = request.GET.get("q", "").strip()
-    ingredients = Ingredient.objects.all()
+    ingredients = Ingredient.objects.with_latest_price()
     if query:
         ingredients = ingredients.filter(
             Q(name__icontains=query) | Q(product_details__icontains=query)
@@ -208,7 +210,7 @@ def _ingredient_form_page(
     request: HttpRequest, ingredient: Ingredient | None = None
 ) -> HttpResponse:
     data = request.POST if request.method == "POST" else None
-    form = IngredientForm(data, instance=ingredient)
+    form = IngredientForm(data, instance=ingredient, user=request.user)
     if data is not None and form.is_valid():
         saved = form.save()
         logger.info("%s saved ingredient %s", request.user, saved.pk)
@@ -216,7 +218,11 @@ def _ingredient_form_page(
     return render(
         request,
         "recipes/ingredient_form.html",
-        {"ingredient": ingredient, "form": form},
+        {
+            "ingredient": ingredient,
+            "form": form,
+            "prices": ingredient.prices.all() if ingredient else [],
+        },
     )
 
 
@@ -227,7 +233,7 @@ def ingredient_create(request: HttpRequest) -> HttpResponse:
 @require_POST
 def ingredient_quick_add(request: HttpRequest) -> JsonResponse:
     """Add an ingredient from the recipe form, without leaving that page."""
-    form = IngredientForm(request.POST, prefix=NEW_INGREDIENT_PREFIX)
+    form = IngredientForm(request.POST, prefix=NEW_INGREDIENT_PREFIX, user=request.user)
     if not form.is_valid():
         return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
     ingredient = form.save()
@@ -246,11 +252,15 @@ def ingredient_delete(request: HttpRequest, ingredient_id: int) -> HttpResponse:
         )
     )
     blocked_reason = f"These recipes use it: {', '.join(names)}." if names else ""
+    if not names and ingredient.prices.exclude(camp=None).exists():
+        # A paid price is a camp's history, possibly another Chiro's.
+        blocked_reason = "Camps have recorded prices for it."
     return confirm_delete(
         request,
         ingredient,
         cancel_url=reverse("ingredient_edit", args=[ingredient.pk]),
         success_url=reverse("ingredient_list"),
+        consequences=[f"{ingredient.prices.count()} prices in its history"],
         blocked_reason=blocked_reason,
     )
 

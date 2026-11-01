@@ -5,11 +5,20 @@ from decimal import Decimal
 
 import pytest
 
+from accounts.models import Chiro
 from core.constants import DishType, MealType, Shop
-from recipes.models import Ingredient
+from recipes.models import Ingredient, Recipe, RecipeIngredient
 from shopping.budget import build_budget
 from shopping.models import ShoppingTrip
-from tests.factories import KG, PIECE, PRODUCE, assign, make_camp, make_recipe
+from tests.factories import (
+    KG,
+    PIECE,
+    PRODUCE,
+    assign,
+    make_camp,
+    make_recipe,
+    set_price,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -30,9 +39,7 @@ def test_build_budget_totals_and_missing_prices() -> None:
     assign(camp, AUG(2), MealType.DINNER, recipe)
     ShoppingTrip.objects.create(camp=camp, date=AUG(1))
 
-    Ingredient.objects.filter(name="Potatoes").update(
-        price_per_unit=Decimal("0.79")
-    )  # Onions stays unpriced
+    set_price("Potatoes", "0.79")  # Onions stays unpriced
 
     budget = build_budget(camp)
     # potatoes: 2kg x4 = 8kg x 0.79 = 6.32
@@ -61,12 +68,10 @@ def test_budget_totals_split_per_shop() -> None:
     )
     assign(camp, AUG(2), MealType.DINNER, recipe)
     ShoppingTrip.objects.create(camp=camp, date=AUG(1))
-    Ingredient.objects.filter(name="Potatoes").update(
-        price_per_unit=Decimal("1.00"), shop=Shop.COLRUYT
-    )
-    Ingredient.objects.filter(name="Wit brood").update(
-        price_per_unit=Decimal("0.50"), shop=Shop.BAKKER
-    )
+    Ingredient.objects.filter(name="Potatoes").update(shop=Shop.COLRUYT)
+    Ingredient.objects.filter(name="Wit brood").update(shop=Shop.BAKKER)
+    set_price("Potatoes", "1.00")
+    set_price("Wit brood", "0.50")
 
     budget = build_budget(camp)
     totals = {st.label: st.total for st in budget.shop_totals}
@@ -89,9 +94,7 @@ def test_shop_total_reports_unpriced_items() -> None:
     )
     assign(camp, AUG(2), MealType.DINNER, recipe)
     ShoppingTrip.objects.create(camp=camp, date=AUG(1))
-    Ingredient.objects.filter(name="Hamburgers").update(
-        shop=Shop.BEENHOUWER, price_per_unit=None
-    )
+    Ingredient.objects.filter(name="Hamburgers").update(shop=Shop.BEENHOUWER)
 
     budget = build_budget(camp)
     (beenhouwer,) = budget.shop_totals
@@ -108,7 +111,7 @@ def test_cost_per_portion_day_ignores_uncovered_days() -> None:
     )
     assign(camp, AUG(5), MealType.DINNER, recipe)
     ShoppingTrip.objects.create(camp=camp, date=AUG(4))  # covers only Aug 5
-    Ingredient.objects.filter(name="Potatoes").update(price_per_unit=Decimal("1.00"))
+    set_price("Potatoes", "1.00")
 
     # EUR 10 for 10 portions on the one covered day, not spread over 5 days
     assert build_budget(camp).cost_per_portion_day == Decimal("1.00")
@@ -125,12 +128,94 @@ def test_unit_mismatch_is_reported_instead_of_miscosted() -> None:
     )
     assign(camp, AUG(2), MealType.DINNER, recipe)
     ShoppingTrip.objects.create(camp=camp, date=AUG(1))
-    Ingredient.objects.filter(name="BBQ-vlees").update(
-        unit=KG, price_per_unit=Decimal("11.24")
-    )
+    Ingredient.objects.filter(name="BBQ-vlees").update(unit=KG)
+    set_price("BBQ-vlees", "11.24")
 
     budget = build_budget(camp)
     assert budget.total == Decimal("0")
     assert [i.name for i in budget.unit_conflicts] == ["BBQ-vlees"]
     assert budget.missing == []
     assert budget.shop_totals[0].missing_count == 1
+
+
+def _priced_camp():
+    camp = make_camp(children=0, teens=10, staff=0)  # Aug 1-5
+    recipe, _ = Recipe.objects.get_or_create(
+        name="Stew", defaults={"dish_type": DishType.HOT_MEAL, "base_teens": 10}
+    )
+    ingredient, _ = Ingredient.objects.get_or_create(
+        name="Potatoes", defaults={"unit": KG, "category": PRODUCE}
+    )
+    recipe.ingredients.get_or_create(
+        ingredient=ingredient, defaults={"quantity": Decimal("10"), "unit": KG}
+    )
+    assign(camp, AUG(2), MealType.DINNER, recipe)
+    ShoppingTrip.objects.create(camp=camp, date=AUG(1))
+    return camp
+
+
+def _line(camp):
+    return build_budget(camp).trips[0].shops[0].lines_by_category["Produce"][0]
+
+
+def test_estimate_uses_the_latest_price() -> None:
+    camp = _priced_camp()
+    set_price("Potatoes", "1.00", date=datetime.date(2025, 1, 1))
+    set_price("Potatoes", "2.00", date=datetime.date(2026, 1, 1))
+    set_price("Potatoes", "1.50", date=datetime.date(2025, 6, 1))
+
+    line = _line(camp)
+    assert line.cost == Decimal("20.00")
+    assert line.price.is_camp_price is False
+
+
+def test_latest_price_can_come_from_another_chiros_camp() -> None:
+    camp = _priced_camp()
+    other = make_camp(chiro=Chiro.objects.create(name="Andere Chiro"))
+    set_price("Potatoes", "3.00", camp=other)
+    assert _line(camp).cost == Decimal("30.00")
+
+
+def test_camps_own_price_wins_even_when_older() -> None:
+    camp = _priced_camp()
+    set_price("Potatoes", "1.00", camp=camp, date=datetime.date(2025, 1, 1))
+    set_price("Potatoes", "9.00", date=datetime.date(2026, 6, 1))
+
+    line = _line(camp)
+    assert line.cost == Decimal("10.00")
+    assert line.price.is_camp_price is True
+
+
+def test_each_camp_keeps_its_own_price() -> None:
+    camp = _priced_camp()
+    other = _priced_camp()
+    set_price("Potatoes", "1.00", camp=camp)
+    set_price("Potatoes", "5.00", camp=other, date=datetime.date(2026, 2, 1))
+    assert _line(camp).cost == Decimal("10.00")
+    assert _line(other).cost == Decimal("50.00")
+
+
+def test_deleting_a_camp_keeps_its_prices() -> None:
+    camp = _priced_camp()
+    other = make_camp()
+    price = set_price("Potatoes", "1.00", camp=other)
+    other.delete()
+    price.refresh_from_db()
+    assert price.camp is None
+    assert _line(camp).cost == Decimal("10.00")
+
+
+def test_price_in_an_old_unit_is_not_used() -> None:
+    camp = _priced_camp()
+    set_price("Potatoes", "1.00", camp=camp)
+    Ingredient.objects.filter(name="Potatoes").update(unit=PIECE)
+    RecipeIngredient.objects.update(unit=PIECE)
+
+    line = _line(camp)
+    assert line.cost is None
+    assert build_budget(camp).missing[0].name == "Potatoes"
+    listing = Ingredient.objects.with_latest_price().get(name="Potatoes")
+    assert listing.latest_price is None
+
+    set_price("Potatoes", "0.50")
+    assert _line(camp).cost == Decimal("5.00")

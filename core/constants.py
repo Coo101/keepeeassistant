@@ -6,6 +6,17 @@ from decimal import Decimal
 CHILD_PORTION_FACTOR = Decimal("0.7")
 
 
+class PriceSource:
+    MANUAL = "manual"
+    IMPORT = "import"
+    BILL = "bill"
+    CHOICES = [
+        (MANUAL, "Entered by hand"),
+        (IMPORT, "Earlier stored price"),
+        (BILL, "From a bill"),
+    ]
+
+
 class Unit:
     PIECE = "piece"
     KG = "kg"

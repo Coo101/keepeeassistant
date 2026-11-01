@@ -1,7 +1,19 @@
 from django.contrib import admin
-from django.utils import timezone
 
-from recipes.models import Ingredient, Recipe, RecipeIngredient, RecipeStep
+from recipes.models import (
+    Ingredient,
+    IngredientPrice,
+    Recipe,
+    RecipeIngredient,
+    RecipeStep,
+)
+
+
+class IngredientPriceInline(admin.TabularInline):
+    model = IngredientPrice
+    extra = 1
+    autocomplete_fields = ["camp"]
+    readonly_fields = ["unit", "created_by"]
 
 
 @admin.register(Ingredient)
@@ -11,18 +23,32 @@ class IngredientAdmin(admin.ModelAdmin):
         "unit",
         "category",
         "shop",
-        "price_per_unit",
+        "latest_price",
+        "latest_price_date",
         "product_details",
-        "price_updated",
     ]
     list_filter = ["shop", "category", "unit"]
     search_fields = ["name", "product_details"]
-    list_editable = ["shop", "price_per_unit"]
+    list_editable = ["shop"]
+    inlines = [IngredientPriceInline]
 
-    def save_model(self, request, obj, form, change) -> None:
-        if "price_per_unit" in form.changed_data:
-            obj.price_updated = timezone.now()
-        super().save_model(request, obj, form, change)
+    def save_formset(self, request, form, formset, change) -> None:
+        for price in formset.save(commit=False):
+            price.created_by = price.created_by or request.user
+            price.save()
+        for deleted in formset.deleted_objects:
+            deleted.delete()
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).with_latest_price()
+
+    @admin.display(description="Latest price")
+    def latest_price(self, obj: Ingredient):
+        return obj.latest_price
+
+    @admin.display(description="Price date")
+    def latest_price_date(self, obj: Ingredient):
+        return obj.latest_price_date
 
 
 class RecipeIngredientInline(admin.TabularInline):

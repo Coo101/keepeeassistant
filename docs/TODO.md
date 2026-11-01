@@ -3,16 +3,10 @@
 In the order to tackle them; each step builds on the ones before it. Last reviewed
 against the code on 2026-11-01.
 
-## 1. Finish and stabilise the current work
-
-- [x] Check the new screens in a browser, including the ingredient dialog on the recipe form
-- [ ] The top of the recipe form looks rough next to the camp form: labels sit beside
-      the fields and the notes box is out of line. Use the same stacked layout
-
 ## 2. Clean up the data
 
-Do this before the production copy (step 3) and the price history (step 4), so wrong
-prices don't end up in either.
+Do this before the production copy (step 3). A corrected price is added to the history;
+a wrong old one stays until you delete it on the ingredient's page in the admin.
 
 - [ ] Correct the prices that matched the wrong product:
   - Wraps: EUR 16.25 each, from a kebab meal kit (EUR 650 of the Klein Kamp budget)
@@ -39,21 +33,6 @@ prices don't end up in either.
 - [ ] Add the Caddy site `meals.dk-1.home.zx` -> `keepeeassistant:8000`
 - [ ] Create or check the admin account:
       `docker exec -it keepeeassistant python manage.py createsuperuser`
-
-## 4. Prices per camp
-
-The building block for financing: bills add prices to a camp and leave other camps alone.
-
-- [ ] Price history model: ingredient, price, date, camp (optional), and later the bill
-      line it came from. Existing prices move over as starting prices without a camp
-- [ ] Latest price of an ingredient: the most recent one, across all camps and Chiros
-- [ ] Budget: use the camp's own price for an ingredient, otherwise the latest price, and
-      show which of the two was used
-- [ ] Ingredients page: show the latest price and its date plus the price history;
-      entering a price adds to the history instead of overwriting it
-- [ ] Remove `Ingredient.price_per_unit` and `price_updated`, or derive them from the
-      history, and update the admin, budget and forms
-- [ ] Update `docs/SPEC.md` §6 and §9.6
 
 ## 5. Financing: bills and actual costs
 
@@ -105,11 +84,22 @@ with the budget.
 - [ ] Decide whether SQLite is still enough
 - [ ] Add the Cloudflare tunnel and check the whole login and upload flow through it
 
-## Future features
+## 9. Remaining features from the spec (§13)
 
+- [ ] Roles within a Chiro: who may invite members and delete camps
+- [ ] Dietary restrictions and allergies: per camp headcounts and per recipe flags,
+      with warnings in the planner
+- [ ] Nutrition and balance: tags per ingredient, rolled up per meal and day, with
+      simple warnings in the planner
+- [ ] Pantry on hand: subtract what a camp already has from its shopping lists
 - [ ] Archive camps instead of deleting them for good
-- [ ] Fetch up-to-date ingredient prices automatically, from a reliable source
-- [ ] The other ideas in `docs/SPEC.md` §13
+- [ ] Requests to join: sign-up that staff approve, and a request for a new Chiro
+
+## Needs you or something outside this project
+
+- [ ] Fetch up-to-date ingredient prices automatically: needs a reliable source first
+- [ ] Install an Ollama vision model; none is installed yet, so photos can't be read
+- [ ] Send real bills, so the reader can be tuned to their layout
 
 ## Done on `dev`
 
@@ -145,3 +135,6 @@ with the budget.
 - [x] Real PDF output is tested where WeasyPrint's libraries exist, and the deploy job
       checks that the image renders a PDF
 - [x] Dependencies are pinned in `pyproject.toml`; the requirements files are generated
+- [x] The recipe form uses the same stacked layout as the camp form
+- [x] Prices per camp: price history, a camp's own price wins, otherwise the latest,
+      and the budget shows which one it used

@@ -1,6 +1,7 @@
 """Deleting, removing stray entries, and adding an ingredient from a recipe."""
 
 import datetime
+from decimal import Decimal
 
 import pytest
 from django.contrib.auth.models import User
@@ -206,7 +207,7 @@ def test_stray_trip_removal_is_post_only_and_for_members() -> None:
 
 def test_quick_add_returns_the_new_ingredient() -> None:
     response = account_client().post(
-        reverse("ingredient_quick_add"), _quick_add_data(price_per_unit="1.5")
+        reverse("ingredient_quick_add"), _quick_add_data(price="1.5")
     )
     ingredient = Ingredient.objects.get()
     assert response.status_code == 201
@@ -215,7 +216,7 @@ def test_quick_add_returns_the_new_ingredient() -> None:
         "label": "Wortel (kg)",
         "unit": KG,
     }
-    assert ingredient.price_updated is not None
+    assert ingredient.prices.get().price == Decimal("1.5")
 
 
 def test_quick_add_reports_errors_as_json() -> None:
