@@ -24,6 +24,12 @@ COPY . .
 RUN DJANGO_SECRET_KEY=build-time-only-not-a-secret \
     python manage.py collectstatic --noinput
 
+# Not root: a break-in stays limited to the app and its data.
+RUN useradd --system --uid 1000 --no-create-home app \
+    && mkdir -p /data \
+    && chown -R app /data
+USER app
+
 VOLUME /data
 EXPOSE 8000
 

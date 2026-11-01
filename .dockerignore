@@ -7,7 +7,7 @@
 .ruff_cache/
 __pycache__/
 *.pyc
-db.sqlite3
+db.sqlite3*
 staticfiles/
 media/
 docs/

@@ -5,10 +5,31 @@ from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_not_required
 from django.urls import include, path
 
+from accounts.ratelimit import (
+    LimitedLoginForm,
+    LimitedPasswordResetForm,
+    UnlockingSetPasswordForm,
+)
+
 urlpatterns = [
     path("admin/", admin.site.urls),
-    # Only login/logout: password reset would need a mail backend.
-    path("accounts/login/", auth_views.LoginView.as_view(), name="login"),
+    path(
+        "accounts/login/",
+        auth_views.LoginView.as_view(authentication_form=LimitedLoginForm),
+        name="login",
+    ),
+    path(
+        "accounts/reset/<uidb64>/<token>/",
+        auth_views.PasswordResetConfirmView.as_view(
+            form_class=UnlockingSetPasswordForm
+        ),
+        name="password_reset_confirm",
+    ),
+    path(
+        "accounts/password_reset/",
+        auth_views.PasswordResetView.as_view(form_class=LimitedPasswordResetForm),
+        name="password_reset",
+    ),
     # Open to anonymous users: logging out after the session expired must not
     # bounce through the login form back to this POST-only view.
     path(

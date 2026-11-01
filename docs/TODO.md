@@ -29,20 +29,15 @@ a wrong old one stays until you delete it on the ingredient's page in the admin.
 - [ ] Merge `dev` into `main`: this runs the first build and deploy
 - [ ] Check that the stack's healthcheck accepts `/` redirecting to the login page
 - [ ] Copy the cleaned local database into the `keepeeassistant_data` volume. The
-      production volume doesn't exist yet, so the data is only in the local `db.sqlite3`
+      production volume doesn't exist yet, so the data is only in the local `db.sqlite3`.
+      Stop the dev server first, so nothing is left in `db.sqlite3-wal`, and copy `media/`
+      too if it has bills. The container runs as uid 1000, so make the files its own:
+      `docker run --rm -v keepeeassistant_data:/data alpine chown -R 1000 /data`
+- [ ] Set `DJANGO_CLIENT_IP_HEADER=HTTP_X_FORWARDED_FOR` and stop publishing the app's
+      port directly, so login limits apply per visitor behind Caddy
 - [ ] Add the Caddy site `meals.dk-1.home.zx` -> `keepeeassistant:8000`
 - [ ] Create or check the admin account:
       `docker exec -it keepeeassistant python manage.py createsuperuser`
-
-## 8. Going public through the Cloudflare tunnel
-
-- [ ] Rate-limit login attempts
-- [ ] Run the container as a non-root user
-- [ ] Set `DJANGO_SECURE_COOKIES=1`, `DJANGO_ALLOWED_HOSTS` and
-      `DJANGO_CSRF_TRUSTED_ORIGINS`, and add `SECURE_PROXY_SSL_HEADER` to the settings.
-      Until then production is plain HTTP on the LAN, so logins aren't encrypted
-- [ ] Decide whether SQLite is still enough
-- [ ] Add the Cloudflare tunnel and check the whole login and upload flow through it
 
 ## 9. Remaining features from the spec (§13)
 
@@ -60,6 +55,9 @@ a wrong old one stays until you delete it on the ingredient's page in the admin.
 - [ ] Fetch up-to-date ingredient prices automatically: needs a reliable source first
 - [ ] Install an Ollama vision model; none is installed yet, so photos can't be read
 - [ ] Send real bills, so the reader can be tuned to their layout
+- [ ] Before going public: add the Cloudflare tunnel, set `DJANGO_SECURE_COOKIES=1`,
+      `DJANGO_BEHIND_TLS_PROXY=1`, `DJANGO_ALLOWED_HOSTS` and `DJANGO_CSRF_TRUSTED_ORIGINS`, set the `EMAIL_*` values,
+      and check login and upload through the tunnel
 
 ## Done on `dev`
 
@@ -107,3 +105,7 @@ a wrong old one stays until you delete it on the ingredient's page in the admin.
       and product details. Prices no longer affect other camps' own prices
 - [x] Mail backend, email login, password reset, account page and invitations
 - [x] Public home page, news and docs; the camp list moved to `/camps/`
+- [x] Login and reset-mail rate limits; the container runs as a non-root user
+- [x] Decision: SQLite stays for now, with WAL mode for the workers and bill reader.
+      Back up the data volume, which also holds the bills, with `sqlite3 .backup`
+      or with the app stopped

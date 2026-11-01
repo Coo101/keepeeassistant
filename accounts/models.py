@@ -72,3 +72,10 @@ class Invitation(models.Model):
     def is_open(self) -> bool:
         expires = self.created_at + datetime.timedelta(days=INVITATION_DAYS)
         return self.accepted_at is None and timezone.now() < expires
+
+
+class RateLimitHit(models.Model):
+    """One failed login or reset mail; see accounts.ratelimit."""
+
+    key = models.CharField(max_length=64, db_index=True)
+    at = models.DateTimeField(auto_now_add=True, db_index=True)

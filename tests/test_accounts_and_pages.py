@@ -6,11 +6,18 @@ import re
 import pytest
 from django.contrib.auth.models import User
 from django.core import mail
-from django.test import Client
+from django.test import Client, RequestFactory
 from django.urls import reverse
 from django.utils import timezone
 
-from accounts.models import Chiro, Invitation, Membership
+from accounts.models import Chiro, Invitation, Membership, RateLimitHit
+from accounts.ratelimit import (
+    MAX_FAILS_PER_ACCOUNT,
+    MAX_FAILS_PER_ADDRESS,
+    MAX_RESETS_PER_ADDRESS,
+    MAX_RESETS_PER_EMAIL,
+    client_address,
+)
 from pages.models import Post
 from pages.views import DOCS
 from tests.factories import account_client, make_camp, member_client
@@ -296,3 +303,127 @@ def test_send_again_skips_used_invitations(invitation) -> None:
     )
     assert response.status_code == 302
     assert mail.outbox == []
+
+
+def _try_login(client: Client, username: str, password: str):
+    return client.post(reverse("login"), {"username": username, "password": password})
+
+
+def test_login_locks_after_too_many_failures() -> None:
+    User.objects.create_user("kok", password=PASSWORD)
+    client = Client()
+    for _ in range(MAX_FAILS_PER_ACCOUNT):
+        assert _try_login(client, "kok", "fout").status_code == 200
+
+    # even the right password now has to wait, without saying which it was
+    response = _try_login(client, "KOK", PASSWORD)
+    assert response.status_code == 200
+    assert "Too many failed attempts" in response.content.decode()
+    assert RateLimitHit.objects.exclude(key__regex="^[0-9a-f]{64}$").count() == 0
+
+
+def test_other_accounts_stay_open_and_success_resets_the_count() -> None:
+    User.objects.create_user("kok", password=PASSWORD)
+    User.objects.create_user("ander", password=PASSWORD)
+    client = Client()
+    for _ in range(MAX_FAILS_PER_ACCOUNT - 1):
+        _try_login(client, "kok", "fout")
+    assert _try_login(Client(), "ander", PASSWORD).status_code == 302
+    assert _try_login(Client(), "kok", PASSWORD).status_code == 302
+    assert _try_login(Client(), "kok", "fout").status_code == 200
+    assert _try_login(Client(), "kok", PASSWORD).status_code == 302
+
+
+def test_old_failures_no_longer_count() -> None:
+    User.objects.create_user("kok", password=PASSWORD)
+    for _ in range(MAX_FAILS_PER_ACCOUNT):
+        _try_login(Client(), "kok", "fout")
+    RateLimitHit.objects.update(at=timezone.now() - datetime.timedelta(hours=1))
+    assert _try_login(Client(), "kok", PASSWORD).status_code == 302
+
+
+def test_admin_login_is_limited_too() -> None:
+    User.objects.create_superuser("baas", password=PASSWORD)
+    for _ in range(MAX_FAILS_PER_ACCOUNT):
+        Client().post("/admin/login/", {"username": "baas", "password": "fout"})
+    response = Client().post(
+        "/admin/login/", {"username": "baas", "password": PASSWORD}
+    )
+    assert response.status_code == 200
+    assert "Too many failed attempts" in response.content.decode()
+
+
+def test_addresses_are_limited_behind_a_configured_header(settings) -> None:
+    settings.CLIENT_IP_HEADER = "HTTP_CF_CONNECTING_IP"
+    for number in range(MAX_FAILS_PER_ADDRESS):
+        Client(HTTP_CF_CONNECTING_IP="1.2.3.4").post(
+            reverse("login"), {"username": f"gok{number}", "password": "x"}
+        )
+    User.objects.create_user("kok", password=PASSWORD)
+    blocked = Client(HTTP_CF_CONNECTING_IP="1.2.3.4").post(
+        reverse("login"), {"username": "kok", "password": PASSWORD}
+    )
+    assert blocked.status_code == 200
+    allowed = Client(HTTP_CF_CONNECTING_IP="5.6.7.8").post(
+        reverse("login"), {"username": "kok", "password": PASSWORD}
+    )
+    assert allowed.status_code == 302
+
+
+def test_reset_mails_are_limited_without_saying_so() -> None:
+    User.objects.create_user("kok", email="kok@example.com", password=PASSWORD)
+    for _ in range(MAX_RESETS_PER_EMAIL + 2):
+        response = Client().post(
+            reverse("password_reset"), {"email": "kok@example.com"}
+        )
+        assert response.status_code == 302
+    assert len(mail.outbox) == MAX_RESETS_PER_EMAIL
+
+
+def test_blank_password_does_not_reset_the_count() -> None:
+    User.objects.create_user("kok", password=PASSWORD)
+    for _ in range(MAX_FAILS_PER_ACCOUNT - 1):
+        _try_login(Client(), "kok", "fout")
+    _try_login(Client(), "kok", "")
+    _try_login(Client(), "kok", "fout")
+    response = _try_login(Client(), "kok", PASSWORD)
+    assert "Too many failed attempts" in response.content.decode()
+
+
+def test_all_spellings_of_an_account_share_one_count() -> None:
+    User.objects.create_user("kok", email="kok@example.com", password=PASSWORD)
+    spellings = ["kok", "KOK", "ｋok", "kok@example.com"]
+    for number in range(MAX_FAILS_PER_ACCOUNT):
+        _try_login(Client(), spellings[number % len(spellings)], "fout")
+    response = _try_login(Client(), "kok@example.com", PASSWORD)
+    assert "Too many failed attempts" in response.content.decode()
+
+
+def test_password_reset_lifts_the_lock() -> None:
+    User.objects.create_user("kok", email="kok@example.com", password=PASSWORD)
+    for _ in range(MAX_FAILS_PER_ACCOUNT):
+        _try_login(Client(), "kok", "fout")
+    client = Client()
+    client.post(reverse("password_reset"), {"email": "kok@example.com"})
+    link = re.search(r"https?://\S+", mail.outbox[0].body).group()
+    form_page = client.get(link.split("testserver", 1)[1], follow=True)
+    new = "nieuw-wachtwoord-77"
+    client.post(
+        form_page.redirect_chain[-1][0],
+        {"new_password1": new, "new_password2": new},
+    )
+    assert _try_login(Client(), "kok", new).status_code == 302
+
+
+def test_reset_mails_are_limited_per_address() -> None:
+    for number in range(MAX_RESETS_PER_ADDRESS + 2):
+        User.objects.create_user(f"k{number}", email=f"k{number}@example.com")
+        Client().post(reverse("password_reset"), {"email": f"k{number}@example.com"})
+    assert RateLimitHit.objects.count() == 2 * MAX_RESETS_PER_ADDRESS
+
+
+def test_only_the_address_added_by_the_nearest_proxy_counts(settings) -> None:
+    settings.CLIENT_IP_HEADER = "HTTP_X_FORWARDED_FOR"
+    factory = RequestFactory()
+    request = factory.get("/", HTTP_X_FORWARDED_FOR="9.9.9.9, 1.2.3.4")
+    assert client_address(request) == "1.2.3.4"

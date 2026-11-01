@@ -119,6 +119,12 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": DATA_DIR / "db.sqlite3",
+        # Several gunicorn workers and the bill reader write at the same time.
+        "OPTIONS": {
+            "timeout": 20,
+            "transaction_mode": "IMMEDIATE",
+            "init_command": "PRAGMA journal_mode=WAL;",
+        },
     }
 }
 
@@ -211,6 +217,12 @@ SESSION_SAVE_EVERY_REQUEST = True
 # Send cookies over HTTPS only when serving over TLS (set in .env).
 SESSION_COOKIE_SECURE = _env_flag("DJANGO_SECURE_COOKIES")
 CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE
+
+# The header holding the visitor's address behind a proxy, for login rate limits:
+# HTTP_X_FORWARDED_FOR behind Caddy, HTTP_CF_CONNECTING_IP directly behind Cloudflare.
+# Without it all visitors share the proxy's address, and share one limit. Only set
+# it when the app can't be reached except through that proxy.
+CLIENT_IP_HEADER = os.environ.get("DJANGO_CLIENT_IP_HEADER", "")
 
 # Behind a proxy that ends TLS (Cloudflare tunnel, Caddy), so emailed links use
 # https. Only switch this on when the proxy always sets this header itself.

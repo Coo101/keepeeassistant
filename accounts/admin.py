@@ -6,7 +6,8 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 
 from accounts.invitations import send_invitation
-from accounts.models import Chiro, Invitation, Membership
+from accounts.models import Chiro, Invitation, Membership, RateLimitHit
+from accounts.ratelimit import LimitedAdminLoginForm
 
 
 class MembershipInline(admin.TabularInline):
@@ -29,6 +30,7 @@ class UserChiroInline(admin.TabularInline):
     verbose_name_plural = "Chiros"
 
 
+admin.site.login_form = LimitedAdminLoginForm
 admin.site.unregister(User)
 
 
@@ -37,6 +39,16 @@ class ChiroUserAdmin(UserAdmin):
     """The usual user admin, plus which Chiros the user belongs to."""
 
     inlines = [UserChiroInline]
+
+
+@admin.register(RateLimitHit)
+class RateLimitHitAdmin(admin.ModelAdmin):
+    """Delete these to unlock logins; the keys themselves are hashed."""
+
+    list_display = ["at"]
+
+    def has_add_permission(self, request) -> bool:
+        return False
 
 
 @admin.register(Invitation)
