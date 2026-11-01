@@ -48,6 +48,15 @@ class Ingredient(models.Model):
         help_text="Name, [brand] ([LOS] = loose/unpackaged) and container "
         "volume or other details",
     )
+    # FoodTag values: what's in it, for the diet and balance checks.
+    tags = models.JSONField(default=list, blank=True)
+    # Separate from the tags: salt rightly has none, and a stock cube marked only
+    # as a vegetable may still never have been checked for gluten.
+    tags_checked = models.BooleanField(
+        default=False,
+        verbose_name="this list is complete",
+        help_text="Tick it once someone checked all of the above, even if none apply",
+    )
 
     objects = IngredientQuerySet.as_manager()
 
@@ -161,7 +170,7 @@ class Recipe(models.Model):
         """Finished camps don't count: nobody shops for them anymore."""
         return (
             self.menuentry_set.exclude(camp__chiro__in=user.chiros.all())
-            .filter(camp__end_date__gte=timezone.localdate())
+            .filter(camp__end_date__gte=timezone.localdate(), camp__is_archived=False)
             .exists()
         )
 

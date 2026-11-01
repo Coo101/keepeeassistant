@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.test import Client
 from django.urls import reverse
 
-from accounts.models import Chiro
+from accounts.models import Chiro, Role
 from camps.models import Camp, DayNote
 from core.constants import DishType, IngredientCategory, MealType, Shop
 from planning.models import MenuEntry
@@ -63,7 +63,7 @@ def test_camp_delete_asks_first_then_removes_everything() -> None:
     camp, recipe = _planned_camp()
     ShoppingTrip.objects.create(camp=camp, date=AUG(1))
     DayNote.objects.create(camp=camp, date=AUG(1), text="notitie")
-    client = member_client(camp)
+    client = member_client(camp, role=Role.ADMIN)
     url = reverse("camp_delete", args=[camp.pk])
 
     content = client.get(url).content.decode()

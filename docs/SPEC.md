@@ -286,6 +286,28 @@ covers** so nothing silently falls through the cracks.
   Camp food and other (deposits, discounts) count towards the food total compared
   with the budget. Skipped lines count for nothing.
 
+### 9.11 Diets and allergies
+- Per camp: how many people have which diet or allergy. Ingredients are tagged with
+  what they contain. The planner lists every planned meal that conflicts.
+- It relies on the tags, so it lists planned ingredients nobody marked as checked, and
+  tells people to check labels themselves. It is a help, not a guarantee.
+
+### 9.12 Pantry
+- Per camp: what's already there, in the ingredient's unit. It comes off the shopping
+  lists and the budget, starting with the first trip.
+
+### 9.13 Balance
+- The planner flags hot meals and days without vegetables, days without fruit, and
+  more than 2 sweet recipes a day. No warnings until some planned ingredient is tagged.
+
+### 9.14 Roles, archive and join requests
+- A Chiro's admins invite and remove members, change roles and delete camps; all
+  members plan and change camps. A Chiro keeps at least one admin.
+- Camps can be archived and brought back. Archived camps stay available and don't
+  lock recipes.
+- Anyone can request access on the public site. Staff approve in the admin: that
+  creates the Chiro if needed, with the requester as its admin, and sends the invitation.
+
 ## 10. Non-functional Requirements
 
 - **Logging:** Python `logging`, no `print`.
@@ -325,19 +347,9 @@ Suggested shared constant: `CHILD_PORTION_FACTOR = 0.7` in `core/`.
 7. Quantities rounded to **1 decimal** (kg/liter); camps are always 50+ people.
 8. Framework is **Django**.
 
-## 13. Out of Scope for v1 (future)
+## 13. Future
 
-- **Nutrition / balance tracker.** Flag whether a meal and a day are balanced —
-  e.g. enough vegetables, not too much sugar. Likely approach: per-ingredient
-  nutrition tags (is-vegetable, sugar level, food group, etc.) rolled up per
-  meal and per day, with simple threshold warnings in the planner.
-- Dietary restrictions / allergies handling.
-- "Pantry on hand" subtraction (exclude what you already have).
-- **Automatic price updates.** Fetch up-to-date ingredient prices from a
-  reliable source. An earlier import from a third-party Colruyt product dump
-  was removed: it is unmaintained and its product matches were unreliable.
-- **Financing.** Upload a camp's bills (PDF or photo), read the lines, update
-  ingredient prices after a person confirms them, and compare actual cost with
-  the budget. Later: purchase categories (camp food / activity / personal).
-- Roles within a Chiro, and recipe edit rights per user.
-- Open sign-up and creating a Chiro without staff.
+- **Automatic price updates.** Fetch up-to-date ingredient prices from a reliable
+  source. An earlier import from a third-party Colruyt product dump was removed: it
+  is unmaintained and its product matches were unreliable.
+- Recipe edit rights per user.

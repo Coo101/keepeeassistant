@@ -12,7 +12,7 @@
     {% endif %}
     <a class="btn btn-outline" href="{% url 'doc' 'getting-started' %}">How it works</a>
   </div>
-  {% if not user.is_authenticated %}<p class="muted">Camp Meal Planner is by invitation for now.</p>{% endif %}
+  {% if not user.is_authenticated %}<p class="muted">Camp Meal Planner is by invitation for now. <a href="{% url 'join_request' %}">Request access.</a></p>{% endif %}
 </section>
 
 <ul class="feature-grid">

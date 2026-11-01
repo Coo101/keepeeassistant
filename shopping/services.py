@@ -96,9 +96,11 @@ def _aggregate_days(
     camp: Camp,
     days: list[datetime.date],
     entries_by_date: dict[datetime.date, list[MenuEntry]],
+    pantry: dict[int, Decimal],
 ) -> list[ShopSection]:
     """Aggregate scaled ingredient quantities for the given camp days,
-    grouped by shop and then by ingredient category (SPEC §8)."""
+    grouped by shop and then by ingredient category (SPEC §8). What's used from
+    `pantry` is taken out of it, so a later trip doesn't count it again."""
     totals: dict[tuple[int, str], Decimal] = defaultdict(Decimal)
     ingredients: dict[int, Ingredient] = {}
 
@@ -114,6 +116,12 @@ def _aggregate_days(
     )
     for (ingredient_id, unit), quantity in totals.items():
         ingredient = ingredients[ingredient_id]
+        if unit == ingredient.unit:
+            used = min(pantry.get(ingredient_id, Decimal("0")), quantity)
+            pantry[ingredient_id] = pantry.get(ingredient_id, Decimal("0")) - used
+            quantity -= used
+            if quantity <= 0:
+                continue
         item = ListItem(
             ingredient=ingredient,
             quantity=round_quantity(quantity, unit),
@@ -143,10 +151,17 @@ def build_shopping_plan(camp: Camp) -> ShoppingPlan:
     trips = list(camp.shopping_trips.order_by("date"))
     camp_days = camp.days
     entries_by_date = _entries_by_date(camp)
+    pantry = {item.ingredient_id: item.quantity for item in camp.pantry_items.all()}
 
     trip_lists: list[TripShoppingList] = []
     covered: set[datetime.date] = set()
-    for trip, cover_start, cover_end in _coverage_windows(camp, trips):
+    windows = _coverage_windows(camp, trips)
+    if windows:
+        # Days before the first trip's coverage are on no list, but they do use up
+        # the pantry before the lists get to it.
+        opening_days = [d for d in camp_days if d < windows[0][1]]
+        _aggregate_days(camp, opening_days, entries_by_date, pantry)
+    for trip, cover_start, cover_end in windows:
         days = [d for d in camp_days if cover_start <= d <= cover_end]
         covered.update(days)
         trip_lists.append(
@@ -155,7 +170,7 @@ def build_shopping_plan(camp: Camp) -> ShoppingPlan:
                 cover_start=cover_start,
                 cover_end=cover_end,
                 covered_days=days,
-                shop_sections=_aggregate_days(camp, days, entries_by_date),
+                shop_sections=_aggregate_days(camp, days, entries_by_date, pantry),
             )
         )
 

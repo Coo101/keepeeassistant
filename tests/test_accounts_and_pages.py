@@ -273,7 +273,7 @@ def test_saving_an_invitation_in_the_admin_mails_the_link(chiro) -> None:
     client.force_login(User.objects.create_superuser("baas"))
     response = client.post(
         "/admin/accounts/invitation/add/",
-        {"chiro": chiro.pk, "email": "jan@example.com"},
+        {"chiro": chiro.pk, "email": "jan@example.com", "role": "member"},
     )
     assert response.status_code == 302
     invitation = Invitation.objects.get()

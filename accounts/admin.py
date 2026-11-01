@@ -1,12 +1,18 @@
-import smtplib
-
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
+from django.db import transaction
 from django.urls import reverse
 
-from accounts.invitations import send_invitation
-from accounts.models import Chiro, Invitation, Membership, RateLimitHit
+from accounts.invitations import MAIL_ERRORS, send_invitation
+from accounts.models import (
+    Chiro,
+    Invitation,
+    JoinRequest,
+    Membership,
+    RateLimitHit,
+    Role,
+)
 from accounts.ratelimit import LimitedAdminLoginForm
 
 
@@ -59,7 +65,15 @@ class InvitationAdmin(admin.ModelAdmin):
     list_filter = ["chiro"]
     search_fields = ["email"]
     autocomplete_fields = ["chiro"]
-    fields = ["chiro", "email", "link", "invited_by", "created_at", "accepted_at"]
+    fields = [
+        "chiro",
+        "email",
+        "role",
+        "link",
+        "invited_by",
+        "created_at",
+        "accepted_at",
+    ]
     readonly_fields = ["link", "invited_by", "created_at", "accepted_at"]
     actions = ["send_again"]
 
@@ -77,7 +91,7 @@ class InvitationAdmin(admin.ModelAdmin):
         try:
             send_invitation(request, invitation)
             messages.success(request, f"Mail sent to {invitation.email}.")
-        except (OSError, ValueError, smtplib.SMTPException) as exc:
+        except MAIL_ERRORS as exc:
             messages.error(
                 request,
                 f"The mail to {invitation.email} failed ({exc}). "
@@ -94,3 +108,61 @@ class InvitationAdmin(admin.ModelAdmin):
                     request,
                     f"{invitation.email}: used or expired. Create a new invitation.",
                 )
+
+
+@admin.register(JoinRequest)
+class JoinRequestAdmin(admin.ModelAdmin):
+    list_display = ["name", "email", "chiro_name", "status", "created_at"]
+    list_filter = ["status"]
+    search_fields = ["name", "email", "chiro_name"]
+    actions = ["approve", "reject"]
+
+    def has_add_permission(self, request) -> bool:
+        return False
+
+    @admin.action(description="Approve: create the Chiro if needed, and invite")
+    def approve(self, request, queryset) -> None:
+        for join in queryset.filter(status=JoinRequest.Status.OPEN):
+            invitation = self._invitation_for(join, request)
+            if invitation is None:
+                messages.info(
+                    request,
+                    f"{join.email} is already a member or has an open invitation.",
+                )
+                continue
+            try:
+                send_invitation(request, invitation)
+                messages.success(
+                    request, f"Invited {join.email} to {invitation.chiro}."
+                )
+            except MAIL_ERRORS as exc:
+                messages.error(
+                    request,
+                    f"The mail to {join.email} failed ({exc}). Pass on the link on "
+                    "the invitation's page instead.",
+                )
+
+    @transaction.atomic
+    def _invitation_for(self, join: JoinRequest, request) -> Invitation | None:
+        """Marks the request approved; None if nobody needs inviting."""
+        join.status = JoinRequest.Status.APPROVED
+        join.save(update_fields=["status"])
+        chiro = Chiro.objects.filter(name__iexact=join.chiro_name).first()
+        if chiro:
+            members = chiro.membership_set.filter(user__email__iexact=join.email)
+            invitations = chiro.invitation_set.filter(email__iexact=join.email)
+            if members.exists() or any(i.is_open for i in invitations):
+                return None
+        else:
+            chiro = Chiro.objects.create(name=join.chiro_name)
+        # A Chiro without an admin gets its first one here; others join as members.
+        role = Role.MEMBER if chiro.has_admin() else Role.ADMIN
+        return Invitation.objects.create(
+            chiro=chiro, email=join.email, role=role, invited_by=request.user
+        )
+
+    @admin.action(description="Reject (sends no mail)")
+    def reject(self, request, queryset) -> None:
+        queryset.filter(status=JoinRequest.Status.OPEN).update(
+            status=JoinRequest.Status.REJECTED
+        )

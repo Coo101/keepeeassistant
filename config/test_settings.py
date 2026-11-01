@@ -10,6 +10,9 @@ from config.settings import *  # noqa: E402, F403
 MEDIA_ROOT = tempfile.mkdtemp(prefix="keepee-test-media-")
 OLLAMA_URL = ""
 
+# Fast: the tests log in hundreds of times.
+PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+
 # The manifest storage needs collectstatic, which tests don't run.
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},

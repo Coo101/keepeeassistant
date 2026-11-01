@@ -39,18 +39,9 @@ a wrong old one stays until you delete it on the ingredient's page in the admin.
 - [ ] Create or check the admin account:
       `docker exec -it keepeeassistant python manage.py createsuperuser`
 
-## 9. Remaining features from the spec (§13)
-
-- [ ] Roles within a Chiro: who may invite members and delete camps
-- [ ] Dietary restrictions and allergies: per camp headcounts and per recipe flags,
-      with warnings in the planner
-- [ ] Nutrition and balance: tags per ingredient, rolled up per meal and day, with
-      simple warnings in the planner
-- [ ] Pantry on hand: subtract what a camp already has from its shopping lists
-- [ ] Archive camps instead of deleting them for good
-- [ ] Requests to join: sign-up that staff approve, and a request for a new Chiro
-
 ## Needs you or something outside this project
+
+- [ ] Mark ingredients with what they contain, for the diet and balance checks
 
 - [ ] Fetch up-to-date ingredient prices automatically: needs a reliable source first
 - [ ] Install an Ollama vision model; none is installed yet, so photos can't be read
@@ -109,3 +100,8 @@ a wrong old one stays until you delete it on the ingredient's page in the admin.
 - [x] Decision: SQLite stays for now, with WAL mode for the workers and bill reader.
       Back up the data volume, which also holds the bills, with `sqlite3 .backup`
       or with the app stopped
+- [x] Roles within a Chiro, and a Chiro page to invite and manage members
+- [x] Diets and allergies, and balance checks in the planner
+- [x] Pantry on hand comes off the shopping lists and budget
+- [x] Archive camps
+- [x] Requests to join, approved by staff

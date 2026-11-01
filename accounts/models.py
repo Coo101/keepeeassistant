@@ -14,6 +14,11 @@ def _new_token() -> str:
     return secrets.token_urlsafe(32)
 
 
+class Role(models.TextChoices):
+    MEMBER = "member", "Member"
+    ADMIN = "admin", "Admin (invites members, deletes camps)"
+
+
 class Chiro(models.Model):
     """A Chiro group. Created in the admin only: access is by invitation."""
 
@@ -28,10 +33,17 @@ class Chiro(models.Model):
     def __str__(self) -> str:
         return self.name
 
+    def has_admin(self) -> bool:
+        return self.membership_set.filter(role=Role.ADMIN).exists()
+
+    def is_admin(self, user) -> bool:
+        return self.membership_set.filter(user=user, role=Role.ADMIN).exists()
+
 
 class Membership(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     chiro = models.ForeignKey(Chiro, on_delete=models.CASCADE)
+    role = models.CharField(max_length=10, choices=Role.choices, default=Role.MEMBER)
 
     class Meta:
         constraints = [
@@ -49,6 +61,7 @@ class Invitation(models.Model):
 
     chiro = models.ForeignKey(Chiro, on_delete=models.CASCADE)
     email = models.EmailField()
+    role = models.CharField(max_length=10, choices=Role.choices, default=Role.MEMBER)
     token = models.CharField(
         max_length=64, unique=True, default=_new_token, editable=False
     )
@@ -79,3 +92,27 @@ class RateLimitHit(models.Model):
 
     key = models.CharField(max_length=64, db_index=True)
     at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+
+class JoinRequest(models.Model):
+    """Someone asking for access from the public site; staff decide."""
+
+    class Status(models.TextChoices):
+        OPEN = "open", "Open"
+        APPROVED = "approved", "Approved"
+        REJECTED = "rejected", "Rejected"
+
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    chiro_name = models.CharField(max_length=200, verbose_name="your Chiro")
+    message = models.TextField(blank=True)
+    status = models.CharField(
+        max_length=10, choices=Status.choices, default=Status.OPEN
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"{self.name}, {self.chiro_name}"

@@ -165,3 +165,75 @@ def allowed_dish_types(meal_type: str, course: str) -> list[str]:
         if slot.meal_type == meal_type and slot.course == course:
             return list(slot.dish_types)
     return []
+
+
+class FoodTag:
+    """What's in an ingredient, for the diet and balance checks."""
+
+    GLUTEN = "gluten"
+    LACTOSE = "lactose"
+    NUTS = "nuts"
+    EGG = "egg"
+    SOY = "soy"
+    FISH = "fish"
+    MEAT = "meat"
+    PORK = "pork"
+    VEGETABLE = "vegetable"
+    FRUIT = "fruit"
+    SUGAR = "sugar"
+
+    CHOICES = [
+        (GLUTEN, "Gluten"),
+        (LACTOSE, "Lactose"),
+        (NUTS, "Nuts"),
+        (EGG, "Egg"),
+        (SOY, "Soy"),
+        (FISH, "Fish"),
+        (MEAT, "Meat"),
+        (PORK, "Pork"),
+        (VEGETABLE, "Vegetable"),
+        (FRUIT, "Fruit"),
+        (SUGAR, "High in sugar"),
+    ]
+
+
+class Diet:
+    GLUTEN_FREE = "gluten_free"
+    LACTOSE_FREE = "lactose_free"
+    NUT_FREE = "nut_free"
+    EGG_FREE = "egg_free"
+    SOY_FREE = "soy_free"
+    FISH_FREE = "fish_free"
+    VEGETARIAN = "vegetarian"
+    VEGAN = "vegan"
+    NO_PORK = "no_pork"
+
+    CHOICES = [
+        (GLUTEN_FREE, "Gluten-free"),
+        (LACTOSE_FREE, "Lactose-free"),
+        (NUT_FREE, "Nut allergy"),
+        (EGG_FREE, "Egg allergy"),
+        (SOY_FREE, "Soy allergy"),
+        (FISH_FREE, "Fish allergy"),
+        (VEGETARIAN, "Vegetarian"),
+        (VEGAN, "Vegan"),
+        (NO_PORK, "No pork"),
+    ]
+
+    FORBIDS = {
+        GLUTEN_FREE: {FoodTag.GLUTEN},
+        LACTOSE_FREE: {FoodTag.LACTOSE},
+        NUT_FREE: {FoodTag.NUTS},
+        EGG_FREE: {FoodTag.EGG},
+        SOY_FREE: {FoodTag.SOY},
+        FISH_FREE: {FoodTag.FISH},
+        VEGETARIAN: {FoodTag.MEAT, FoodTag.PORK, FoodTag.FISH},
+        VEGAN: {
+            FoodTag.MEAT,
+            FoodTag.PORK,
+            FoodTag.FISH,
+            FoodTag.LACTOSE,
+            FoodTag.EGG,
+        },
+        NO_PORK: {FoodTag.PORK},
+    }

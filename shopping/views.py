@@ -9,7 +9,9 @@ from django.views.decorators.http import require_POST
 
 from camps.models import Camp
 from core.pdf import render_pdf
+from recipes.models import Ingredient
 from shopping.budget import build_budget
+from shopping.forms import PantryFormSet
 from shopping.models import ShoppingTrip
 from shopping.services import build_shopping_plan
 
@@ -84,6 +86,34 @@ def remove_outside_trip(
     logger.info("%s removed shopping day %s of %s", request.user, trip.date, camp)
     trip.delete()
     return redirect("shopping", camp_id=camp.pk)
+
+
+def pantry(request: HttpRequest, camp_id: int) -> HttpResponse:
+    camp = get_object_or_404(Camp.objects.for_user(request.user), pk=camp_id)
+    data = request.POST if request.method == "POST" else None
+    formset = PantryFormSet(
+        data, queryset=camp.pantry_items.select_related("ingredient")
+    )
+    # One query for the dropdown, instead of one per row.
+    choices = [("", "---------")] + [
+        (ingredient.pk, str(ingredient)) for ingredient in Ingredient.objects.all()
+    ]
+    for form in [*formset.forms, formset.empty_form]:
+        form.fields["ingredient"].choices = choices
+    if data is not None and formset.is_valid():
+        formset.save_rows(camp=camp)
+        return redirect("shopping", camp_id=camp.pk)
+    return render(
+        request,
+        "camps/rows_page.html",
+        {
+            "camp": camp,
+            "formset": formset,
+            "title": "Pantry",
+            "intro": "What you already have, in the ingredient's unit. It's taken "
+            "off the shopping lists and the budget, starting with the first trip.",
+        },
+    )
 
 
 def budget(request: HttpRequest, camp_id: int) -> HttpResponse:

@@ -10,7 +10,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
 
-from accounts.models import Chiro, Membership
+from accounts.models import Chiro, Membership, Role
 from camps.models import Camp
 from core.constants import Course, DishType, IngredientCategory, MealType, Unit
 from planning.models import MenuEntry
@@ -204,7 +204,9 @@ class Command(BaseCommand):
             self.stdout.write("Created dev superuser admin/admin — change it!")
         chiro, _ = Chiro.objects.get_or_create(name="Demo Chiro")
         Membership.objects.get_or_create(
-            user=User.objects.get(username="admin"), chiro=chiro
+            user=User.objects.get(username="admin"),
+            chiro=chiro,
+            defaults={"role": Role.ADMIN},
         )
 
         for name, unit, category in INGREDIENTS:

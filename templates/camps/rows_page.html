@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} — {{ camp.name }}{% endblock %}
+{% block content %}
+<p><a class="back-link" href="{% url 'planner' camp.pk %}">← back to menu plan</a></p>
+<h1>{{ camp.name }} — {{ title|lower }}</h1>
+<p class="page-meta">{{ intro }}</p>
+<form method="post">
+  {% csrf_token %}
+  {% include "recipes/_formset.html" with formset=formset %}
+  <div class="actions"><button class="btn" type="submit">Save</button></div>
+</form>
+{% endblock %}

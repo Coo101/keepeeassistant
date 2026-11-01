@@ -4,6 +4,7 @@
 <h1>Camps</h1>
 {% if has_chiro %}<div class="actions"><a class="btn" href="{% url 'camp_create' %}">New camp</a></div>{% endif %}
 {% if camps %}
+<div class="table-scroll">
 <table>
   <thead>
     <tr>
@@ -31,13 +32,22 @@
     {% endfor %}
   </tbody>
 </table>
+</div>
 {% else %}
 <div class="card">
   {% if has_chiro %}
   <p>No camps for your Chiro yet. <a href="{% url 'camp_create' %}">Add the first one</a>.</p>
   {% else %}
-  <p>Your account isn't linked to a Chiro yet. Ask an administrator to link it.</p>
+  <p>Your account isn't linked to a Chiro yet. Ask your Chiro's admin for an invitation.</p>
   {% endif %}
 </div>
+{% endif %}
+{% if archived %}
+<h2>Archive</h2>
+<ul>
+  {% for camp in archived %}
+  <li><a href="{% url 'planner' camp.pk %}">{{ camp.name }}</a> <span class="muted">{{ camp.start_date|date:"Y" }}</span></li>
+  {% endfor %}
+</ul>
 {% endif %}
 {% endblock %}

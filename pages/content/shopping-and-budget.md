@@ -9,3 +9,7 @@ A trip buys for the days **after** it, up to and including the next trip day. It
 The budget uses your camp's own price for an ingredient if it has one, otherwise the latest known price. Each line shows which one it used and from when.
 
 Ingredients without a price are listed and left out of the total, so the total can be too low until they're filled in.
+
+## Pantry
+
+Already have something? Add it under *Pantry* on the shopping page. It comes off the shopping lists and the budget, starting with the first trip.

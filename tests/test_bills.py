@@ -14,7 +14,7 @@ from django.test import Client
 from django.urls import reverse
 from PIL import Image
 
-from accounts.models import Chiro
+from accounts.models import Chiro, Role
 from bills.models import Bill, BillLine, LineMatch
 from bills.parsing import parse_pack, parse_text
 from bills.reading import read_with_ollama
@@ -490,7 +490,7 @@ def test_delete_camp_removes_files_but_keeps_prices(client, camp, carrots) -> No
     path = Path(bill.file.path)
     client.post(reverse("bill_detail", args=[camp.pk, bill.pk]), review_data(bill))
 
-    client.post(reverse("camp_delete", args=[camp.pk]))
+    member_client(camp, role=Role.ADMIN).post(reverse("camp_delete", args=[camp.pk]))
 
     assert not path.exists()
     assert not BillLine.objects.exists()

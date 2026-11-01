@@ -7,7 +7,7 @@ from typing import Any
 from django.contrib.auth.models import User
 from django.test import Client
 
-from accounts.models import Chiro, Membership
+from accounts.models import Chiro, Membership, Role
 from camps.models import Camp
 from core.constants import DishType, IngredientCategory, Unit
 from planning.models import MenuEntry
@@ -41,11 +41,13 @@ def account_client(username: str = "kok", **extra: Any) -> Client:
     return client
 
 
-def member_client(camp: Camp, username: str = "kok") -> Client:
+def member_client(camp: Camp, username: str = "kok", role: str = Role.MEMBER) -> Client:
     """Logged in as a member of the camp's Chiro."""
     client = account_client(username)
-    Membership.objects.get_or_create(
-        user=User.objects.get(username=username), chiro=camp.chiro
+    Membership.objects.update_or_create(
+        user=User.objects.get(username=username),
+        chiro=camp.chiro,
+        defaults={"role": role},
     )
     return client
 

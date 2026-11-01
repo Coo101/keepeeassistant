@@ -11,9 +11,13 @@
   <a class="btn btn-outline" href="{% url 'shopping' camp.pk %}">Shopping lists</a>
   <a class="btn btn-outline" href="{% url 'runbook' camp.pk %}">Draaiboek</a>
   <a class="btn btn-outline" href="{% url 'bill_list' camp.pk %}">Bills</a>
+  <a class="btn btn-outline" href="{% url 'camp_diets' camp.pk %}">Diets and allergies</a>
   <a class="btn btn-outline" href="{% url 'camp_edit' camp.pk %}">Edit camp</a>
   <a class="btn" href="{% url 'overview_pdf' camp.pk %}">Overview PDF</a>
 </div>
+{% if camp.is_archived %}
+<div class="warning">🗄️ This camp is archived. You can bring it back under <a href="{% url 'camp_edit' camp.pk %}">Edit camp</a>.</div>
+{% endif %}
 {% if outside_entries %}
 {% include "planning/_outside_entries.html" with back="planner" %}
 {% endif %}
@@ -50,4 +54,29 @@
   </tbody>
 </table>
 </div>
+
+{% if checks.conflicts %}
+<h2>Diets and allergies</h2>
+<div class="warning">
+  ⚠️ <strong>These meals need an alternative:</strong>
+  <ul>
+    {% for conflict in checks.conflicts %}
+    <li>{{ conflict.date|date:"D d M" }}, {{ conflict.meal }}: {{ conflict.recipe }} contains {{ conflict.contains }} ({{ conflict.people }} × {{ conflict.diet }})</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% if checks.balance %}
+<h2>Balance</h2>
+<div class="card">
+  <ul>
+    {% for day, warnings in checks.balance.items %}
+    <li><strong>{{ day|date:"D d M" }}:</strong> {{ warnings|join:"; " }}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% if checks.unchecked %}
+<p class="muted">{{ checks.unchecked|length }} planned ingredient{{ checks.unchecked|length|pluralize }} not checked yet, so these warnings can miss things: {{ checks.unchecked|join:", " }}. <a href="{% url 'ingredient_list' %}">Check them on the ingredients page.</a></p>
+{% endif %}
 {% endblock %}

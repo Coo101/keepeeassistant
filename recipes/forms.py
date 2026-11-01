@@ -6,6 +6,7 @@ from django.db import transaction
 from django.forms import inlineformset_factory
 from django.utils import timezone
 
+from core.constants import FoodTag
 from recipes.models import Ingredient, Recipe, RecipeIngredient, RecipeStep
 
 
@@ -59,6 +60,13 @@ class IngredientForm(forms.ModelForm):
         min_value=0,
         help_text="EUR per kg/liter/piece",
     )
+    tags = forms.MultipleChoiceField(
+        required=False,
+        choices=FoodTag.CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+        label="Contains",
+        help_text="For the diet and balance checks in the planner",
+    )
 
     class Meta:
         model = Ingredient
@@ -68,9 +76,20 @@ class IngredientForm(forms.ModelForm):
             "category",
             "shop",
             "product_details",
+            "tags",
+            "tags_checked",
         ]
 
-    field_order = ["name", "unit", "category", "shop", "price", "product_details"]
+    field_order = [
+        "name",
+        "unit",
+        "category",
+        "shop",
+        "price",
+        "product_details",
+        "tags",
+        "tags_checked",
+    ]
 
     def __init__(self, *args, user, **kwargs) -> None:
         super().__init__(*args, **kwargs)

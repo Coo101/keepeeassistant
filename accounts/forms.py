@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
 
-from accounts.models import Invitation
+from accounts.models import Invitation, JoinRequest, Membership
 
 User = get_user_model()
 
@@ -55,3 +55,34 @@ class AcceptInvitationForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         model = User
         fields = ["username"]
+
+
+class InvitationForm(forms.ModelForm):
+    class Meta:
+        model = Invitation
+        fields = ["email", "role"]
+
+    def __init__(self, *args, chiro, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.chiro = chiro
+
+    def clean_email(self) -> str:
+        email = self.cleaned_data["email"]
+        if Membership.objects.filter(chiro=self.chiro, user__email__iexact=email):
+            raise ValidationError("This person is already a member.")
+        open_invitations = Invitation.objects.filter(
+            chiro=self.chiro, email__iexact=email
+        )
+        if any(invitation.is_open for invitation in open_invitations):
+            raise ValidationError("This address already has an open invitation.")
+        return email
+
+
+class JoinRequestForm(forms.ModelForm):
+    # Hidden from people; bots fill in everything.
+    website = forms.CharField(required=False, widget=forms.HiddenInput)
+
+    class Meta:
+        model = JoinRequest
+        fields = ["name", "email", "chiro_name", "message"]
+        widgets = {"message": forms.Textarea(attrs={"rows": 3})}

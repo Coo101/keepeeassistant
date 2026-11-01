@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.test import Client
 from django.urls import URLPattern, reverse
 
-from accounts.models import Chiro, Membership
+from accounts.models import Chiro, Membership, Role
 from camps.models import DayNote
 from camps.urls import urlpatterns as camp_urls
 from core.constants import DishType, MealType
@@ -37,6 +37,7 @@ def _camp_url_names() -> list[str]:
         for p in patterns
         if "camp_id" in p.pattern.converters
         and not p.name.startswith("remove_outside_")
+        and p.name != "camp_archive"
     ]
 
 
@@ -54,7 +55,7 @@ def camp():
 
 
 def test_camp_urls_are_found() -> None:
-    assert len(_camp_url_names()) == 10
+    assert len(_camp_url_names()) == 12
 
 
 @pytest.mark.parametrize("url_name", _camp_url_names())
@@ -66,7 +67,8 @@ def test_camp_pages_need_a_login(camp, url_name) -> None:
 
 @pytest.mark.parametrize("url_name", _camp_url_names())
 def test_camp_pages_open_for_members(camp, url_name) -> None:
-    assert member_client(camp).get(_camp_url(url_name, camp)).status_code == 200
+    client = member_client(camp, role=Role.ADMIN)
+    assert client.get(_camp_url(url_name, camp)).status_code == 200
 
 
 @pytest.mark.parametrize("url_name", _camp_url_names())

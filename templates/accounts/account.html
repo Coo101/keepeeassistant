@@ -8,7 +8,7 @@
 <h2>Your Chiros</h2>
 {% if chiros %}
 <div class="card">
-  <ul>{% for chiro in chiros %}<li>{{ chiro.name }}</li>{% endfor %}</ul>
+  <ul>{% for chiro in chiros %}<li><a href="{% url 'chiro_detail' chiro.pk %}">{{ chiro.name }}</a></li>{% endfor %}</ul>
 </div>
 {% else %}
 <p class="empty-slot">You aren't linked to a Chiro yet. Ask an administrator for an invitation.</p>

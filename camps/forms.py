@@ -1,9 +1,10 @@
 """Form for creating and editing camps (SPEC §9.2)."""
 
 from django import forms
-from django.forms import BoundField
+from django.forms import BoundField, modelformset_factory
 
-from camps.models import Camp
+from camps.models import Camp, DietaryNeed
+from core.rows import UniqueRowsFormSet
 
 SECTIONS = [
     ("Camp", ["chiro", "name", "start_date", "end_date"]),
@@ -70,3 +71,16 @@ class CampForm(forms.ModelForm):
             (title, [self[name] for name in names if name in self.fields])
             for title, names in SECTIONS
         ]
+
+
+class _DietaryNeedFormSet(UniqueRowsFormSet):
+    unique_field = "diet"
+
+
+DietaryNeedFormSet = modelformset_factory(
+    DietaryNeed,
+    formset=_DietaryNeedFormSet,
+    fields=["diet", "count", "note"],
+    extra=2,
+    can_delete=True,
+)

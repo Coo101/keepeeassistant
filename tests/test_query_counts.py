@@ -66,11 +66,11 @@ def _busy_camp():
 @pytest.mark.parametrize(
     ("url_name", "max_queries"),
     [
-        ("planner", 9),
+        ("planner", 14),
         ("runbook", 12),
-        ("shopping", 12),
-        ("budget", 12),
-        ("overview_pdf", 12),
+        ("shopping", 14),
+        ("budget", 14),
+        ("overview_pdf", 14),
     ],
 )
 def test_page_query_count_is_bounded(

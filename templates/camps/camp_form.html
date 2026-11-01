@@ -22,7 +22,14 @@
   {% endfor %}
   <div class="actions">
     <button class="btn" type="submit">Save camp</button>
-    {% if camp.pk %}<a class="btn btn-danger-outline" href="{% url 'camp_delete' camp.pk %}">Delete camp</a>{% endif %}
+    {% if can_delete %}<a class="btn btn-danger-outline" href="{% url 'camp_delete' camp.pk %}">Delete camp</a>{% endif %}
   </div>
 </form>
+{% if camp.pk %}
+<form method="post" action="{% url 'camp_archive' camp.pk %}" class="actions">
+  {% csrf_token %}
+  <button class="btn btn-outline" type="submit">{% if camp.is_archived %}Bring back from the archive{% else %}Archive camp{% endif %}</button>
+  <span class="muted">Archived camps stay available, under the camp list.</span>
+</form>
+{% endif %}
 {% endblock %}

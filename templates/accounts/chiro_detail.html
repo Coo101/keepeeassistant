@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}{{ chiro.name }} — Camp Meal Planner{% endblock %}
+{% block content %}
+<p><a class="back-link" href="{% url 'account' %}">← your account</a></p>
+<h1>{{ chiro.name }}</h1>
+{% for message in messages %}<p class="badge">{{ message }}</p>{% endfor %}
+
+<h2>Members</h2>
+<div class="table-scroll">
+<table class="compact">
+  <thead><tr><th>Member</th><th>Role</th>{% if is_admin %}<th></th>{% endif %}</tr></thead>
+  <tbody>
+    {% for membership in memberships %}
+    <tr>
+      <td>{{ membership.user.get_full_name|default:membership.user.get_username }}</td>
+      {% if is_admin %}
+      <td colspan="2">
+        <form method="post" action="{% url 'chiro_member' chiro.pk membership.pk %}" class="actions" style="margin:0">
+          {% csrf_token %}
+          <select name="role" aria-label="Role">
+            {% for value, label in roles %}<option value="{{ value }}"{% if value == membership.role %} selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select>
+          <button class="btn btn-outline btn-small" type="submit">Save</button>
+          <button class="btn btn-danger-outline btn-small" type="submit" name="remove" value="1">Remove</button>
+        </form>
+      </td>
+      {% else %}
+      <td>{{ membership.get_role_display }}</td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% if is_admin %}
+<h2>Invite someone</h2>
+<form method="post" class="stacked-form">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  <div class="card">
+    {% for field in form %}{% if field.is_hidden %}{{ field }}{% else %}<div class="form-row">{{ field.as_field_group }}</div>{% endif %}{% endfor %}
+  </div>
+  <button class="btn" type="submit">Send invitation</button>
+</form>
+
+{% if invitations %}
+<h2>Open invitations</h2>
+<ul class="outside-list">
+  {% for invitation, link in invitations %}
+  <li>
+    {{ invitation.email }}: <code>{{ link }}</code>
+    <form method="post" action="{% url 'invitation_cancel' chiro.pk invitation.pk %}">
+      {% csrf_token %}
+      <button class="btn btn-outline btn-small" type="submit">Cancel</button>
+    </form>
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}
+{% endif %}
+{% endblock %}

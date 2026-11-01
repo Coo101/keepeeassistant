@@ -1,10 +1,14 @@
 """Sending invitations."""
 
+import smtplib
+
 from django.core.mail import send_mail
 from django.http import HttpRequest
 from django.urls import reverse
 
 from accounts.models import Invitation
+
+MAIL_ERRORS = (OSError, ValueError, smtplib.SMTPException)
 
 
 def invitation_link(request: HttpRequest, invitation: Invitation) -> str:

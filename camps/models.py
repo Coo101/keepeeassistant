@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from accounts.models import Chiro
+from core.constants import Diet
 from core.portions import portions
 
 
@@ -14,6 +15,9 @@ class CampQuerySet(models.QuerySet):
     def for_user(self, user) -> "CampQuerySet":
         """Only the camps of the user's Chiros (SPEC §9.8)."""
         return self.filter(chiro__members=user)
+
+    def active(self) -> "CampQuerySet":
+        return self.filter(is_archived=False)
 
 
 class Camp(models.Model):
@@ -52,6 +56,8 @@ class Camp(models.Model):
     general_notes = models.TextField(
         blank=True, help_text="Shown on the runbook front page"
     )
+    # Out of the way on the camp list, but kept as history; unlike deleting.
+    is_archived = models.BooleanField(default=False)
 
     objects = CampQuerySet.as_manager()
 
@@ -77,6 +83,9 @@ class Camp(models.Model):
         n = (self.end_date - self.start_date).days + 1
         return [self.start_date + datetime.timedelta(days=i) for i in range(n)]
 
+    def can_delete(self, user) -> bool:
+        return user.is_staff or self.chiro.is_admin(user)
+
     def entries_outside_dates(self) -> models.QuerySet:
         """Menu entries stranded by a change of camp dates: not shown in the
         planner and not bought, so pages warn about them."""
@@ -100,3 +109,23 @@ class DayNote(models.Model):
 
     def __str__(self) -> str:
         return f"{self.camp} notes {self.date}"
+
+
+class DietaryNeed(models.Model):
+    """How many people in a camp have a diet or allergy (SPEC §9.11)."""
+
+    camp = models.ForeignKey(
+        Camp, on_delete=models.CASCADE, related_name="dietary_needs"
+    )
+    diet = models.CharField(max_length=20, choices=Diet.CHOICES)
+    count = models.PositiveIntegerField(default=1, verbose_name="people")
+    note = models.CharField(max_length=200, blank=True)
+
+    class Meta:
+        ordering = ["diet"]
+        constraints = [
+            models.UniqueConstraint(fields=["camp", "diet"], name="unique_camp_diet"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.camp}: {self.count} {self.get_diet_display()}"

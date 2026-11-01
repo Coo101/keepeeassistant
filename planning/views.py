@@ -11,6 +11,7 @@ from django.views.decorators.http import require_POST
 from camps.models import Camp, DayNote
 from core.constants import MEAL_SLOTS, MealType
 from core.pdf import render_pdf
+from planning.checks import menu_checks
 from planning.forms import SlotForm
 from planning.models import MenuEntry
 from planning.services import scale_entry
@@ -71,6 +72,7 @@ def planner(request: HttpRequest, camp_id: int) -> HttpResponse:
             "camp": camp,
             "grid": _build_grid(camp),
             "outside_entries": camp.entries_outside_dates(),
+            "checks": menu_checks(camp),
         },
     )
 

@@ -2,7 +2,7 @@
 {% block title %}Log in — Camp Meal Planner{% endblock %}
 {% block content %}
 <h1>Log in</h1>
-<p class="page-meta">Camp Meal Planner is by invitation. Your camps are only visible to members of your Chiro.</p>
+<p class="page-meta">Camp Meal Planner is by invitation. Your camps are only visible to members of your Chiro. No account? <a href="{% url 'join_request' %}">Request access.</a></p>
 
 <div class="card login-card">
   {% if form.errors %}
