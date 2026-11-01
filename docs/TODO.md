@@ -5,22 +5,9 @@ against the code on 2026-11-01.
 
 ## 1. Finish and stabilise the current work
 
-- [ ] Commit the deletion, stray-entry and new-ingredient-dialog work
-- [ ] Check the new screens in a browser, the ingredient dialog on the recipe form most
-      of all: its JavaScript has only had a syntax check
-- [ ] Posting a menu slot for a date outside the camp returns a 500; show a 404 or a form
-      error instead (`planning/views.py`, `entry.full_clean()`)
-- [ ] Small quantities can round to `0` on shopping lists (below 0.05 kg/liter or
-      0.5 piece); round them up so nothing goes missing
-- [ ] The PDF filename puts the camp or recipe name in a header unescaped, and users now
-      enter those names, for example with a `"` (`core/pdf.py`)
-- [ ] Set `TIME_ZONE` to `Europe/Brussels` (currently UTC), before prices and bills
-      start storing dates
-- [ ] Tests fail with `DJANGO_DEBUG=0` (61 failures, missing static manifest); make them
-      independent of the local `.env`
-- [ ] Test native PDF output: the PDF tests also accept the HTML fallback
-- [ ] Keep dependencies in one place and pin exact versions: `gunicorn` is only in
-      `requirements.txt`, and the Django version is written differently in the two files
+- [x] Check the new screens in a browser, including the ingredient dialog on the recipe form
+- [ ] The top of the recipe form looks rough next to the camp form: labels sit beside
+      the fields and the notes box is out of line. Use the same stacked layout
 
 ## 2. Clean up the data
 
@@ -150,3 +137,11 @@ with the budget.
       (blocked while a recipe uses it)
 - [x] Remove a menu entry or shopping day outside the camp dates without the admin
 - [x] Set `price_updated` when a price is edited, on the ingredients page and in the admin
+- [x] A menu slot outside the camp dates returns a 404 instead of a 500
+- [x] Small quantities no longer round to `0` on shopping lists
+- [x] PDF filenames are escaped
+- [x] `TIME_ZONE` is `Europe/Brussels`
+- [x] Tests no longer depend on the local `.env` (`config/test_settings.py`)
+- [x] Real PDF output is tested where WeasyPrint's libraries exist, and the deploy job
+      checks that the image renders a PDF
+- [x] Dependencies are pinned in `pyproject.toml`; the requirements files are generated

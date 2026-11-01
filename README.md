@@ -13,6 +13,15 @@ Copy-Item .env.example .env   # then set DJANGO_DEBUG=1 for local development
 .\.venv\Scripts\python.exe manage.py runserver 8100
 ```
 
+Dependencies are pinned in `pyproject.toml`. After changing one, regenerate the files
+that Docker and CI install from (a test checks they match):
+
+```powershell
+uv lock
+uv export --no-dev --no-hashes --no-emit-project -o requirements.txt
+uv export --only-dev --no-hashes --no-emit-project -o requirements-dev.txt
+```
+
 In PyCharm, use the shared **Dev server** run configuration (`.run/`), which
 runs the same command. Then open http://localhost:8100/ — Chiros and users are managed in the
 [admin](http://localhost:8100/admin/); everything else has its own pages.

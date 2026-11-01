@@ -30,7 +30,7 @@ jobs:
       - name: Python env
         run: |
           python3 -m venv /tmp/venv
-          /tmp/venv/bin/pip install --quiet -r requirements.txt pytest pytest-django ruff black
+          /tmp/venv/bin/pip install --quiet -r requirements.txt -r requirements-dev.txt
           echo "/tmp/venv/bin" >> "$GITHUB_PATH"
 
       - name: ruff
@@ -63,6 +63,11 @@ jobs:
             --label org.opencontainers.image.revision=${{ github.sha }} \
             --label org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }} \
             -t "$IMAGE:${{ github.sha }}" -t "$IMAGE:latest" .
+
+      - name: Check the image renders PDFs
+        run: |
+          docker run --rm --entrypoint python "$IMAGE:${{ github.sha }}" -c \
+            "from weasyprint import HTML; assert HTML(string='<p>test</p>').write_pdf()[:4] == b'%PDF'"
 
       - name: Push
         run: |

@@ -93,7 +93,8 @@ def test_recipe_detail_ignores_invalid_portions() -> None:
         assert "2.5 kg" in response.content.decode()
 
 
-def test_recipe_pdf_endpoint_serves_scaled_document() -> None:
+def test_recipe_pdf_falls_back_to_scaled_html(monkeypatch) -> None:
+    monkeypatch.setattr("core.pdf.weasyprint_available", lambda: False)
     recipe = make_recipe(
         "Stew",
         dish_type=DishType.HOT_MEAL,
@@ -104,7 +105,4 @@ def test_recipe_pdf_endpoint_serves_scaled_document() -> None:
         reverse("recipe_pdf", args=[recipe.pk]), {"portions": "20"}
     )
     assert response.status_code == 200
-    if response["Content-Type"].startswith("application/pdf"):
-        assert response.content[:4] == b"%PDF"
-    else:  # HTML fallback when WeasyPrint's native libs are missing
-        assert "5 kg" in response.content.decode()
+    assert "5 kg" in response.content.decode()

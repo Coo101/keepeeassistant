@@ -18,10 +18,13 @@ def scale_factor(demand_portions: Decimal, base_portions: Decimal) -> Decimal:
 
 
 def round_quantity(quantity: Decimal, unit: str) -> Decimal:
-    """SPEC §7: 1 decimal for kg/liter, whole numbers for piece."""
-    if unit == Unit.PIECE:
-        return quantity.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
-    return quantity.quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+    """SPEC §7: 1 decimal for kg/liter, whole numbers for piece. Anything needed
+    rounds to at least the smallest step, so it stays on the shopping list."""
+    step = Decimal("1") if unit == Unit.PIECE else Decimal("0.1")
+    rounded = quantity.quantize(step, rounding=ROUND_HALF_UP)
+    if quantity > 0 and rounded == 0:
+        return step
+    return rounded
 
 
 def format_quantity(quantity: Decimal) -> str:

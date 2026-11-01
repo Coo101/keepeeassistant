@@ -158,7 +158,8 @@ Each ingredient quantity is multiplied by `scale`. Because units are only
 piece / kg / liter, totals add up directly with no conversion.
 
 **Rounding:** round quantities to **1 decimal** for kg/liter; whole numbers for
-piece. Camps are always 50+ people, so fine-grained precision isn't needed.
+piece. Camps are always 50+ people, so fine-grained precision isn't needed. A
+quantity above zero rounds to at least 0.1 or 1 piece, so it stays on the list.
 
 ## 8. Shopping List Logic
 

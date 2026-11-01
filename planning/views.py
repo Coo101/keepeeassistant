@@ -80,6 +80,8 @@ def edit_slot(
 ) -> HttpResponse:
     camp = get_object_or_404(Camp.objects.for_user(request.user), pk=camp_id)
     day = _parse_date(date)
+    if day not in camp.days:
+        raise Http404(f"{day} is not a camp day")
     course = request.GET.get("course", "")
     if meal_type not in MealType.ORDER:
         raise Http404(f"Unknown meal type: {meal_type}")

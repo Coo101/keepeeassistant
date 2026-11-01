@@ -68,11 +68,21 @@ def test_runbook_note_rejects_non_camp_day() -> None:
     assert DayNote.objects.count() == 0
 
 
-def test_runbook_pdf_endpoint() -> None:
+def test_runbook_pdf_falls_back_to_html(monkeypatch) -> None:
+    monkeypatch.setattr("core.pdf.weasyprint_available", lambda: False)
     camp = _camp_with_menu()
     response = member_client(camp).get(reverse("runbook_pdf", args=[camp.pk]))
     assert response.status_code == 200
-    if not response["Content-Type"].startswith("application/pdf"):
-        content = response.content.decode()
-        assert "Draaiboek kookploeg" in content
-        assert "Stoofpot" in content
+    content = response.content.decode()
+    assert "Draaiboek kookploeg" in content
+    assert "Stoofpot" in content
+
+
+def test_menu_slot_outside_the_camp_dates_is_not_found() -> None:
+    camp = _camp_with_menu()
+    recipe = camp.menu_entries.get().recipe
+    url = reverse("edit_slot", args=[camp.pk, "2030-01-01", MealType.DINNER])
+    client = member_client(camp)
+    assert client.get(url).status_code == 404
+    assert client.post(url, {"recipe": recipe.pk}).status_code == 404
+    assert camp.menu_entries.count() == 1
