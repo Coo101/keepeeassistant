@@ -32,7 +32,7 @@
   Check every line. <strong>Amount per item</strong> is in the ingredient's unit: a bottle of 1.5 L is 1.5, a bag of 500 g priced per kg is 0.5.
   A camp-food line with an ingredient sets this camp's price for it when you save. Use the category for anything else, and "skipped" for text that isn't a purchase.
 </p>
-<form method="post">
+<form method="post" class="bill-review">
   {% csrf_token %}
   {% include "recipes/_formset.html" with formset=formset %}
   <div class="actions"><button class="btn" type="submit">Save review</button></div>

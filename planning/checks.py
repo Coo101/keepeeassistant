@@ -60,6 +60,15 @@ def _diet_conflicts(entries: list[MenuEntry], camp: Camp) -> list[DietConflict]:
     return conflicts
 
 
+def _all_known(entries: list[MenuEntry]) -> bool:
+    """An ingredient nobody looked at might be a vegetable: don't call that missing."""
+    return all(
+        ri.ingredient.tags or ri.ingredient.tags_checked
+        for entry in entries
+        for ri in entry.recipe.ingredients.all()
+    )
+
+
 def _day_balance(entries: list[MenuEntry]) -> list[str]:
     warnings = []
     day_tags: set[str] = set()
@@ -72,12 +81,14 @@ def _day_balance(entries: list[MenuEntry]) -> list[str]:
         if (
             entry.recipe.dish_type == DishType.HOT_MEAL
             and FoodTag.VEGETABLE not in tags
+            and _all_known([entry])
         ):
             warnings.append(f"{entry.recipe.name} has no vegetables")
-    if FoodTag.VEGETABLE not in day_tags:
-        warnings.append("No vegetables this day")
-    if FoodTag.FRUIT not in day_tags:
-        warnings.append("No fruit this day")
+    if _all_known(entries):
+        if FoodTag.VEGETABLE not in day_tags:
+            warnings.append("No vegetables this day")
+        if FoodTag.FRUIT not in day_tags:
+            warnings.append("No fruit this day")
     if len(sweet) > MAX_SWEET_RECIPES_PER_DAY:
         warnings.append(f"A lot of sugar: {', '.join(sweet)}")
     return warnings
@@ -98,13 +109,11 @@ def menu_checks(camp: Camp) -> MenuChecks:
         conflicts=_diet_conflicts(entries, camp),
         unchecked=sorted(i.name for i in ingredients.values() if not i.tags_checked),
     )
-    # Without any tags every day would warn, which says nothing about the menu.
-    if any(i.tags for i in ingredients.values()):
-        by_day: dict[datetime.date, list[MenuEntry]] = defaultdict(list)
-        for entry in entries:
-            by_day[entry.date].append(entry)
-        for day in sorted(by_day):
-            warnings = _day_balance(by_day[day])
-            if warnings:
-                checks.balance[day] = warnings
+    by_day: dict[datetime.date, list[MenuEntry]] = defaultdict(list)
+    for entry in entries:
+        by_day[entry.date].append(entry)
+    for day in sorted(by_day):
+        warnings = _day_balance(by_day[day])
+        if warnings:
+            checks.balance[day] = warnings
     return checks

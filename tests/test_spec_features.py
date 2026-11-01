@@ -607,3 +607,16 @@ def test_duplicate_join_requests_invite_once_and_members_not_at_all(camp) -> Non
     assert Invitation.objects.count() == 1
     join.refresh_from_db()
     assert join.status == JoinRequest.Status.APPROVED
+
+
+def test_unknown_ingredient_gives_no_false_alarm_about_vegetables(camp) -> None:
+    _dinner_with(camp, FoodTag.MEAT)
+    other = make_recipe(
+        "Soep", dish_type=DishType.SOUP, ingredients=[("Prei", "1", KG, PRODUCE)]
+    )
+    assign(camp, AUG(2), MealType.LUNCH, other, course="soup")
+    warnings = menu_checks(camp).balance[AUG(2)]
+    assert "Stoofpot has no vegetables" in warnings  # its one ingredient is known
+    assert "No vegetables this day" not in warnings  # Prei could be one
+    Ingredient.objects.filter(name="Prei").update(tags_checked=True)
+    assert "No vegetables this day" in menu_checks(camp).balance[AUG(2)]

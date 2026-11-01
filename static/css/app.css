@@ -459,3 +459,9 @@ ul.recipe-grid {
 .prose { max-width: 42rem; line-height: 1.6; }
 .toc a[aria-current="page"] { font-weight: 700; }
 .header-auth a { color: inherit; }
+
+/* ---------- Bill review: a wide table, with the matching columns first ---------- */
+
+main:has(.bill-review) { max-width: 72rem; }
+.bill-review input[type="text"], .bill-review select { min-width: 10rem; }
+.bill-review input[type="number"] { min-width: 0; width: 5.5rem; }

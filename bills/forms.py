@@ -54,11 +54,11 @@ class BillLineForm(forms.ModelForm):
         model = BillLine
         fields = [
             "description",
+            "ingredient",
+            "category",
             "quantity",
             "pack_amount",
             "line_total",
-            "category",
-            "ingredient",
             "skipped",
         ]
 

@@ -23,45 +23,51 @@ uv export --only-dev --no-hashes --no-emit-project -o requirements-dev.txt
 ```
 
 In PyCharm, use the shared **Dev server** run configuration (`.run/`), which
-runs the same command. Then open http://localhost:8100/ — Chiros and users are managed in the
+runs the same command. Then open http://localhost:8100/. Chiros, staff and news are managed in the
 [admin](http://localhost:8100/admin/); everything else has its own pages.
 
 ## Access
 
-Every page needs a login, enforced by Django's `LoginRequiredMiddleware`, so a
-new page is private by default. Mark a public page with `login_not_required`.
-Sessions last 30 days and refresh on use, so each device logs in once per camp.
+The home page, news and docs are public. Every other page needs a login, enforced by
+Django's `LoginRequiredMiddleware`, so a new page is private by default. Mark a public page
+with `login_not_required`.
 
-- **Camps** belong to a Chiro. Only its members can see or change them, and staff
-  get no exception outside the admin.
-- **Recipes** are shared between all accounts, who can read them and save a renamed
-  copy. The author chooses whether a recipe is read-only or editable by everyone.
+- **Accounts** are by invitation: a Chiro's admins invite from the Chiro's page, and staff
+  from the admin. Anyone can request access at `/join/`, and staff approve in the admin. Log in
+  with a username or email address. Failed logins are rate limited.
+- **Camps** belong to a Chiro. Only its members can see or change them, and staff get no
+  exception outside the admin. Only a Chiro's admins can delete a camp.
+- **Recipes** are shared between all accounts, who can read them and save a renamed copy.
+  The author chooses whether others can edit. While another Chiro has a current camp planning
+  a recipe, only staff can change it.
+- **Ingredients** are shared. Anyone can add one and add prices. The name and unit are fixed
+  after creation, except for staff.
 
-Access is by invitation. Create the first administrator with:
+Create the first administrator with:
 
 ```bash
 docker compose exec web python manage.py createsuperuser
 ```
 
-Then add Chiros and normal users in the admin, and link each user to their Chiro on
-the user's page. Only give staff status to people who should reach `/admin/`. Set
-`DJANGO_SECURE_COOKIES=1` in `.env` when serving over HTTPS.
+Mails only print to the log until `EMAIL_HOST` is set. See `.env.example` for all settings,
+including those for running behind a proxy.
 
-## Features (v1)
+## Features
 
-- **Recipe library** — recipes with dish types, ingredients (piece/kg/liter),
-  ordered steps with durations; shared between Chiros.
-- **Camps** — dates, headcount (children x0.7 / teens / staff), meal times.
-- **Menu planner** — day x meal grid; each slot only offers recipes of the
-  right dish type; shows quantities scaled to the camp's portions.
-- **Shopping lists** — pick shopping days; one aggregated, category-grouped
-  list per trip (a trip buys for the days *after* it, up to the next trip);
-  uncovered days are flagged.
-- **PDF export** — camp overview and shopping lists via WeasyPrint.
-- **Budgeting** — per-camp cost estimate (`/camps/<id>/budget/`) from
-  ingredient prices, which are set by hand on the
-  [ingredients page](http://localhost:8100/ingredients/). See
-  [docs/TODO.md](docs/TODO.md) for the prices that need checking.
+- **Recipes and ingredients**, with dish types, units (piece/kg/liter) and ordered steps.
+- **Camps**: dates, headcount (children x0.7 / teens / staff), meal times, archive.
+- **Menu planner**: day x meal grid, with warnings for diets, allergies and balance.
+- **Shopping lists**: one per trip and shop, minus what's in the camp's pantry. Uncovered
+  days are flagged.
+- **Budget**: uses a camp's own price if it has one, otherwise the latest price.
+- **Bills**: upload PDFs and photos, review the lines, set camp prices and compare what you
+  paid with the estimate. Text PDFs are read in Python. Scans and photos wait for an Ollama
+  vision model, through `manage.py read_bills --loop` (the `bill-reader` service in
+  `docker-compose.yml`).
+- **PDF export**: camp overview, draaiboek, recipes and shopping lists through WeasyPrint.
+- **Public site**: home page, news (written in the admin) and docs (`pages/content/`).
+
+See [docs/SPEC.md](docs/SPEC.md) for the details and [docs/TODO.md](docs/TODO.md) for what's open.
 
 ### PDF export on Windows
 

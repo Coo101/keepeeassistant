@@ -298,7 +298,8 @@ covers** so nothing silently falls through the cracks.
 
 ### 9.13 Balance
 - The planner flags hot meals and days without vegetables, days without fruit, and
-  more than 2 sweet recipes a day. No warnings until some planned ingredient is tagged.
+  more than 2 sweet recipes a day. Missing vegetables or fruit is only flagged when
+  nothing involved is still unknown, so unfinished tagging gives no false alarms.
 
 ### 9.14 Roles, archive and join requests
 - A Chiro's admins invite and remove members, change roles and delete camps; all
