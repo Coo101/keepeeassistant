@@ -5,17 +5,23 @@
 <h1>{{ camp.name }} — shopping</h1>
 
 {% if outside_entries %}
-<div class="warning">
-  ⚠️ <strong>Planned outside the camp dates</strong> (not shown in the menu plan and not on any shopping list):
-  {% for entry in outside_entries %}{{ entry.date|date:"D d M Y" }} {{ entry.recipe.name }}{% if not forloop.last %}, {% endif %}{% endfor %}.
-  {% if user.is_staff %}Change the camp dates or remove them in the <a href="/admin/planning/menuentry/">admin</a>.{% else %}Ask an administrator to change the camp dates or remove them.{% endif %}
-</div>
+{% include "planning/_outside_entries.html" with back="shopping" %}
 {% endif %}
 {% if outside_trips %}
 <div class="warning">
-  ⚠️ <strong>Shopping days outside the dates below:</strong>
-  {% for d in outside_trips %}{{ d|date:"D d M Y" }}{% if not forloop.last %}, {% endif %}{% endfor %}.
-  They still count; {% if user.is_staff %}change or remove them in the <a href="/admin/shopping/shoppingtrip/">admin</a>.{% else %}ask an administrator to change or remove them.{% endif %}
+  ⚠️ <strong>Shopping days outside the dates below.</strong>
+  They still count; <a href="{% url 'camp_edit' camp.pk %}">change the camp dates</a> to get them back on this list, or remove them:
+  <ul class="outside-list">
+    {% for trip in outside_trips %}
+    <li>
+      {{ trip.date|date:"D d M Y" }}
+      <form method="post" action="{% url 'remove_outside_trip' camp.pk trip.pk %}">
+        {% csrf_token %}
+        <button class="btn btn-outline btn-small" type="submit">Remove</button>
+      </form>
+    </li>
+    {% endfor %}
+  </ul>
 </div>
 {% endif %}
 

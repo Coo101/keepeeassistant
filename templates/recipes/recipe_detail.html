@@ -23,6 +23,7 @@
     <a class="btn btn-outline" href="{% url 'recipe_pdf' recipe.pk %}{% if portions %}?portions={{ portions }}{% endif %}">PDF</a>
     <button class="btn btn-outline" onclick="window.print()">Print</button>
     {% if can_edit %}<a class="btn btn-outline" href="{% url 'recipe_edit' recipe.pk %}">Edit</a>{% endif %}
+    {% if can_delete %}<a class="btn btn-danger-outline" href="{% url 'recipe_delete' recipe.pk %}">Delete</a>{% endif %}
   </div>
   <form method="post" action="{% url 'recipe_copy' recipe.pk %}" class="actions no-print">
     {% csrf_token %}

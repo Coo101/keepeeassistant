@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}{% if recipe.pk %}{{ recipe.name }}{% else %}New recipe{% endif %} — Recipes{% endblock %}
 {% block content %}
 {% if recipe.pk %}
@@ -21,9 +22,26 @@
   {% csrf_token %}
   <div class="card">{{ form.as_p }}</div>
   <h2>Ingredients</h2>
+  <p class="muted">Missing one? <button class="btn btn-outline btn-small" type="button" id="new-ingredient-open">New ingredient</button></p>
   <div class="card">{% include "recipes/_formset.html" with formset=ingredients %}</div>
   <h2>Steps</h2>
   <div class="card">{% include "recipes/_formset.html" with formset=steps %}</div>
   <button class="btn" type="submit">Save recipe</button>
 </form>
+
+{# Outside the recipe form: HTML forms can't be nested. #}
+<dialog id="new-ingredient-dialog">
+  <h2>New ingredient</h2>
+  <p class="muted">Everyone shares these ingredients. The name and unit can't be changed afterwards.</p>
+  <form method="post" action="{% url 'ingredient_quick_add' %}" class="stacked-form">
+    {% csrf_token %}
+    <div class="warning" id="new-ingredient-errors" role="alert" hidden></div>
+    {% for field in new_ingredient_form %}<div class="form-row">{{ field.as_field_group }}</div>{% endfor %}
+    <div class="actions">
+      <button class="btn" type="submit">Add ingredient</button>
+      <button class="btn btn-outline" type="button" id="new-ingredient-cancel">Cancel</button>
+    </div>
+  </form>
+</dialog>
+<script src="{% static 'js/recipe_form.js' %}" defer></script>
 {% endblock %}

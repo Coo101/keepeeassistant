@@ -1,10 +1,13 @@
-"""Forms for creating, editing and copying recipes (SPEC §9.1)."""
+"""Forms for recipes and ingredients (SPEC §9.1, §9.6)."""
+
+from decimal import Decimal
 
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms import inlineformset_factory
+from django.utils import timezone
 
-from recipes.models import Recipe, RecipeIngredient, RecipeStep
+from recipes.models import Ingredient, Recipe, RecipeIngredient, RecipeStep
 
 
 def _validate_name_is_free(name: str, recipe_pk: int | None = None) -> None:
@@ -44,6 +47,46 @@ class CopyRecipeForm(forms.Form):
         name = self.cleaned_data["name"]
         _validate_name_is_free(name)
         return name
+
+
+class IngredientForm(forms.ModelForm):
+    """Ingredients are shared by all recipes, so an existing one keeps its name
+    and unit here: changing those would alter other people's recipes."""
+
+    class Meta:
+        model = Ingredient
+        fields = [
+            "name",
+            "unit",
+            "category",
+            "shop",
+            "price_per_unit",
+            "product_details",
+        ]
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields["name"].disabled = True
+            self.fields["unit"].disabled = True
+
+    def clean_name(self) -> str:
+        name = self.cleaned_data["name"]
+        duplicates = Ingredient.objects.filter(name__iexact=name)
+        if duplicates.exclude(pk=self.instance.pk).exists():
+            raise ValidationError("An ingredient with this name already exists.")
+        return name
+
+    def clean_price_per_unit(self) -> Decimal | None:
+        price = self.cleaned_data["price_per_unit"]
+        if price is not None and price < 0:
+            raise ValidationError("A price can't be negative.")
+        return price
+
+    def save(self, commit: bool = True) -> Ingredient:
+        if "price_per_unit" in self.changed_data:
+            self.instance.price_updated = timezone.now()
+        return super().save(commit)
 
 
 IngredientFormSet = inlineformset_factory(

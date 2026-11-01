@@ -1,0 +1,16 @@
+<div class="warning">
+  ⚠️ <strong>Planned outside the camp dates</strong> (not shown in the menu plan and not on any shopping list).
+  <a href="{% url 'camp_edit' camp.pk %}">Change the camp dates</a> to bring them back, or remove them:
+  <ul class="outside-list">
+    {% for entry in outside_entries %}
+    <li>
+      {{ entry.date|date:"D d M Y" }} {{ entry.recipe.name }}
+      <form method="post" action="{% url 'remove_outside_entry' camp.pk entry.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="back" value="{{ back }}">
+        <button class="btn btn-outline btn-small" type="submit">Remove</button>
+      </form>
+    </li>
+    {% endfor %}
+  </ul>
+</div>

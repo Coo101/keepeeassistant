@@ -14,6 +14,11 @@ urlpatterns = [
         views.overview_pdf,
         name="overview_pdf",
     ),
+    path(
+        "camps/<int:camp_id>/plan/outside/<int:entry_id>/remove/",
+        views.remove_outside_entry,
+        name="remove_outside_entry",
+    ),
     path("camps/<int:camp_id>/runbook/", views.runbook, name="runbook"),
     path(
         "camps/<int:camp_id>/runbook.pdf",

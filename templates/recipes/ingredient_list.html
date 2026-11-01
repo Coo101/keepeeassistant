@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Ingredients — Camp Meal Planner{% endblock %}
+{% block content %}
+<h1>Ingredients</h1>
+<p class="page-meta">Shared between all Chiros, so a changed price also changes their budgets.</p>
+<form method="get" class="actions">
+  <input type="search" name="q" value="{{ query }}" placeholder="Search ingredients…" aria-label="Search ingredients">
+  <button class="btn" type="submit">Search</button>
+  {% if query %}<a class="btn btn-outline" href="{% url 'ingredient_list' %}">Clear</a>{% endif %}
+  <a class="btn btn-outline" href="{% url 'ingredient_create' %}">New ingredient</a>
+</form>
+{% if ingredients %}
+<div class="table-scroll">
+<table>
+  <thead>
+    <tr><th>Ingredient</th><th>Unit</th><th>Category</th><th>Shop</th><th>Price</th><th>Product</th><th>Price updated</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for ingredient in ingredients %}
+    <tr>
+      <td><strong>{{ ingredient.name }}</strong></td>
+      <td>{{ ingredient.get_unit_display }}</td>
+      <td>{{ ingredient.get_category_display }}</td>
+      <td>{{ ingredient.get_shop_display }}</td>
+      <td>{% if ingredient.price_per_unit is None %}<span class="empty-slot">no price</span>{% else %}€ {{ ingredient.price_per_unit|floatformat:2 }}{% endif %}</td>
+      <td>{{ ingredient.product_details }}</td>
+      <td>{{ ingredient.price_updated|date:"d M Y"|default:"—" }}</td>
+      <td><a href="{% url 'ingredient_edit' ingredient.pk %}">Edit</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% elif query %}
+<p class="empty-slot">No ingredients match "{{ query }}".</p>
+{% else %}
+<p>No ingredients yet. <a href="{% url 'ingredient_create' %}">Add the first one</a>.</p>
+{% endif %}
+{% endblock %}

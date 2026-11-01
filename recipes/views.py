@@ -6,18 +6,30 @@ from decimal import Decimal, InvalidOperation
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Q
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.defaultfilters import pluralize
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from core.constants import DishType
+from core.delete import confirm_delete
 from core.pdf import render_pdf
 from core.portions import format_quantity, round_quantity, scale_factor
-from recipes.forms import CopyRecipeForm, IngredientFormSet, RecipeForm, StepFormSet
-from recipes.models import Recipe
+from recipes.forms import (
+    CopyRecipeForm,
+    IngredientForm,
+    IngredientFormSet,
+    RecipeForm,
+    StepFormSet,
+)
+from recipes.models import Ingredient, Recipe
 from recipes.services import copy_recipe
 
 logger = logging.getLogger(__name__)
+
+# Keeps the add-ingredient dialog's fields apart from the recipe form's.
+NEW_INGREDIENT_PREFIX = "new_ingredient"
 
 DISH_TYPE_LABELS = dict(DishType.CHOICES)
 
@@ -86,6 +98,7 @@ def _render_detail(
     context = _recipe_context(request, recipe_id)
     recipe = context["recipe"]
     context["can_edit"] = recipe.can_edit(request.user)
+    context["can_delete"] = recipe.can_manage_access(request.user)
     context["copy_form"] = copy_form or CopyRecipeForm(
         initial={"name": f"{recipe.name} (kopie)"}
     )
@@ -137,6 +150,7 @@ def _recipe_form_page(request: HttpRequest, recipe: Recipe) -> HttpResponse:
             "ingredients": ingredients,
             "steps": steps,
             "camp_count": camp_count,
+            "new_ingredient_form": IngredientForm(prefix=NEW_INGREDIENT_PREFIX),
         },
     )
 
@@ -150,6 +164,101 @@ def recipe_edit(request: HttpRequest, recipe_id: int) -> HttpResponse:
     if not recipe.can_edit(request.user):
         raise PermissionDenied("This recipe is read-only; save a copy to change it.")
     return _recipe_form_page(request, recipe)
+
+
+def recipe_delete(request: HttpRequest, recipe_id: int) -> HttpResponse:
+    recipe = get_object_or_404(Recipe, pk=recipe_id)
+    if not recipe.can_manage_access(request.user):
+        raise PermissionDenied("Only the author can delete this recipe.")
+    # A count only: the camps may belong to other Chiros.
+    camp_count = recipe.menuentry_set.values("camp").distinct().count()
+    blocked_reason = ""
+    if camp_count:
+        blocked_reason = (
+            f"It is planned in {camp_count} camp{pluralize(camp_count)}, which may "
+            "include other Chiros' camps. It can only be deleted once no camp "
+            "plans it."
+        )
+    return confirm_delete(
+        request,
+        recipe,
+        cancel_url=reverse("recipe_detail", args=[recipe.pk]),
+        success_url=reverse("recipe_list"),
+        consequences=["Its ingredient list and steps"],
+        blocked_reason=blocked_reason,
+    )
+
+
+def ingredient_list(request: HttpRequest) -> HttpResponse:
+    """All ingredients; ?q= filters on name or product details."""
+    query = request.GET.get("q", "").strip()
+    ingredients = Ingredient.objects.all()
+    if query:
+        ingredients = ingredients.filter(
+            Q(name__icontains=query) | Q(product_details__icontains=query)
+        )
+    return render(
+        request,
+        "recipes/ingredient_list.html",
+        {"ingredients": ingredients, "query": query},
+    )
+
+
+def _ingredient_form_page(
+    request: HttpRequest, ingredient: Ingredient | None = None
+) -> HttpResponse:
+    data = request.POST if request.method == "POST" else None
+    form = IngredientForm(data, instance=ingredient)
+    if data is not None and form.is_valid():
+        saved = form.save()
+        logger.info("%s saved ingredient %s", request.user, saved.pk)
+        return redirect("ingredient_list")
+    return render(
+        request,
+        "recipes/ingredient_form.html",
+        {"ingredient": ingredient, "form": form},
+    )
+
+
+def ingredient_create(request: HttpRequest) -> HttpResponse:
+    return _ingredient_form_page(request)
+
+
+@require_POST
+def ingredient_quick_add(request: HttpRequest) -> JsonResponse:
+    """Add an ingredient from the recipe form, without leaving that page."""
+    form = IngredientForm(request.POST, prefix=NEW_INGREDIENT_PREFIX)
+    if not form.is_valid():
+        return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
+    ingredient = form.save()
+    logger.info("%s added ingredient %s", request.user, ingredient.pk)
+    return JsonResponse(
+        {"id": ingredient.pk, "label": str(ingredient), "unit": ingredient.unit},
+        status=201,
+    )
+
+
+def ingredient_delete(request: HttpRequest, ingredient_id: int) -> HttpResponse:
+    ingredient = get_object_or_404(Ingredient, pk=ingredient_id)
+    names = list(
+        Recipe.objects.filter(ingredients__ingredient=ingredient).values_list(
+            "name", flat=True
+        )
+    )
+    blocked_reason = f"These recipes use it: {', '.join(names)}." if names else ""
+    return confirm_delete(
+        request,
+        ingredient,
+        cancel_url=reverse("ingredient_edit", args=[ingredient.pk]),
+        success_url=reverse("ingredient_list"),
+        blocked_reason=blocked_reason,
+    )
+
+
+def ingredient_edit(request: HttpRequest, ingredient_id: int) -> HttpResponse:
+    return _ingredient_form_page(
+        request, get_object_or_404(Ingredient, pk=ingredient_id)
+    )
 
 
 def recipe_pdf(request: HttpRequest, recipe_id: int) -> HttpResponse:

@@ -219,7 +219,7 @@ covers** so nothing silently falls through the cracks.
 
 ### 9.6 Budget
 - Cost per shop, per trip and per camp: shopping-list quantity x ingredient price.
-- Prices are entered by hand in the admin.
+- Prices are entered by hand on the ingredients page.
 - Ingredients without a price, or priced per a different unit than a recipe uses,
   are listed and left out of the total. Uncovered days are not in the budget, and
   the cost per portion per day divides by covered days only.
@@ -241,13 +241,21 @@ covers** so nothing silently falls through the cracks.
 - Editing a recipe affects every camp that plans it, also those of other Chiros.
   The edit page warns about this and points to saving a copy instead.
 - Recipe names are unique, so they can be told apart in the planner.
+- Members create and edit their Chiro's camps; a camp can't move to another Chiro
+  outside the admin.
+- Ingredients are shared: anyone with an account can add one and change its
+  category, shop, price and product details. Its name and unit are fixed after
+  creation, because recipes rely on them; staff can change them in the admin.
+- Deleting asks for confirmation first. Members can delete their Chiro's camps,
+  with everything planned in them. A recipe's author (or staff) can delete it once
+  no camp plans it. Anyone with an account can delete an ingredient no recipe uses.
+- Members can remove meals and shopping days left outside the camp dates.
 
 ### 9.9 Planned: public site and accounts
 - Public home page with posts, a getting started page and docs (no CMS: a `Post`
   model edited in the admin, and Markdown files for the docs).
 - "Mijn account": log in by email, reset a password, see your Chiros. Needs a
   mail backend.
-- Screens for camps and ingredients, so normal users no longer need the admin.
 
 ## 10. Non-functional Requirements
 
@@ -299,5 +307,8 @@ Suggested shared constant: `CHILD_PORTION_FACTOR = 0.7` in `core/`.
 - **Automatic price updates.** Fetch up-to-date ingredient prices from a
   reliable source. An earlier import from a third-party Colruyt product dump
   was removed: it is unmaintained and its product matches were unreliable.
+- **Financing.** Upload a camp's bills (PDF or photo), read the lines, update
+  ingredient prices after a person confirms them, and compare actual cost with
+  the budget. Later: purchase categories (camp food / activity / personal).
 - Roles within a Chiro, and recipe edit rights per user.
 - Open sign-up and creating a Chiro without staff.

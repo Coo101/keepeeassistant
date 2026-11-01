@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils import timezone
 
 from recipes.models import Ingredient, Recipe, RecipeIngredient, RecipeStep
 
@@ -17,6 +18,11 @@ class IngredientAdmin(admin.ModelAdmin):
     list_filter = ["shop", "category", "unit"]
     search_fields = ["name", "product_details"]
     list_editable = ["shop", "price_per_unit"]
+
+    def save_model(self, request, obj, form, change) -> None:
+        if "price_per_unit" in form.changed_data:
+            obj.price_updated = timezone.now()
+        super().save_model(request, obj, form, change)
 
 
 class RecipeIngredientInline(admin.TabularInline):

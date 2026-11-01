@@ -10,14 +10,11 @@
 <div class="actions">
   <a class="btn btn-outline" href="{% url 'shopping' camp.pk %}">Shopping lists</a>
   <a class="btn btn-outline" href="{% url 'runbook' camp.pk %}">Draaiboek</a>
+  <a class="btn btn-outline" href="{% url 'camp_edit' camp.pk %}">Edit camp</a>
   <a class="btn" href="{% url 'overview_pdf' camp.pk %}">Overview PDF</a>
 </div>
 {% if outside_entries %}
-<div class="warning">
-  ⚠️ <strong>Planned outside the camp dates</strong> (not shown in the menu plan and not on any shopping list):
-  {% for entry in outside_entries %}{{ entry.date|date:"D d M Y" }} {{ entry.recipe.name }}{% if not forloop.last %}, {% endif %}{% endfor %}.
-  {% if user.is_staff %}Change the camp dates or remove them in the <a href="/admin/planning/menuentry/">admin</a>.{% else %}Ask an administrator to change the camp dates or remove them.{% endif %}
-</div>
+{% include "planning/_outside_entries.html" with back="planner" %}
 {% endif %}
 <div class="table-scroll">
 <table class="planner-table">

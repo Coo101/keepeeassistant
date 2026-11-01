@@ -139,6 +139,20 @@ table.compact td:last-child { text-align: right; white-space: nowrap; font-varia
 .btn-outline { background: var(--surface); color: var(--accent); }
 .btn-outline:hover { background: var(--accent-soft); color: var(--accent-dark); }
 
+.btn-small { padding: 0.15rem 0.6rem; font-size: 0.85rem; }
+.btn-danger { background: #b91c1c; border-color: #b91c1c; }
+.btn-danger:hover { background: #991b1b; }
+.btn-danger-outline { background: var(--surface); color: #b91c1c; border-color: #b91c1c; }
+.btn-danger-outline:hover { background: #fee2e2; color: #991b1b; }
+
+.outside-list { list-style: none; padding: 0; margin: 0.5rem 0; }
+.outside-list li { display: flex; align-items: center; gap: 0.6rem; margin: 0.25rem 0; }
+.outside-list form { margin: 0; }
+
+dialog { border: 1px solid var(--border); border-radius: 8px; width: min(32rem, calc(100vw - 2rem)); box-sizing: border-box; }
+dialog::backdrop { background: rgb(0 0 0 / 0.4); }
+dialog h2 { margin-top: 0; }
+
 .actions { margin: 1rem 0; display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; }
 
 /* ---------- Planner grid ---------- */
@@ -193,6 +207,20 @@ select, input[type="text"], input[type="number"] {
   min-width: 16rem;
 }
 select:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+
+.stacked-form input[type="date"], .stacked-form input[type="time"], .stacked-form textarea {
+  font: inherit;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+}
+.stacked-form textarea { width: 100%; max-width: 40rem; box-sizing: border-box; }
+.stacked-form select, .stacked-form input[type="text"], .stacked-form input[type="number"] { max-width: 100%; }
+.form-row { margin-bottom: 0.9rem; }
+.form-row:last-child { margin-bottom: 0; }
+.form-row label { display: block; font-weight: 600; margin-bottom: 0.2rem; }
+.form-row .helptext { color: var(--muted, #666); font-size: 0.85rem; margin-bottom: 0.2rem; }
 
 ul.checkboxes { list-style: none; padding: 0; margin: 0.5rem 0 1rem; display: flex; flex-wrap: wrap; gap: 0.4rem; }
 ul.checkboxes li { margin: 0; }

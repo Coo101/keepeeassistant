@@ -14,9 +14,8 @@ Copy-Item .env.example .env   # then set DJANGO_DEBUG=1 for local development
 ```
 
 In PyCharm, use the shared **Dev server** run configuration (`.run/`), which
-runs the same command. Then open http://localhost:8100/ — Chiros, users, ingredients and camps are
-managed in the [admin](http://localhost:8100/admin/); recipes, menu planning and shopping lists have
-their own pages.
+runs the same command. Then open http://localhost:8100/ — Chiros and users are managed in the
+[admin](http://localhost:8100/admin/); everything else has its own pages.
 
 ## Access
 
@@ -51,8 +50,8 @@ the user's page. Only give staff status to people who should reach `/admin/`. Se
   uncovered days are flagged.
 - **PDF export** — camp overview and shopping lists via WeasyPrint.
 - **Budgeting** — per-camp cost estimate (`/camps/<id>/budget/`) from
-  ingredient prices, which are set by hand in the
-  [ingredient admin](http://localhost:8100/admin/recipes/ingredient/). See
+  ingredient prices, which are set by hand on the
+  [ingredients page](http://localhost:8100/ingredients/). See
   [docs/TODO.md](docs/TODO.md) for the prices that need checking.
 
 ### PDF export on Windows

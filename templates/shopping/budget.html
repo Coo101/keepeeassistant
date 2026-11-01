@@ -7,7 +7,7 @@
   Estimated cost:
   <strong>€ {{ budget.total|floatformat:2 }}</strong>
   {% if budget.cost_per_portion_day %} · € {{ budget.cost_per_portion_day|floatformat:2 }} per portion per day{% endif %}
-  {% if user.is_staff %}· prices are set by hand in the <a href="/admin/recipes/ingredient/">ingredient admin</a>{% endif %}
+  · prices are set by hand on the <a href="{% url 'ingredient_list' %}">ingredients page</a>
 </p>
 
 {% if budget.shop_totals %}
@@ -26,7 +26,7 @@
 <div class="warning">
   ⚠️ <strong>No price yet for:</strong>
   {% for ingredient in budget.missing %}{{ ingredient.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
-  — these are not counted.{% if user.is_staff %} Set prices in the <a href="/admin/recipes/ingredient/">ingredient admin</a>.{% endif %}
+  — these are not counted. Set prices on the <a href="{% url 'ingredient_list' %}">ingredients page</a>.
 </div>
 {% endif %}
 

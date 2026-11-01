@@ -6,6 +6,7 @@ import logging
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.views.decorators.http import require_POST
 
 from camps.models import Camp, DayNote
 from core.constants import MEAL_SLOTS, MealType
@@ -126,6 +127,19 @@ def edit_slot(
             "scaled": scaled,
         },
     )
+
+
+@require_POST
+def remove_outside_entry(
+    request: HttpRequest, camp_id: int, entry_id: int
+) -> HttpResponse:
+    """Meals outside the camp dates have no slot in the grid to clear."""
+    camp = get_object_or_404(Camp.objects.for_user(request.user), pk=camp_id)
+    entry = get_object_or_404(camp.entries_outside_dates(), pk=entry_id)
+    logger.info("%s removed %s", request.user, entry)
+    entry.delete()
+    back = "shopping" if request.POST.get("back") == "shopping" else "planner"
+    return redirect(back, camp_id=camp.pk)
 
 
 def _runbook_days(camp: Camp) -> list[dict]:

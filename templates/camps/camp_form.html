@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{% if camp.pk %}{{ camp.name }}{% else %}New camp{% endif %} — Camps{% endblock %}
+{% block content %}
+{% if camp.pk %}
+<p><a class="back-link" href="{% url 'planner' camp.pk %}">← back to menu plan</a></p>
+<h1>Edit {{ camp.name }}</h1>
+{% else %}
+<p><a class="back-link" href="{% url 'camp_list' %}">← all camps</a></p>
+<h1>New camp</h1>
+{% endif %}
+
+<form method="post" class="stacked-form">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  {% for title, fields in form.sections %}
+  <h2>{{ title }}</h2>
+  <div class="card">
+    {% for field in fields %}
+      {% if field.is_hidden %}{{ field }}{% else %}<div class="form-row">{{ field.as_field_group }}</div>{% endif %}
+    {% endfor %}
+  </div>
+  {% endfor %}
+  <div class="actions">
+    <button class="btn" type="submit">Save camp</button>
+    {% if camp.pk %}<a class="btn btn-danger-outline" href="{% url 'camp_delete' camp.pk %}">Delete camp</a>{% endif %}
+  </div>
+</form>
+{% endblock %}

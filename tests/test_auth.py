@@ -9,6 +9,7 @@ from django.urls import URLPattern, reverse
 
 from accounts.models import Chiro, Membership
 from camps.models import DayNote
+from camps.urls import urlpatterns as camp_urls
 from core.constants import DishType, MealType
 from planning.models import MenuEntry
 from planning.urls import urlpatterns as planning_urls
@@ -28,14 +29,20 @@ PATH_ARGS = {"date": AUG_1.isoformat(), "meal_type": MealType.DINNER}
 
 
 def _camp_url_names() -> list[str]:
-    """Every URL under a camp, so a new page is covered automatically."""
-    patterns: list[URLPattern] = [*planning_urls, *shopping_urls]
-    return [p.name for p in patterns if "camp_id" in p.pattern.converters]
+    """Every page under a camp, so a new page is covered automatically. The
+    POST-only remove URLs are tested in test_delete_and_remove.py."""
+    patterns: list[URLPattern] = [*camp_urls, *planning_urls, *shopping_urls]
+    return [
+        p.name
+        for p in patterns
+        if "camp_id" in p.pattern.converters
+        and not p.name.startswith("remove_outside_")
+    ]
 
 
 def _camp_url(url_name: str, camp) -> str:
     pattern = next(
-        p for p in [*planning_urls, *shopping_urls] if p.name == url_name
+        p for p in [*camp_urls, *planning_urls, *shopping_urls] if p.name == url_name
     ).pattern
     kwargs = {k: PATH_ARGS[k] for k in pattern.converters if k != "camp_id"}
     return reverse(url_name, kwargs={"camp_id": camp.pk, **kwargs})
@@ -47,7 +54,7 @@ def camp():
 
 
 def test_camp_urls_are_found() -> None:
-    assert len(_camp_url_names()) == 8
+    assert len(_camp_url_names()) == 10
 
 
 @pytest.mark.parametrize("url_name", _camp_url_names())

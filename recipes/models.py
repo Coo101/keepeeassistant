@@ -21,7 +21,7 @@ class Ingredient(models.Model):
         default=IngredientCategory.OTHER,
     )
 
-    # Budgeting (SPEC §9.6): EUR per canonical unit, set by hand in the admin.
+    # Budgeting (SPEC §9.6): EUR per canonical unit, set by hand.
     shop = models.CharField(
         max_length=12,
         choices=Shop.CHOICES,

@@ -5,6 +5,7 @@ import logging
 
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from camps.models import Camp
 from core.pdf import render_pdf
@@ -47,7 +48,8 @@ def shopping(request: HttpRequest, camp_id: int) -> HttpResponse:
         return redirect("shopping", camp_id=camp.pk)
 
     plan = build_shopping_plan(camp)
-    trip_dates = {t.date for t in plan.camp.shopping_trips.all()}
+    trips = list(plan.camp.shopping_trips.all())
+    trip_dates = {t.date for t in trips}
     return render(
         request,
         "shopping/shopping.html",
@@ -55,7 +57,10 @@ def shopping(request: HttpRequest, camp_id: int) -> HttpResponse:
             "camp": camp,
             "plan": plan,
             "outside_entries": camp.entries_outside_dates(),
-            "outside_trips": sorted(trip_dates - set(candidates)),
+            "outside_trips": sorted(
+                (t for t in trips if t.date not in candidates),
+                key=lambda t: t.date,
+            ),
             "candidates": [
                 {
                     "date": d,
@@ -66,6 +71,19 @@ def shopping(request: HttpRequest, camp_id: int) -> HttpResponse:
             ],
         },
     )
+
+
+@require_POST
+def remove_outside_trip(
+    request: HttpRequest, camp_id: int, trip_id: int
+) -> HttpResponse:
+    """Days on the form are simply unticked; this is for the ones that aren't."""
+    camp = get_object_or_404(Camp.objects.for_user(request.user), pk=camp_id)
+    trips = camp.shopping_trips.exclude(date__in=_candidate_dates(camp))
+    trip = get_object_or_404(trips, pk=trip_id)
+    logger.info("%s removed shopping day %s of %s", request.user, trip.date, camp)
+    trip.delete()
+    return redirect("shopping", camp_id=camp.pk)
 
 
 def budget(request: HttpRequest, camp_id: int) -> HttpResponse:

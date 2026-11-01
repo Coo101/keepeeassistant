@@ -23,7 +23,7 @@
   <div class="card">
     <h3>Kookploeg</h3>
     {% if camp.cook_team %}<p class="prewrap">{{ camp.cook_team }}</p>
-    {% else %}<p class="empty-slot">Vul aan bij de camp-instellingen (admin).</p>{% endif %}
+    {% else %}<p class="empty-slot">Vul aan bij de <a href="{% url 'camp_edit' camp.pk %}">camp-instellingen</a>.</p>{% endif %}
   </div>
   <div class="card">
     <h3>Locatie</h3>

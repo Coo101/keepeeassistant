@@ -2,7 +2,7 @@
 {% block title %}Camps — Camp Meal Planner{% endblock %}
 {% block content %}
 <h1>Camps</h1>
-{% if user.is_staff %}<p class="page-meta">Create and edit camps and ingredients in the <a href="/admin/">admin</a>.</p>{% endif %}
+{% if has_chiro %}<div class="actions"><a class="btn" href="{% url 'camp_create' %}">New camp</a></div>{% endif %}
 {% if camps %}
 <table>
   <thead>
@@ -23,7 +23,8 @@
       <td>
         <a href="{% url 'planner' camp.pk %}">Menu plan</a> ·
         <a href="{% url 'shopping' camp.pk %}">Shopping</a> ·
-        <a href="{% url 'runbook' camp.pk %}">Draaiboek</a>
+        <a href="{% url 'runbook' camp.pk %}">Draaiboek</a> ·
+        <a href="{% url 'camp_edit' camp.pk %}">Edit</a>
       </td>
     </tr>
     {% endfor %}
@@ -31,10 +32,10 @@
 </table>
 {% else %}
 <div class="card">
-  {% if user.is_staff %}
-  <p>No camps for your Chiro yet. <a href="/admin/camps/camp/add/">Add a camp</a>, and make sure your account is linked to its Chiro.</p>
+  {% if has_chiro %}
+  <p>No camps for your Chiro yet. <a href="{% url 'camp_create' %}">Add the first one</a>.</p>
   {% else %}
-  <p>No camps for your Chiro yet. Ask an administrator to add one or to link your account to your Chiro.</p>
+  <p>Your account isn't linked to a Chiro yet. Ask an administrator to link it.</p>
   {% endif %}
 </div>
 {% endif %}
