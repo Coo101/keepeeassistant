@@ -87,6 +87,7 @@ INGREDIENTS: dict[str, tuple[str, str]] = {
     "Stoofvlees": (KG, MEAT),
     "BBQ-vlees (pak)": (P, MEAT),
     "Chipolata": (P, MEAT),
+    "Baksaucis": (P, MEAT),
     "Hamburgers": (P, MEAT),
     "Kipschnitzel": (P, MEAT),
     "Visburgers (groot)": (P, MEAT),
@@ -1137,22 +1138,16 @@ RECIPES: list[dict[str, Any]] = [
         "cacaopoeder, suiker, melk, koffie. Hoeveelheden nog aan te vullen.",
     },
     {
-        "name": "Broodmaaltijd + baksaucis",
-        "dish_type": DishType.BREAD_MEAL,
-        "steps": [
-            ("Baksaucissen in porties bakken.", 40),
-            ("Brood snijden en in manden verdelen.", 15),
-            ("Chocomelk aanmaken en koffie zetten.", 20),
-            (
-                "Afdelingsbakken klaarzetten: boter en al het beleg per bak.",
-                15,
-            ),
-        ],
-        "notes": "Broodmaaltijd + baksaucis; hoeveelheden nog aan te vullen.",
+        "name": "Baksaucis",
+        "dish_type": DishType.BREAD_MEAL_EXTRA,
+        "ingredients": [("Baksaucis", "85")],
+        "steps": [("Baksaucissen in porties bakken.", 40)],
+        "notes": "Extra bij een broodmaaltijd. ~1,2 per persoon (zoals de 70 "
+        "hamburgers voor 58 man in 2026).",
     },
     {
-        "name": "Broodmaaltijd + pannenkoeken",
-        "dish_type": DishType.BREAD_MEAL,
+        "name": "Pannenkoeken",
+        "dish_type": DishType.BREAD_MEAL_EXTRA,
         "ingredients": [
             ("Bloem", "4"),
             ("Bakpoeder (zakje)", "8"),
@@ -1169,10 +1164,6 @@ RECIPES: list[dict[str, Any]] = [
             ("Eierdooiers toevoegen; eiwit apart stijfkloppen.", 15),
             ("Water toevoegen; gesmolten boter (niet gekookt) toevoegen.", 10),
             ("Als laatste het eiwit eronder mengen; pannenkoeken bakken.", 60),
-            (
-                "Afdelingsbakken klaarzetten: boter, beleg en toppings per " "bak.",
-                15,
-            ),
         ],
         "notes": "Bij zelfrijzende bloem geen bakpoeder. Toppings: overschot "
         "suiker, siroop, choco.",

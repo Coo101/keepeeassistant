@@ -1,9 +1,11 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% block title %}{{ camp.name }} — {{ day }} {{ meal_label }}{% endblock %}
 {% block content %}
-<p><a class="back-link" href="{% url 'planner' camp.pk %}">← back to menu plan</a></p>
-<h1>{{ day|date:"l d M" }} — {{ meal_label }}{% if course %} · {{ course }}{% endif %}</h1>
-<p class="page-meta">{{ camp.name }} · <strong>{{ camp.demand_portions }} portions</strong></p>
+<p><a class="back-link" href="{% url 'planner' camp.pk %}">← {% translate "back to menu plan" %}</a></p>
+<h1>{{ day|date:"l d M" }} — {{ meal_label }}{% if course %} · {{ course|lower }}{% endif %}</h1>
+<p class="page-meta">{{ camp.name }} · <strong>{% blocktranslate with portions=camp.demand_portions %}{{ portions }} portions{% endblocktranslate %}</strong></p>
+{% include "camps/_example_note.html" %}
 
 <div class="card">
   <form method="post">
@@ -11,35 +13,37 @@
     {{ form.recipe.errors }}
     <div class="actions">
       {{ form.recipe }}
-      <button class="btn" type="submit">Save</button>
+      <button class="btn" type="submit">{% translate "Save" %}</button>
     </div>
   </form>
 </div>
 
 {% if scaled %}
-<h2>Scaled for {{ camp.demand_portions }} portions <span class="badge">× {{ scaled.scale|floatformat:2 }}</span>
-  <a class="muted" href="{% url 'recipe_detail' entry.recipe.pk %}">recipe page →</a></h2>
-<p class="muted">{{ entry.recipe.name }} — base: {{ entry.recipe.base_children }} children + {{ entry.recipe.base_teens }} teens = {{ entry.recipe.base_portions }} portions</p>
+{% with recipe=entry.recipe %}
+<h2>{% blocktranslate with portions=camp.demand_portions %}Scaled for {{ portions }} portions{% endblocktranslate %} <span class="badge">× {{ scaled.scale|floatformat:2 }}</span>
+  <a class="muted" href="{% url 'recipe_detail' recipe.pk %}">{% translate "recipe page" %} →</a></h2>
+<p class="muted">{{ recipe.name }} — {% blocktranslate with children=recipe.base_children teens=recipe.base_teens portions=recipe.base_portions %}base: {{ children }} children + {{ teens }} teens = {{ portions }} portions{% endblocktranslate %}</p>
 <table class="compact">
-  <thead><tr><th>Ingredient</th><th>Quantity</th></tr></thead>
+  <thead><tr><th>{% translate "Ingredient" %}</th><th>{% translate "Quantity" %}</th></tr></thead>
   <tbody>
     {% for item in scaled.ingredients %}
     <tr>
       <td>{{ item.ingredient.name }}</td>
-      <td>{{ item.quantity }} {{ item.unit }}</td>
+      <td>{{ item.quantity }} {% translate item.unit %}</td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
-{% if entry.recipe.steps.all %}
-<h2>Steps <span class="badge">{{ entry.recipe.total_duration_minutes }} min total</span></h2>
+{% if recipe.steps.all %}
+<h2>{% translate "Steps" %} <span class="badge">{% blocktranslate with minutes=recipe.total_duration_minutes %}{{ minutes }} min total{% endblocktranslate %}</span></h2>
 <div class="card">
   <ol>
-    {% for step in entry.recipe.steps.all %}
+    {% for step in recipe.steps.all %}
     <li>{{ step.instruction }}{% if step.duration_minutes %} <span class="muted">({{ step.duration_minutes }} min)</span>{% endif %}</li>
     {% endfor %}
   </ol>
 </div>
 {% endif %}
+{% endwith %}
 {% endif %}
 {% endblock %}

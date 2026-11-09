@@ -1,3 +1,4 @@
+{# With `add_url` and `add_label`, a button adds an empty row: in place through HTMX, or by posting the form (name="add_row") without JavaScript. #}
 {{ formset.management_form }}
 {{ formset.non_form_errors }}
 <div class="table-scroll">
@@ -7,17 +8,14 @@
       {% for field in formset.empty_form.visible_fields %}<th>{{ field.label }}</th>{% endfor %}
     </tr>
   </thead>
-  <tbody>
-    {% for row in formset %}
-    <tr>
-      {% for field in row.visible_fields %}
-      <td>
-        {% if forloop.first %}{% for hidden in row.hidden_fields %}{{ hidden }}{% endfor %}{{ row.non_field_errors }}{% endif %}
-        {{ field }}{{ field.errors }}
-      </td>
-      {% endfor %}
-    </tr>
-    {% endfor %}
+  <tbody id="{{ formset.prefix }}-rows">
+    {% for row in formset %}{% include "partials/_formset_row.html" %}{% endfor %}
   </tbody>
 </table>
 </div>
+{% if add_url %}
+<button class="btn btn-outline-primary btn-sm mt-2" type="submit" name="add_row" value="{{ formset.prefix }}" formnovalidate
+        hx-get="{{ add_url }}" hx-include="#id_{{ formset.prefix }}-TOTAL_FORMS" hx-target="#{{ formset.prefix }}-rows" hx-swap="beforeend">
+  <i class="bi bi-plus-lg" aria-hidden="true"></i> {{ add_label }}
+</button>
+{% endif %}

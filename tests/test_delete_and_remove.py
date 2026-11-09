@@ -241,4 +241,4 @@ def test_recipe_form_has_the_dialog_with_its_own_field_names() -> None:
     assert 'id="new-ingredient-dialog"' in content
     assert 'name="new_ingredient-name"' in content
     assert 'name="name"' in content
-    assert "js/recipe_form.js" in content
+    assert "js/ingredient_dialog.js" in content

@@ -1,22 +1,25 @@
 {% extends "base.html" %}
-{% block title %}{{ camp.name }} — Menu plan{% endblock %}
+{% load i18n %}
+{% block title %}{{ camp.name }} — {% translate "Menu plan" %}{% endblock %}
 {% block content %}
-<h1>{{ camp.name }} — menu plan</h1>
+<h1>{{ camp.name }} — {% translate "menu plan" %}</h1>
+{% include "camps/_example_note.html" %}
 <p class="page-meta">
   {{ camp.start_date }} – {{ camp.end_date }} ·
-  {{ camp.num_children }} children + {{ camp.num_teens }} teens + {{ camp.num_staff }} staff
-  = <strong>{{ camp.demand_portions }} portions</strong>
+  {% include "planning/_headcount.html" %}
 </p>
 <div class="actions">
-  <a class="btn btn-outline" href="{% url 'shopping' camp.pk %}">Shopping lists</a>
-  <a class="btn btn-outline" href="{% url 'runbook' camp.pk %}">Draaiboek</a>
-  <a class="btn btn-outline" href="{% url 'bill_list' camp.pk %}">Bills</a>
-  <a class="btn btn-outline" href="{% url 'camp_diets' camp.pk %}">Diets and allergies</a>
-  <a class="btn btn-outline" href="{% url 'camp_edit' camp.pk %}">Edit camp</a>
-  <a class="btn" href="{% url 'overview_pdf' camp.pk %}">Overview PDF</a>
+  <a class="btn btn-outline" href="{% url 'shopping' camp.pk %}">{% translate "Shopping lists" %}</a>
+  <a class="btn btn-outline" href="{% url 'runbook' camp.pk %}">{% translate "Runbook" %}</a>
+  <a class="btn btn-outline" href="{% url 'bill_list' camp.pk %}">{% translate "Bills" %}</a>
+  <a class="btn btn-outline" href="{% url 'financial_report' camp.pk %}">{% translate "Financial report" %}</a>
+  <a class="btn btn-outline" href="{% url 'camp_diets' camp.pk %}">{% translate "Diets and allergies" %}</a>
+  <a class="btn btn-outline" href="{% url 'camp_utensils' camp.pk %}">{% translate "Kitchen utilities" %}</a>
+  <a class="btn btn-outline" href="{% url 'camp_edit' camp.pk %}">{% translate "Edit camp" %}</a>
+  <a class="btn" href="{% url 'overview_pdf' camp.pk %}">{% translate "Overview PDF" %}</a>
 </div>
 {% if camp.is_archived %}
-<div class="warning">🗄️ This camp is archived. You can bring it back under <a href="{% url 'camp_edit' camp.pk %}">Edit camp</a>.</div>
+<div class="warning">🗄️ {% url 'camp_edit' camp.pk as edit_url %}{% blocktranslate %}This camp is archived. You can bring it back under <a href="{{ edit_url }}">Edit camp</a>.{% endblocktranslate %}</div>
 {% endif %}
 {% if outside_entries %}
 {% include "planning/_outside_entries.html" with back="planner" %}
@@ -25,11 +28,11 @@
 <table class="planner-table">
   <thead>
     <tr>
-      <th>Day</th>
-      <th>Breakfast <span class="muted">{{ camp.breakfast_time|time:"H:i" }}</span></th>
-      <th>Lunch <span class="muted">{{ camp.lunch_time|time:"H:i" }}</span></th>
-      <th>Tea <span class="muted">{{ camp.teatime_time|time:"H:i" }}</span></th>
-      <th>Dinner <span class="muted">{{ camp.dinner_time|time:"H:i" }}</span></th>
+      <th>{% translate "Day" %}</th>
+      <th>{% translate "Breakfast" %} <span class="muted">{{ camp.breakfast_time|time:"H:i" }}</span></th>
+      <th>{% translate "Lunch" %} <span class="muted">{{ camp.lunch_time|time:"H:i" }}</span></th>
+      <th>{% translate "Tea" %} <span class="muted">{{ camp.teatime_time|time:"H:i" }}</span></th>
+      <th>{% translate "Dinner" %} <span class="muted">{{ camp.dinner_time|time:"H:i" }}</span></th>
     </tr>
   </thead>
   <tbody>
@@ -43,7 +46,7 @@
             <span class="slot-course">{{ cell.slot.label }}</span>
             <a class="slot-chip{% if not cell.entry %} empty-slot{% if cell.slot.required %} missing{% endif %}{% endif %}"
                href="{% url 'edit_slot' camp.pk row.day|date:'Y-m-d' meal.meal_type %}{% if cell.slot.course %}?course={{ cell.slot.course }}{% endif %}">
-              {% if cell.entry %}{{ cell.entry.recipe.name }}{% else %}pick…{% endif %}
+              {% if cell.entry %}{{ cell.entry.recipe.name }}{% else %}{% translate "pick…" %}{% endif %}
             </a>
           </div>
         {% endfor %}
@@ -56,18 +59,18 @@
 </div>
 
 {% if checks.conflicts %}
-<h2>Diets and allergies</h2>
+<h2>{% translate "Diets and allergies" %}</h2>
 <div class="warning">
-  ⚠️ <strong>These meals need an alternative:</strong>
+  ⚠️ <strong>{% translate "These meals need an alternative:" %}</strong>
   <ul>
     {% for conflict in checks.conflicts %}
-    <li>{{ conflict.date|date:"D d M" }}, {{ conflict.meal }}: {{ conflict.recipe }} contains {{ conflict.contains }} ({{ conflict.people }} × {{ conflict.diet }})</li>
+    <li>{{ conflict.date|date:"D d M" }}, {% blocktranslate with meal=conflict.meal recipe=conflict.recipe contains=conflict.contains people=conflict.people diet=conflict.diet %}{{ meal }}: {{ recipe }} contains {{ contains }} ({{ people }} × {{ diet }}){% endblocktranslate %}</li>
     {% endfor %}
   </ul>
 </div>
 {% endif %}
 {% if checks.balance %}
-<h2>Balance</h2>
+<h2>{% translate "Balance" %}</h2>
 <div class="card">
   <ul>
     {% for day, warnings in checks.balance.items %}
@@ -77,6 +80,6 @@
 </div>
 {% endif %}
 {% if checks.unchecked %}
-<p class="muted">{{ checks.unchecked|length }} planned ingredient{{ checks.unchecked|length|pluralize }} not checked yet, so these warnings can miss things: {{ checks.unchecked|join:", " }}. <a href="{% url 'ingredient_list' %}">Check them on the ingredients page.</a></p>
+<p class="muted">{% blocktranslate count counter=checks.unchecked|length with names=checks.unchecked|join:", " %}{{ counter }} planned ingredient not checked yet, so these warnings can miss things: {{ names }}.{% plural %}{{ counter }} planned ingredients not checked yet, so these warnings can miss things: {{ names }}.{% endblocktranslate %} <a href="{% url 'ingredient_list' %}">{% translate "Check them on the ingredients page." %}</a></p>
 {% endif %}
 {% endblock %}

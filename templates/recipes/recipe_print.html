@@ -1,5 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
+{% load i18n %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
   <meta charset="utf-8">
   <title>{{ recipe.name }}</title>
@@ -17,46 +17,48 @@
     ol li { margin-bottom: 5pt; }
     .duration { color: #555; }
     .notes { border: 1px solid #bbb; border-radius: 4pt; padding: 6pt 8pt; white-space: pre-line; color: #333; }
-    {% if pdf_fallback %}@media screen { body::before { content: "PDF engine unavailable — use your browser's Print to save as PDF."; display:block; background:#fef3c7; padding:8px; margin-bottom:12px; } }{% endif %}
+    {% if pdf_fallback %}@media screen { body::before { content: "{% translate "PDF engine unavailable — use your browser's Print to save as PDF." %}"; display:block; background:#fef3c7; padding:8px; margin-bottom:12px; } }{% endif %}
   </style>
 </head>
 <body>
 <h1>{{ recipe.name }}</h1>
 <p class="meta">
   {{ recipe.get_dish_type_display }} ·
-  {% if scale %}scaled to <strong>{{ portions }} portions</strong> (× {{ scale|floatformat:2 }};
-  base {{ recipe.base_portions }}){% else %}base: {{ recipe.base_children }} children +
-  {{ recipe.base_teens }} teens = <strong>{{ recipe.base_portions }} portions</strong>{% endif %}
-  {% if recipe.total_duration_minutes %} · {{ recipe.total_duration_minutes }} min total{% endif %}
+  {% if scale %}{% blocktranslate trimmed with scale=scale|floatformat:2 base=recipe.base_portions %}
+  scaled to <strong>{{ portions }} portions</strong> (× {{ scale }}; base {{ base }})
+  {% endblocktranslate %}{% else %}{% blocktranslate trimmed with children=recipe.base_children teens=recipe.base_teens portions=recipe.base_portions %}
+  base: {{ children }} children + {{ teens }} teens = <strong>{{ portions }} portions</strong>
+  {% endblocktranslate %}{% endif %}
+  {% if recipe.total_duration_minutes %} · {% blocktranslate with minutes=recipe.total_duration_minutes %}{{ minutes }} min total{% endblocktranslate %}{% endif %}
 </p>
 
 <div class="columns">
   <section>
-    <h2>Ingredients</h2>
+    <h2>{% translate "Ingredients" %}</h2>
     {% if rows %}
     <table>
       <tbody>
         {% for row in rows %}
-        <tr><td>{{ row.name }}</td><td class="qty">{{ row.quantity }} {{ row.unit }}</td></tr>
+        <tr><td>{{ row.name }}</td><td class="qty">{{ row.quantity }} {% translate row.unit %}</td></tr>
         {% endfor %}
       </tbody>
     </table>
-    {% else %}<p class="meta">No ingredients entered yet.</p>{% endif %}
+    {% else %}<p class="meta">{% translate "No ingredients entered yet." %}</p>{% endif %}
   </section>
   <section>
-    <h2>Steps</h2>
+    <h2>{% translate "Steps" %}</h2>
     {% if recipe.steps.all %}
     <ol>
       {% for step in recipe.steps.all %}
       <li>{{ step.instruction }}{% if step.duration_minutes %} <span class="duration">({{ step.duration_minutes }} min)</span>{% endif %}</li>
       {% endfor %}
     </ol>
-    {% else %}<p class="meta">No steps entered yet.</p>{% endif %}
+    {% else %}<p class="meta">{% translate "No steps entered yet." %}</p>{% endif %}
   </section>
 </div>
 
 {% if recipe.notes %}
-<h2>Notes</h2>
+<h2>{% translate "Notes" %}</h2>
 <div class="notes">{{ recipe.notes }}</div>
 {% endif %}
 </body>

@@ -3,6 +3,7 @@
 import datetime
 
 import pytest
+from django.conf import settings
 from django.urls import reverse
 
 from camps.models import DayNote
@@ -31,9 +32,16 @@ def _camp_with_menu():
     return camp
 
 
+def _dutch_client(camp):
+    """The kookploeg reads the runbook in Dutch."""
+    client = member_client(camp)
+    client.cookies[settings.LANGUAGE_COOKIE_NAME] = "nl"
+    return client
+
+
 def test_runbook_shows_info_days_and_steps() -> None:
     camp = _camp_with_menu()
-    response = member_client(camp).get(reverse("runbook", args=[camp.pk]))
+    response = _dutch_client(camp).get(reverse("runbook", args=[camp.pk]))
     assert response.status_code == 200
     content = response.content.decode()
     assert "Chiro Opoeteren" in content
@@ -43,8 +51,8 @@ def test_runbook_shows_info_days_and_steps() -> None:
     assert 'id="day-2026-08-01"' in content
     assert "Stoofpot" in content
     assert "Alles stoven." in content
-    # scaled quantities present (52 / 13 portions = x4 -> 10 kg)
-    assert "10.0" in content
+    # scaled quantities present (52 / 13 portions = x4 -> 10 kg), Dutch style
+    assert "10,0" in content
 
 
 def test_runbook_note_save_and_display() -> None:
@@ -71,7 +79,7 @@ def test_runbook_note_rejects_non_camp_day() -> None:
 def test_runbook_pdf_falls_back_to_html(monkeypatch) -> None:
     monkeypatch.setattr("core.pdf.weasyprint_available", lambda: False)
     camp = _camp_with_menu()
-    response = member_client(camp).get(reverse("runbook_pdf", args=[camp.pk]))
+    response = _dutch_client(camp).get(reverse("runbook_pdf", args=[camp.pk]))
     assert response.status_code == 200
     content = response.content.decode()
     assert "Draaiboek kookploeg" in content

@@ -5,6 +5,7 @@ import smtplib
 from django.core.mail import send_mail
 from django.http import HttpRequest
 from django.urls import reverse
+from django.utils.translation import gettext as _
 
 from accounts.models import Invitation
 
@@ -19,9 +20,12 @@ def invitation_link(request: HttpRequest, invitation: Invitation) -> str:
 
 def send_invitation(request: HttpRequest, invitation: Invitation) -> None:
     send_mail(
-        f"Join {invitation.chiro} on Camp Meal Planner",
-        f"You're invited to plan camp meals with {invitation.chiro}.\n\n"
-        f"Accept here within two weeks:\n{invitation_link(request, invitation)}\n",
+        _("Join %(chiro)s on Camp Meal Planner") % {"chiro": invitation.chiro},
+        _(
+            "You're invited to plan camp meals with %(chiro)s.\n\n"
+            "Accept here within two weeks:\n%(link)s\n"
+        )
+        % {"chiro": invitation.chiro, "link": invitation_link(request, invitation)},
         None,
         [invitation.email],
     )

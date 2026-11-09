@@ -126,15 +126,17 @@ def _remember_match(line: BillLine) -> None:
 
 
 @transaction.atomic
-def apply_review(bill: Bill) -> None:
-    """After a person saved the lines: record prices, matches and the status."""
+def apply_review(bill: Bill, remember_matches: bool = True) -> None:
+    """After a person saved the lines: record prices, matches and the status.
+    Made-up bills (the example camp) don't teach matches for real ones."""
     lines = list(bill.lines.select_related("ingredient", "price", "bill__camp"))
     if not lines and bill.status in {Bill.Status.WAITING, Bill.Status.FAILED}:
         return  # nothing was entered, so it stays in the reading queue
     for line in lines:
         _sync_price(line)
         line.save(update_fields=["price"])
-        _remember_match(line)
+        if remember_matches:
+            _remember_match(line)
     open_lines = any(line.needs_review for line in lines)
     bill.status = Bill.Status.REVIEW if open_lines or not lines else Bill.Status.DONE
     bill.error = ""
@@ -184,7 +186,8 @@ def camp_spending(camp: Camp) -> CampSpending:
         estimate=budget.total,
         food=sum(paid_by_shop.values(), Decimal("0")),
         by_category=[
-            (BillLine.Category(key).label, value) for key, value in by_category.items()
+            (str(BillLine.Category(key).label), value)
+            for key, value in by_category.items()
         ],
         total=sum(by_category.values(), Decimal("0")),
         open_bills=camp.bills.exclude(status=Bill.Status.DONE).count(),

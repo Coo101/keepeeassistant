@@ -77,11 +77,11 @@ def test_budget_totals_split_per_shop() -> None:
     totals = {st.label: st.total for st in budget.shop_totals}
     assert totals == {
         "Colruyt": Decimal("2.00"),  # 2 kg x 1.00
-        "Bakker": Decimal("3.00"),  # 6 st x 0.50
+        "Baker": Decimal("3.00"),  # 6 st x 0.50
     }
     assert budget.total == Decimal("5.00")
     shops = {shop.label: shop.total for shop in budget.trips[0].shops}
-    assert shops == {"Colruyt": Decimal("2.00"), "Bakker": Decimal("3.00")}
+    assert shops == {"Colruyt": Decimal("2.00"), "Baker": Decimal("3.00")}
 
 
 def test_shop_total_reports_unpriced_items() -> None:
@@ -98,7 +98,7 @@ def test_shop_total_reports_unpriced_items() -> None:
 
     budget = build_budget(camp)
     (beenhouwer,) = budget.shop_totals
-    assert beenhouwer.label == "Beenhouwer"
+    assert beenhouwer.label == "Butcher"
     assert beenhouwer.total == Decimal("0")
     # the zero is qualified, not presented as a real bill
     assert beenhouwer.missing_count == 1

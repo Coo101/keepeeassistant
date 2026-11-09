@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
 
 from recipes.models import (
     Ingredient,
@@ -42,11 +43,11 @@ class IngredientAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).with_latest_price()
 
-    @admin.display(description="Latest price")
+    @admin.display(description=_("Latest price"))
     def latest_price(self, obj: Ingredient):
         return obj.latest_price
 
-    @admin.display(description="Price date")
+    @admin.display(description=_("Price date"))
     def latest_price_date(self, obj: Ingredient):
         return obj.latest_price_date
 
@@ -79,10 +80,10 @@ class RecipeAdmin(admin.ModelAdmin):
     autocomplete_fields = ["author"]
     inlines = [RecipeIngredientInline, RecipeStepInline]
 
-    @admin.display(description="Base portions")
+    @admin.display(description=_("Base portions"))
     def base_portions(self, obj: Recipe) -> str:
         return str(obj.base_portions)
 
-    @admin.display(description="Total time (min)")
+    @admin.display(description=_("Total time (min)"))
     def total_duration_minutes(self, obj: Recipe) -> int:
         return obj.total_duration_minutes

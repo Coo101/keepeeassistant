@@ -8,6 +8,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
 from django.utils.functional import cached_property
+from django.utils.translation import gettext_lazy as _
 
 from core.constants import DishType, IngredientCategory, PriceSource, Shop, Unit
 from core.portions import format_quantity, portions
@@ -16,7 +17,7 @@ from core.portions import format_quantity, portions
 class IngredientQuerySet(models.QuerySet):
     def with_latest_price(self) -> "IngredientQuerySet":
         """Adds `latest_price` and `latest_price_date`, None without a price."""
-        latest = IngredientPrice.objects.filter(
+        latest = IngredientPrice.objects.shared().filter(
             ingredient=models.OuterRef("pk"), unit=models.OuterRef("unit")
         )
         return self.annotate(
@@ -26,12 +27,13 @@ class IngredientQuerySet(models.QuerySet):
 
 
 class Ingredient(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-    unit = models.CharField(max_length=10, choices=Unit.CHOICES)
+    name = models.CharField(max_length=100, unique=True, verbose_name=_("name"))
+    unit = models.CharField(max_length=10, choices=Unit.CHOICES, verbose_name=_("unit"))
     category = models.CharField(
         max_length=20,
         choices=IngredientCategory.CHOICES,
         default=IngredientCategory.OTHER,
+        verbose_name=_("category"),
     )
 
     # Budgeting (SPEC §9.6): EUR per canonical unit, set by hand.
@@ -39,14 +41,17 @@ class Ingredient(models.Model):
         max_length=12,
         choices=Shop.CHOICES,
         default=Shop.COLRUYT,
-        help_text="Where this ingredient is bought",
+        verbose_name=_("shop"),
+        help_text=_("Where this ingredient is bought"),
     )
     product_details = models.CharField(
         max_length=200,
         blank=True,
-        verbose_name="product details",
-        help_text="Name, [brand] ([LOS] = loose/unpackaged) and container "
-        "volume or other details",
+        verbose_name=_("product details"),
+        help_text=_(
+            "Name, [brand] ([LOS] = loose/unpackaged) and container "
+            "volume or other details"
+        ),
     )
     # FoodTag values: what's in it, for the diet and balance checks.
     tags = models.JSONField(default=list, blank=True)
@@ -54,8 +59,10 @@ class Ingredient(models.Model):
     # as a vegetable may still never have been checked for gluten.
     tags_checked = models.BooleanField(
         default=False,
-        verbose_name="this list is complete",
-        help_text="Tick it once someone checked all of the above, even if none apply",
+        verbose_name=_("this list is complete"),
+        help_text=_(
+            "Tick it once someone checked all of the above, even if none apply"
+        ),
     )
 
     objects = IngredientQuerySet.as_manager()
@@ -64,7 +71,13 @@ class Ingredient(models.Model):
         ordering = ["name"]
 
     def __str__(self) -> str:
-        return f"{self.name} ({self.unit})"
+        return f"{self.name} ({self.get_unit_display()})"
+
+
+class IngredientPriceQuerySet(models.QuerySet):
+    def shared(self) -> "IngredientPriceQuerySet":
+        """Without the made-up prices of example camps, which only they use."""
+        return self.exclude(camp__chiro__is_example=True)
 
 
 class IngredientPrice(models.Model):
@@ -78,15 +91,19 @@ class IngredientPrice(models.Model):
         max_digits=8,
         decimal_places=4,
         validators=[MinValueValidator(Decimal("0"))],
-        help_text="EUR per kg/liter/piece",
+        verbose_name=_("price"),
+        help_text=_("EUR per kg/liter/piece"),
     )
     # A price stays per the unit it was entered in; after the ingredient's unit
     # changes it's history only, never used to calculate a cost.
     unit = models.CharField(max_length=10, choices=Unit.CHOICES, editable=False)
     source = models.CharField(
-        max_length=10, choices=PriceSource.CHOICES, default=PriceSource.MANUAL
+        max_length=10,
+        choices=PriceSource.CHOICES,
+        default=PriceSource.MANUAL,
+        verbose_name=_("source"),
     )
-    date = models.DateField(default=timezone.localdate)
+    date = models.DateField(default=timezone.localdate, verbose_name=_("date"))
     # Kept when a camp is deleted: the price is still useful for estimates.
     camp = models.ForeignKey(
         "camps.Camp",
@@ -103,6 +120,8 @@ class IngredientPrice(models.Model):
         related_name="+",
     )
 
+    objects = IngredientPriceQuerySet.as_manager()
+
     class Meta:
         ordering = ["-date", "-pk"]
 
@@ -116,15 +135,21 @@ class IngredientPrice(models.Model):
 
 
 class Recipe(models.Model):
-    name = models.CharField(max_length=200)
-    dish_type = models.CharField(max_length=20, choices=DishType.CHOICES)
+    name = models.CharField(max_length=200, verbose_name=_("name"))
+    dish_type = models.CharField(
+        max_length=20, choices=DishType.CHOICES, verbose_name=_("dish type")
+    )
     base_children = models.PositiveIntegerField(
-        default=0, help_text="Under-12 count the entered quantities feed"
+        default=0,
+        verbose_name=_("base children"),
+        help_text=_("Under-12 count the entered quantities feed"),
     )
     base_teens = models.PositiveIntegerField(
-        default=0, help_text="12+ count the entered quantities feed"
+        default=0,
+        verbose_name=_("base teens"),
+        help_text=_("12+ count the entered quantities feed"),
     )
-    notes = models.TextField(blank=True)
+    notes = models.TextField(blank=True, verbose_name=_("notes"))
 
     # Sharing (SPEC §9.1): everyone with an account can read and copy a recipe.
     # No author (imported recipes, deleted accounts) means staff manage it.
@@ -137,8 +162,8 @@ class Recipe(models.Model):
     )
     others_can_edit = models.BooleanField(
         default=False,
-        verbose_name="others can edit",
-        help_text="Let everyone with an account change this recipe",
+        verbose_name=_("others can edit"),
+        help_text=_("Let everyone with an account change this recipe"),
     )
 
     class Meta:
@@ -167,9 +192,11 @@ class Recipe(models.Model):
         return user.is_staff or self.author_id == user.pk
 
     def planned_by_other_chiros(self, user) -> bool:
-        """Finished camps don't count: nobody shops for them anymore."""
+        """Finished camps don't count: nobody shops for them anymore. Nor do example
+        camps, which only show what the app can do."""
         return (
             self.menuentry_set.exclude(camp__chiro__in=user.chiros.all())
+            .exclude(camp__chiro__is_example=True)
             .filter(camp__end_date__gte=timezone.localdate(), camp__is_archived=False)
             .exists()
         )
@@ -188,13 +215,16 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe, on_delete=models.CASCADE, related_name="ingredients"
     )
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.PROTECT)
+    ingredient = models.ForeignKey(
+        Ingredient, on_delete=models.PROTECT, verbose_name=_("ingredient")
+    )
     quantity = models.DecimalField(
         max_digits=10,
         decimal_places=3,
         validators=[MinValueValidator(Decimal("0.001"))],
+        verbose_name=_("quantity"),
     )
-    unit = models.CharField(max_length=10, choices=Unit.CHOICES)
+    unit = models.CharField(max_length=10, choices=Unit.CHOICES, verbose_name=_("unit"))
 
     class Meta:
         ordering = ["ingredient__name"]
@@ -213,9 +243,14 @@ class RecipeIngredient(models.Model):
         if self.ingredient_id and self.unit != self.ingredient.unit:
             raise ValidationError(
                 {
-                    "unit": f"{self.ingredient.name} is measured in "
-                    f"{self.ingredient.unit}; use that unit or change the "
-                    "ingredient."
+                    "unit": _(
+                        "%(ingredient)s is measured in %(unit)s; use that unit or "
+                        "change the ingredient."
+                    )
+                    % {
+                        "ingredient": self.ingredient.name,
+                        "unit": self.ingredient.get_unit_display(),
+                    }
                 }
             )
 
@@ -227,9 +262,11 @@ class RecipeIngredient(models.Model):
 
 class RecipeStep(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name="steps")
-    order = models.PositiveIntegerField()
-    instruction = models.TextField()
-    duration_minutes = models.PositiveIntegerField(null=True, blank=True)
+    order = models.PositiveIntegerField(verbose_name=_("order"))
+    instruction = models.TextField(verbose_name=_("instruction"))
+    duration_minutes = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name=_("duration (min)")
+    )
 
     class Meta:
         ordering = ["order"]

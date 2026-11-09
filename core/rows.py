@@ -3,6 +3,18 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.forms import BaseModelFormSet
+from django.utils.translation import gettext as _
+
+MAX_ROW_INDEX = 1000
+
+
+def row_index(total_forms: str | None) -> int:
+    """The next row's index: the TOTAL_FORMS the page sent, bounded."""
+    try:
+        index = int(total_forms or 0)
+    except ValueError:
+        return 0
+    return max(0, min(index, MAX_ROW_INDEX))
 
 
 class UniqueRowsFormSet(BaseModelFormSet):
@@ -20,7 +32,9 @@ class UniqueRowsFormSet(BaseModelFormSet):
                 continue
             value = form.cleaned_data.get(self.unique_field)
             if value in seen:
-                raise ValidationError(f"{value} is in the list twice.")
+                raise ValidationError(
+                    _("%(name)s is in the list twice.") % {"name": value}
+                )
             if value:
                 seen.add(value)
 

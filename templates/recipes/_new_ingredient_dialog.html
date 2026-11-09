@@ -1,0 +1,15 @@
+{% load static i18n %}{# Outside the page's own form: HTML forms can't be nested. `selects` is a CSS selector for the ingredient dropdowns that get the new ingredient. #}
+<dialog id="new-ingredient-dialog" data-selects="{{ selects }}" data-save-error="{% translate "Couldn't save the ingredient. Check that you're still logged in." %}">
+  <h2>{% translate "New ingredient" %}</h2>
+  <p class="muted">{% translate "Everyone shares these ingredients. The name and unit can't be changed afterwards." %}</p>
+  <form method="post" action="{% url 'ingredient_quick_add' %}" class="stacked-form">
+    {% csrf_token %}
+    <div class="warning" id="new-ingredient-errors" role="alert" hidden></div>
+    {% for field in new_ingredient_form %}<div class="form-row">{{ field.as_field_group }}</div>{% endfor %}
+    <div class="actions">
+      <button class="btn" type="submit">{% translate "Add ingredient" %}</button>
+      <button class="btn btn-outline" type="button" id="new-ingredient-cancel">{% translate "Cancel" %}</button>
+    </div>
+  </form>
+</dialog>
+<script src="{% static 'js/ingredient_dialog.js' %}" defer></script>

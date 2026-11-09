@@ -139,7 +139,7 @@ def _aggregate_days(
         sections.append(
             ShopSection(
                 shop=shop,
-                label=SHOP_LABELS[shop],
+                label=str(SHOP_LABELS[shop]),
                 items_by_category=dict(sorted(categories.items())),
             )
         )
@@ -151,7 +151,9 @@ def build_shopping_plan(camp: Camp) -> ShoppingPlan:
     trips = list(camp.shopping_trips.order_by("date"))
     camp_days = camp.days
     entries_by_date = _entries_by_date(camp)
-    pantry = {item.ingredient_id: item.quantity for item in camp.pantry_items.all()}
+    pantry = {
+        item.ingredient_id: item.quantity for item in camp.chiro.pantry_items.all()
+    }
 
     trip_lists: list[TripShoppingList] = []
     covered: set[datetime.date] = set()

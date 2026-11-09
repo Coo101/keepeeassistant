@@ -1,13 +1,14 @@
 {% extends "base.html" %}
-{% block title %}{% if ingredient %}{{ ingredient.name }}{% else %}New ingredient{% endif %} — Ingredients{% endblock %}
+{% load i18n %}
+{% block title %}{% if ingredient %}{{ ingredient.name }}{% else %}{% translate "New ingredient" %}{% endif %} — {% translate "Ingredients" %}{% endblock %}
 {% block content %}
-<p><a class="back-link" href="{% url 'ingredient_list' %}">← all ingredients</a></p>
+<p><a class="back-link" href="{% url 'ingredient_list' %}">← {% translate "all ingredients" %}</a></p>
 {% if ingredient %}
-<h1>Edit {{ ingredient.name }}</h1>
-<p class="page-meta">The name and unit are fixed because recipes rely on them. Ask an administrator if one is wrong.</p>
+<h1>{% blocktranslate with name=ingredient.name %}Edit {{ name }}{% endblocktranslate %}</h1>
+<p class="page-meta">{% translate "The name and unit are fixed because recipes rely on them. Ask an administrator if one is wrong." %}</p>
 {% else %}
-<h1>New ingredient</h1>
-<p class="page-meta">Check the list first: everyone shares these ingredients. The name and unit can't be changed afterwards.</p>
+<h1>{% translate "New ingredient" %}</h1>
+<p class="page-meta">{% translate "Check the list first: everyone shares these ingredients. The name and unit can't be changed afterwards." %}</p>
 {% endif %}
 
 <form method="post" class="stacked-form">
@@ -17,15 +18,15 @@
     {% for field in form %}<div class="form-row">{{ field.as_field_group }}</div>{% endfor %}
   </div>
   <div class="actions">
-    <button class="btn" type="submit">Save ingredient</button>
-    {% if ingredient %}<a class="btn btn-danger-outline" href="{% url 'ingredient_delete' ingredient.pk %}">Delete ingredient</a>{% endif %}
+    <button class="btn" type="submit">{% translate "Save ingredient" %}</button>
+    {% if ingredient %}<a class="btn btn-danger-outline" href="{% url 'ingredient_delete' ingredient.pk %}">{% translate "Delete ingredient" %}</a>{% endif %}
   </div>
 </form>
 
 {% if prices %}
-<h2>Price history</h2>
+<h2>{% translate "Price history" %}</h2>
 <table class="compact">
-  <thead><tr><th>Date</th><th>Price</th><th>Source</th></tr></thead>
+  <thead><tr><th>{% translate "Date" %}</th><th>{% translate "Price" %}</th><th>{% translate "Source" %}</th></tr></thead>
   <tbody>
     {% for price in prices %}
     <tr>

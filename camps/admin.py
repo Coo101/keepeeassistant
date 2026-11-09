@@ -1,10 +1,19 @@
 from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
 
-from camps.models import Camp, DayNote
+from camps.models import Camp, CampGroup, DayNote
+
+
+class CampGroupInline(admin.TabularInline):
+    model = CampGroup
+    extra = 1
 
 
 @admin.register(Camp)
 class CampAdmin(admin.ModelAdmin):
+    inlines = [CampGroupInline]
+    # Set from the groups (SPEC §9.3).
+    readonly_fields = ["num_children", "num_teens", "num_staff"]
     list_display = [
         "name",
         "chiro",
@@ -19,9 +28,9 @@ class CampAdmin(admin.ModelAdmin):
     search_fields = ["name"]
     fieldsets = (
         (None, {"fields": ("chiro", "name", "start_date", "end_date")}),
-        ("Headcount", {"fields": ("num_children", "num_teens", "num_staff")}),
+        (_("Headcount"), {"fields": ("num_children", "num_teens", "num_staff")}),
         (
-            "Meal times",
+            _("Meal times"),
             {
                 "fields": (
                     "breakfast_time",
@@ -32,7 +41,7 @@ class CampAdmin(admin.ModelAdmin):
             },
         ),
         (
-            "Runbook info (front pages)",
+            _("Runbook info (front pages)"),
             {
                 "fields": (
                     "cook_team",
@@ -46,7 +55,11 @@ class CampAdmin(admin.ModelAdmin):
         ),
     )
 
-    @admin.display(description="Demand portions")
+    def save_related(self, request, form, formsets, change) -> None:
+        super().save_related(request, form, formsets, change)
+        form.instance.update_headcount()
+
+    @admin.display(description=_("Demand portions"))
     def demand_portions(self, obj: Camp) -> str:
         return str(obj.demand_portions)
 

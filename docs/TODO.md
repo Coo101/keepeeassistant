@@ -1,7 +1,7 @@
 # TODO
 
 In the order to tackle them; each step builds on the ones before it. Last reviewed
-against the code on 2026-11-01.
+against the code on 2026-11-09.
 
 ## 2. Clean up the data
 
@@ -20,6 +20,8 @@ a wrong old one stays until you delete it on the ingredient's page in the admin.
 - [ ] Keep or clean `product_details`, which still describes the old automatic matches
 - [ ] Run `migrate`, rename the placeholder Chiro `Mijn Chiro`, and move camps and users
       to the right Chiros
+- [ ] Split the "nog te verdelen" headcount rows of Klein Kamp and Kamp 2025 into their
+      afdelingen on the camp form (2025: 71 people, 2026: 58)
 - [ ] Set an author on the existing recipes that should have one; recipes without an
       author can only be changed by staff
 
@@ -39,6 +41,43 @@ a wrong old one stays until you delete it on the ingredient's page in the admin.
 - [ ] Create or check the admin account:
       `docker exec -it keepeeassistant python manage.py createsuperuser`
 
+## 4. UI on Bootstrap and HTMX
+
+Per `docs/ui-guidelines.md`, `docs/DESIGN.md` and SPEC §12. Kitchen mode (step 5) builds on
+this.
+
+- [ ] Check the Chiro theme at phone width: the browser review could only run at laptop
+      width (Edge was maximised)
+- [ ] Move the pages over one area at a time, shrinking `app.css` as you go: camps and
+      planner, recipes and ingredients, shopping and budget, bills and report, kitchen
+      stock, accounts and public pages. Per page: the page header component, Bootstrap
+      `btn btn-primary` / `btn-outline-*` instead of the old `.btn`, `form-control` on
+      inputs (the recipe search box has no navy focus ring yet), an icon in the empty
+      state (the camp list has none). Also known: the home page skips from `h1` to `h3`,
+      and the camp list shows long dates ("3 augustus 2026") instead of `ma 14 jul`
+- [ ] Forms through crispy: single column on mobile, two from `lg`
+- [ ] HTMX where the guidelines name it (inline add/remove rows, live rescale, filters),
+      each also working as a plain link or form post
+- [ ] Check the PDFs still render: print templates keep their own CSS
+
+## 5. Kitchen mode
+
+SPEC §9.19. Needs step 4.
+
+- [ ] `IngredientCheck` model and migration, with tests for who can tick
+- [ ] Today page per camp: the day's meals at their times, with the planned recipes
+- [ ] Ingredient check per meal: scaled quantities per recipe, tick and untick through
+      HTMX (a form post without JS), count of what's still unticked
+- [ ] Cooking view: one step at a time, Previous/Next, timers with start/pause/reset and
+      a sound and visual alert, several at once
+- [ ] Links from the planner and the camp list to kitchen mode
+
+## Next
+
+- [ ] A Splitwise-like page to divide the personal costs: who paid which bill, who
+      owes whom for the personal lines, and settling up. The bill lines need a
+      person (or several) first; the financial report already lists them apart.
+
 ## Needs you or something outside this project
 
 - [ ] Mark ingredients with what they contain, for the diet and balance checks
@@ -53,6 +92,8 @@ a wrong old one stays until you delete it on the ingredient's page in the admin.
 
 ## Done on `dev`
 
+- [x] Headcount per afdeling on the camp form; the -12, 12+ and staff totals follow it
+
 - [x] Remove the Colruyt price import and scraper code, and the linked product IDs
       (stored prices are kept)
 - [x] `?portions=NaN` no longer crashes the recipe page
@@ -66,7 +107,7 @@ a wrong old one stays until you delete it on the ingredient's page in the admin.
       the page warns about them
 - [x] Cost per portion per day counts covered days only
 - [x] CI: test job starts without secrets; ruff, black and the tests run on every push
-- [x] README and spec updated
+- [x] README and spec updated (spec rewritten as v2.0 on 2026-11-05)
 - [x] Every page needs a login; camps are limited to the members of their Chiro
 - [x] Recipes shared between Chiros: author, read-only or editable, save a copy
 - [x] Recipe create and edit screens outside the admin
@@ -106,3 +147,21 @@ a wrong old one stays until you delete it on the ingredient's page in the admin.
 - [x] Pantry on hand comes off the shopping lists and budget
 - [x] Archive camps
 - [x] Requests to join, approved by staff
+- [x] The site in Dutch and English, with a language switch in the header
+- [x] Kitchen utilities: a stock per Chiro, needs per camp, what to buy on the shopping
+      page, and a bill category that can add to the stock
+- [x] Bill review fits the page with its header in view, and can add a missing
+      ingredient per line
+- [x] Financial report per camp: checks the bills first, cost per planned meal,
+      personal costs apart
+- [x] Read-only example camp for every account (`manage.py create_example_camp`)
+- [x] The pantry belongs to the Chiro, on its stock page
+- [x] Bootstrap 5.3, Bootstrap Icons and HTMX vendored in `static/vendor/`; `django-htmx`
+      and crispy-forms with `crispy-bootstrap5` installed
+- [x] `base.html` on Bootstrap: collapsing navbar, messages as alerts, the NL/EN switch,
+      the HTMX CSRF header; `templates/components/` (messages, empty state) and
+      `templates/partials/`
+- [x] Chiro theme (`docs/DESIGN.md` §8): tokens and Bootstrap overrides in `app.css`, the
+      old green tokens on navy and sand, red navbar with the egg icon and the current
+      page marked, focus rings (white on the navbar), `components/page_header.html` with
+      the red rule, used on the camp list

@@ -2,6 +2,8 @@
 
 from decimal import ROUND_HALF_UP, Decimal
 
+from django.utils.formats import number_format
+
 from core.constants import CHILD_PORTION_FACTOR, Unit
 
 
@@ -28,8 +30,9 @@ def round_quantity(quantity: Decimal, unit: str) -> Decimal:
 
 
 def format_quantity(quantity: Decimal) -> str:
-    """Human display without trailing zeros (2.500 -> 2.5, 130.000 -> 130)."""
+    """Human display without trailing zeros (2.500 -> 2.5, 130.000 -> 130), with
+    the decimal separator of the active language (2,5 in Dutch)."""
     quantity = quantity.normalize()
     if quantity.as_tuple().exponent > 0:
         quantity = quantity.quantize(Decimal("1"))
-    return str(quantity)
+    return number_format(quantity)

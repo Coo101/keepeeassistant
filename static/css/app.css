@@ -1,66 +1,119 @@
 /* Camp Meal Planner — basic app styling */
 
 :root {
-  --accent: #2c6e49;
-  --accent-dark: #1e4d33;
-  --accent-soft: #e6f0ea;
-  --bg: #f6f7f4;
+  --chiro-red: #E1143C;
+  --chiro-red-dark: #BF1133;
+  --chiro-navy: #00124D;
+  --chiro-navy-hover: #263668;
+  --chiro-navy-soft: #EBECF1;
+  --chiro-sand: #E4D096;
+  --chiro-sand-soft: #F7F1E0;
+  --chiro-sand-faint: #FBF8EF;
+
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-heading: "Myriad Pro Condensed", "Myriad Pro", "Arial Narrow", "Roboto Condensed",
+    "sans-serif-condensed", "Helvetica Neue", Arial, sans-serif;
+
+  --bs-primary: var(--chiro-navy);
+  --bs-primary-rgb: 0, 18, 77;
+  --bs-primary-text-emphasis: var(--chiro-navy);
+  --bs-primary-bg-subtle: var(--chiro-navy-soft);
+  --bs-primary-border-subtle: #B3B8CA;
+  --bs-link-color: var(--chiro-navy);
+  --bs-link-color-rgb: 0, 18, 77;
+  --bs-link-hover-color: var(--chiro-navy-hover);
+  --bs-link-hover-color-rgb: 38, 54, 104;
+  --bs-focus-ring-color: rgba(0, 18, 77, 0.25);
+  --bs-body-bg: var(--chiro-sand-faint);
+
+  /* Old tokens used by the hand-written pages, now pointing at the Chiro palette. */
+  --accent: var(--chiro-navy);
+  --accent-dark: var(--chiro-navy-hover);
+  --accent-soft: var(--chiro-sand-soft);
+  --bg: var(--chiro-sand-faint);
   --surface: #ffffff;
-  --text: #1f2937;
-  --muted: #6b7280;
+  --text: #212529;
+  /* Darker than Bootstrap's #6c757d, which drops under 4.5:1 on the sand tints. */
+  --muted: #5c636a;
+  --bs-secondary-color: #5c636a;
   --border: #e5e7eb;
   --warn-bg: #fef3c7;
   --warn-border: #f59e0b;
 }
 
+.btn-primary {
+  --bs-btn-bg: var(--chiro-navy);
+  --bs-btn-border-color: var(--chiro-navy);
+  --bs-btn-hover-bg: var(--chiro-navy-hover);
+  --bs-btn-hover-border-color: var(--chiro-navy-hover);
+  --bs-btn-active-bg: var(--chiro-navy-hover);
+  --bs-btn-active-border-color: var(--chiro-navy-hover);
+  --bs-btn-disabled-bg: var(--chiro-navy);
+  --bs-btn-disabled-border-color: var(--chiro-navy);
+  --bs-btn-focus-shadow-rgb: 0, 18, 77;
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--chiro-navy);
+  --bs-btn-border-color: var(--chiro-navy);
+  --bs-btn-hover-color: var(--chiro-navy);
+  --bs-btn-hover-bg: var(--chiro-navy-soft);
+  --bs-btn-hover-border-color: var(--chiro-navy);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--chiro-navy);
+  --bs-btn-active-border-color: var(--chiro-navy);
+  --bs-btn-disabled-color: var(--chiro-navy);
+  --bs-btn-disabled-border-color: var(--chiro-navy);
+  --bs-btn-focus-shadow-rgb: 0, 18, 77;
+}
+
+.form-control:focus,
+.form-select:focus,
+.form-check-input:focus {
+  border-color: var(--chiro-navy);
+  box-shadow: 0 0 0 0.25rem rgba(0, 18, 77, 0.25);
+}
+.form-check-input:checked {
+  background-color: var(--chiro-navy);
+  border-color: var(--chiro-navy);
+}
+
+.navbar-chiro { background-color: var(--chiro-red); }
+.page-rule { width: 3rem; height: 3px; background: var(--chiro-red); border: 0; opacity: 1; }
+
 * { box-sizing: border-box; }
 
 body {
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font-body);
   margin: 0;
   background: var(--bg);
   color: var(--text);
   line-height: 1.5;
 }
 
-/* ---------- Header ---------- */
+/* ---------- Navbar (base.html) ---------- */
 
-header {
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
-  color: white;
-  padding: 0.75rem 1.5rem;
+/* Bootstrap's dark navbar dims links to 55% white: too little contrast on primary. */
+.navbar[data-bs-theme="dark"] {
+  --bs-navbar-color: #fff;
+  --bs-navbar-hover-color: #fff;
+  --bs-navbar-active-color: #fff;
+  /* The language, account and logout links sit outside .navbar-nav. */
+  --bs-nav-link-color: #fff;
+  --bs-nav-link-hover-color: #fff;
+}
+.navbar .nav-link:hover { text-decoration: underline; }
+.navbar .nav-link[aria-current="page"] { background: var(--chiro-red-dark); border-radius: 0.5rem; }
+.navbar-brand { font-family: var(--font-heading); font-weight: 700; font-stretch: condensed; }
+
+/* Tap targets of at least 44px (docs/ui-guidelines.md). */
+.navbar .nav-link,
+.navbar-toggler,
+.navbar-brand {
+  min-height: 44px;
   display: flex;
-  gap: 1.5rem;
-  align-items: baseline;
-  box-shadow: 0 2px 6px rgb(0 0 0 / 0.15);
+  align-items: center;
 }
-
-header a { color: white; text-decoration: none; opacity: 0.9; }
-header a:hover { opacity: 1; text-decoration: underline; }
-header .brand { font-weight: 700; font-size: 1.15rem; letter-spacing: 0.01em; opacity: 1; }
-
-main { padding: 1.75rem 1.5rem 3rem; max-width: 1150px; margin: 0 auto; }
-
-.header-auth {
-  margin-left: auto;
-  display: flex;
-  align-items: baseline;
-  gap: 0.75rem;
-}
-.header-auth form { display: inline; }
-.muted-light { color: rgb(255 255 255 / 0.75); font-size: 0.9rem; }
-
-.linklike {
-  background: none;
-  border: none;
-  padding: 0;
-  font: inherit;
-  color: white;
-  opacity: 0.9;
-  cursor: pointer;
-  text-decoration: none;
-}
-.linklike:hover { opacity: 1; text-decoration: underline; }
 
 .login-card { max-width: 22rem; }
 .login-card input[type="text"],
@@ -74,9 +127,16 @@ main { padding: 1.75rem 1.5rem 3rem; max-width: 1150px; margin: 0 auto; }
 
 /* ---------- Typography ---------- */
 
-h1 { font-size: 1.6rem; margin: 0 0 0.25rem; letter-spacing: -0.01em; }
-h2 { font-size: 1.2rem; margin: 1.75rem 0 0.5rem; }
-h3 { font-size: 1rem; margin: 0 0 0.35rem; color: var(--accent-dark); }
+h1, h2, h3 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-stretch: condensed;
+  color: var(--chiro-navy);
+}
+h1 { font-size: 1.75rem; margin: 0 0 0.25rem; letter-spacing: -0.01em; }
+@media (min-width: 992px) { h1 { font-size: 2rem; } }
+h2 { font-size: 1.375rem; margin: 1.75rem 0 0.5rem; }
+h3 { font-size: 1.125rem; margin: 0 0 0.35rem; }
 
 a { color: var(--accent); }
 a:hover { color: var(--accent-dark); }
@@ -115,7 +175,7 @@ thead th {
   font-size: 0.9rem;
 }
 
-tbody tr:hover { background: #fafbf9; }
+tbody tr:hover { background: var(--chiro-sand-faint); }
 
 table.compact { max-width: 480px; }
 table.compact td:last-child { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -140,10 +200,19 @@ table.compact td:last-child { text-align: right; white-space: nowrap; font-varia
 .btn-outline:hover { background: var(--accent-soft); color: var(--accent-dark); }
 
 .btn-small { padding: 0.15rem 0.6rem; font-size: 0.85rem; }
-.btn-danger { background: #b91c1c; border-color: #b91c1c; }
-.btn-danger:hover { background: #991b1b; }
+.btn-danger { background: var(--surface); color: #b91c1c; border-color: #b91c1c; }
+.btn-danger:hover { background: #fee2e2; color: #991b1b; border-color: #991b1b; }
 .btn-danger-outline { background: var(--surface); color: #b91c1c; border-color: #b91c1c; }
 .btn-danger-outline:hover { background: #fee2e2; color: #991b1b; }
+
+/* Focus rings (DESIGN §6): navy, white on the red navbar. */
+.btn:focus-visible { outline: 0; box-shadow: 0 0 0 0.25rem rgba(0, 18, 77, 0.25); }
+.btn-danger:focus-visible,
+.btn-danger-outline:focus-visible { box-shadow: 0 0 0 0.25rem rgba(185, 28, 28, 0.25); }
+main a:focus-visible { outline: 2px solid var(--chiro-navy); outline-offset: 2px; }
+.navbar .nav-link:focus-visible,
+.navbar-brand:focus-visible,
+.navbar-toggler:focus { outline: 0; box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.6); }
 
 .outside-list { list-style: none; padding: 0; margin: 0.5rem 0; }
 .outside-list li { display: flex; align-items: center; gap: 0.6rem; margin: 0.25rem 0; }
@@ -179,22 +248,22 @@ dialog h2 { margin-top: 0; }
   font-size: 0.88rem;
   text-decoration: none;
 }
-.slot-chip:hover { background: #d3e5da; color: var(--accent-dark); }
+.slot-chip:hover { background: var(--chiro-sand); color: var(--accent-dark); }
 
 .slot-chip.empty-slot {
   background: transparent;
   border: 1px dashed #c3c8c0;
-  color: #9ca3af;
+  color: var(--muted);
   font-style: italic;
 }
 .slot-chip.empty-slot:hover { border-color: var(--accent); color: var(--accent); }
 
 .slot-chip.missing {
-  border-color: #dc2626;
-  color: #dc2626;
+  border-color: #b91c1c;
+  color: #b91c1c;
   background: #fef2f2;
 }
-.slot-chip.missing:hover { border-color: #b91c1c; color: #b91c1c; }
+.slot-chip.missing:hover { border-color: #991b1b; color: #991b1b; }
 
 /* ---------- Forms ---------- */
 
@@ -220,7 +289,7 @@ select:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent
 .form-row { margin-bottom: 0.9rem; }
 .form-row:last-child { margin-bottom: 0; }
 .form-row label { display: block; font-weight: 600; margin-bottom: 0.2rem; }
-.form-row .helptext { color: var(--muted, #666); font-size: 0.85rem; margin-bottom: 0.2rem; }
+.form-row .helptext { color: var(--muted); font-size: 0.85rem; margin-bottom: 0.2rem; }
 
 ul.checkboxes { list-style: none; padding: 0; margin: 0.5rem 0 1rem; display: flex; flex-wrap: wrap; gap: 0.4rem; }
 ul.checkboxes li { margin: 0; }
@@ -256,7 +325,7 @@ ul.checkboxes label:has(input:checked) {
 
 .category-block { margin-bottom: 1.1rem; }
 
-.empty-slot { color: #9ca3af; font-style: italic; }
+.empty-slot { color: var(--muted); font-style: italic; }
 
 .badge {
   display: inline-block;
@@ -462,6 +531,38 @@ ul.recipe-grid {
 
 /* ---------- Bill review: a wide table, with the matching columns first ---------- */
 
-main:has(.bill-review) { max-width: 72rem; }
-.bill-review input[type="text"], .bill-review select { min-width: 10rem; }
-.bill-review input[type="number"] { min-width: 0; width: 5.5rem; }
+main:has(.bill-review) { max-width: none; }
+.bill-lines { table-layout: fixed; }
+.bill-lines th, .bill-lines td { padding: 0.3rem 0.4rem; }
+/* The header stays in view while scrolling through a long bill. */
+.bill-lines thead th { position: sticky; top: 0; z-index: 1; }
+.bill-lines .col-description { width: 20%; }
+.bill-lines .col-category { width: 9.5rem; }
+.bill-lines .col-ingredient { width: 20%; }
+.bill-lines .col-number { width: 6.5rem; }
+.bill-lines .col-check { width: 4.5rem; text-align: center; }
+.bill-lines .col-stock { width: 11%; }
+.bill-lines input[type="text"], .bill-lines input[type="number"], .bill-lines select {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.with-button { display: flex; gap: 0.25rem; align-items: center; }
+.with-button select { flex: 1; }
+/* Narrow screens scroll the table sideways; the header can't stick then. */
+@media (max-width: 60rem) {
+  .bill-lines-box { overflow-x: auto; }
+  .bill-lines { min-width: 60rem; }
+  .bill-lines thead th { position: static; }
+}
+
+/* ---------- Financial report ---------- */
+
+.report table.report-summary { width: auto; min-width: 22rem; }
+.report-summary td:last-child, .report-meals td:nth-last-child(-n+2) {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.report .warning p { margin: 0.3rem 0; }
+.ok { color: var(--accent-dark); font-weight: 600; }

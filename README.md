@@ -57,15 +57,24 @@ including those for running behind a proxy.
 - **Recipes and ingredients**, with dish types, units (piece/kg/liter) and ordered steps.
 - **Camps**: dates, headcount (children x0.7 / teens / staff), meal times, archive.
 - **Menu planner**: day x meal grid, with warnings for diets, allergies and balance.
-- **Shopping lists**: one per trip and shop, minus what's in the camp's pantry. Uncovered
+- **Shopping lists**: one per trip and shop, minus what's in the Chiro's pantry. Uncovered
   days are flagged.
 - **Budget**: uses a camp's own price if it has one, otherwise the latest price.
 - **Bills**: upload PDFs and photos, review the lines, set camp prices and compare what you
   paid with the estimate. Text PDFs are read in Python. Scans and photos wait for an Ollama
   vision model, through `manage.py read_bills --loop` (the `bill-reader` service in
   `docker-compose.yml`).
+- **Kitchen utilities and pantry**: a stock per Chiro (pots, fire pits, and food
+  already there) and what each camp needs; what's missing goes on the shopping lists,
+  and bought utilities on a bill can be added to the stock.
+- **Financial report**: per camp, the cost of every planned meal from the bills, after
+  checking that every planned ingredient is on one. Personal costs are listed apart.
+- **Example camp**: `manage.py create_example_camp` makes a read-only camp from the
+  existing recipes, which every account can look at.
 - **PDF export**: camp overview, draaiboek, recipes and shopping lists through WeasyPrint.
 - **Public site**: home page, news (written in the admin) and docs (`pages/content/`).
+- **Dutch and English**: Dutch by default, English when the browser asks for it. The
+  NL/EN switch in the header remembers the choice in a cookie.
 
 See [docs/SPEC.md](docs/SPEC.md) for the details and [docs/TODO.md](docs/TODO.md) for what's open.
 
@@ -134,4 +143,19 @@ The open work is tracked in [docs/TODO.md](docs/TODO.md).
 .\.venv\Scripts\python.exe -m pytest       # tests (scaling + shopping logic)
 .\.venv\Scripts\python.exe -m ruff check . # lint
 .\.venv\Scripts\python.exe -m black .      # format
+```
+
+### Translations
+
+Write text in English and mark it: `{% translate %}` or `{% blocktranslate %}` in
+templates, `gettext_lazy` in models and forms, `gettext` in views. The Dutch is in
+`locale/nl/LC_MESSAGES/django.po`; the compiled `django.mo` is committed, so the image
+and the dev server need no gettext. A help page gets its Dutch version next to it, as
+`pages/content/<slug>.nl.md`.
+
+Windows has no gettext, so update the catalog in a container. This adds new strings to
+the `.po` file (fill in their `msgstr`) and compiles it:
+
+```bash
+docker run --rm -v "$PWD:/app" -w /app -e DJANGO_DEBUG=1 python:3.13-slim sh -c "apt-get update -qq && apt-get install -y -qq gettext && pip install -q -r requirements.txt && python manage.py makemessages -l nl -e html,txt,py --add-location=file --ignore=.venv --ignore=staticfiles --ignore=media --ignore=tests && msgfmt --check -o locale/nl/LC_MESSAGES/django.mo locale/nl/LC_MESSAGES/django.po"
 ```

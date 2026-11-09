@@ -5,13 +5,14 @@ import logging
 
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from camps.access import get_camp
 from camps.models import Camp
 from core.pdf import render_pdf
-from recipes.models import Ingredient
+from kitchen.services import utensils_to_buy
 from shopping.budget import build_budget
-from shopping.forms import PantryFormSet
 from shopping.models import ShoppingTrip
 from shopping.services import build_shopping_plan
 
@@ -28,7 +29,7 @@ def _candidate_dates(camp: Camp) -> list[datetime.date]:
 
 
 def shopping(request: HttpRequest, camp_id: int) -> HttpResponse:
-    camp = get_object_or_404(Camp.objects.for_user(request.user), pk=camp_id)
+    camp = get_camp(request, camp_id)
     candidates = _candidate_dates(camp)
 
     if request.method == "POST":
@@ -58,6 +59,7 @@ def shopping(request: HttpRequest, camp_id: int) -> HttpResponse:
         {
             "camp": camp,
             "plan": plan,
+            "utensils_to_buy": utensils_to_buy(camp),
             "outside_entries": camp.entries_outside_dates(),
             "outside_trips": sorted(
                 (t for t in trips if t.date not in candidates),
@@ -80,7 +82,7 @@ def remove_outside_trip(
     request: HttpRequest, camp_id: int, trip_id: int
 ) -> HttpResponse:
     """Days on the form are simply unticked; this is for the ones that aren't."""
-    camp = get_object_or_404(Camp.objects.for_user(request.user), pk=camp_id)
+    camp = get_camp(request, camp_id)
     trips = camp.shopping_trips.exclude(date__in=_candidate_dates(camp))
     trip = get_object_or_404(trips, pk=trip_id)
     logger.info("%s removed shopping day %s of %s", request.user, trip.date, camp)
@@ -88,37 +90,9 @@ def remove_outside_trip(
     return redirect("shopping", camp_id=camp.pk)
 
 
-def pantry(request: HttpRequest, camp_id: int) -> HttpResponse:
-    camp = get_object_or_404(Camp.objects.for_user(request.user), pk=camp_id)
-    data = request.POST if request.method == "POST" else None
-    formset = PantryFormSet(
-        data, queryset=camp.pantry_items.select_related("ingredient")
-    )
-    # One query for the dropdown, instead of one per row.
-    choices = [("", "---------")] + [
-        (ingredient.pk, str(ingredient)) for ingredient in Ingredient.objects.all()
-    ]
-    for form in [*formset.forms, formset.empty_form]:
-        form.fields["ingredient"].choices = choices
-    if data is not None and formset.is_valid():
-        formset.save_rows(camp=camp)
-        return redirect("shopping", camp_id=camp.pk)
-    return render(
-        request,
-        "camps/rows_page.html",
-        {
-            "camp": camp,
-            "formset": formset,
-            "title": "Pantry",
-            "intro": "What you already have, in the ingredient's unit. It's taken "
-            "off the shopping lists and the budget, starting with the first trip.",
-        },
-    )
-
-
 def budget(request: HttpRequest, camp_id: int) -> HttpResponse:
     """Estimated cost per shopping trip based on ingredient prices."""
-    camp = get_object_or_404(Camp.objects.for_user(request.user), pk=camp_id)
+    camp = get_camp(request, camp_id)
     return render(
         request,
         "shopping/budget.html",
@@ -127,11 +101,11 @@ def budget(request: HttpRequest, camp_id: int) -> HttpResponse:
 
 
 def shopping_pdf(request: HttpRequest, camp_id: int) -> HttpResponse:
-    camp = get_object_or_404(Camp.objects.for_user(request.user), pk=camp_id)
+    camp = get_camp(request, camp_id)
     plan = build_shopping_plan(camp)
     return render_pdf(
         request,
         "shopping/shopping_print.html",
-        {"camp": camp, "plan": plan},
-        filename=f"{camp.name}-shopping-lists.pdf",
+        {"camp": camp, "plan": plan, "utensils_to_buy": utensils_to_buy(camp)},
+        filename=_("%(camp)s-shopping-lists.pdf") % {"camp": camp.name},
     )

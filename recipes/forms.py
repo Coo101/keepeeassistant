@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.forms import inlineformset_factory
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from core.constants import FoodTag
 from recipes.models import Ingredient, Recipe, RecipeIngredient, RecipeStep
@@ -14,7 +15,7 @@ def _validate_name_is_free(name: str, recipe_pk: int | None = None) -> None:
     # The library is shared, so two recipes with one name can't be told apart
     # in the planner's dropdowns.
     if Recipe.objects.filter(name__iexact=name).exclude(pk=recipe_pk).exists():
-        raise ValidationError("A recipe with this name already exists.")
+        raise ValidationError(_("A recipe with this name already exists."))
 
 
 class RecipeForm(forms.ModelForm):
@@ -41,7 +42,7 @@ class RecipeForm(forms.ModelForm):
 
 
 class CopyRecipeForm(forms.Form):
-    name = forms.CharField(max_length=200, label="New name")
+    name = forms.CharField(max_length=200, label=_("New name"))
 
     def clean_name(self) -> str:
         name = self.cleaned_data["name"]
@@ -58,14 +59,15 @@ class IngredientForm(forms.ModelForm):
         max_digits=8,
         decimal_places=4,
         min_value=0,
-        help_text="EUR per kg/liter/piece",
+        label=_("Price"),
+        help_text=_("EUR per kg/liter/piece"),
     )
     tags = forms.MultipleChoiceField(
         required=False,
         choices=FoodTag.CHOICES,
         widget=forms.CheckboxSelectMultiple,
-        label="Contains",
-        help_text="For the diet and balance checks in the planner",
+        label=_("Contains"),
+        help_text=_("For the diet and balance checks in the planner"),
     )
 
     class Meta:
@@ -97,8 +99,8 @@ class IngredientForm(forms.ModelForm):
         if self.instance.pk:
             self.fields["name"].disabled = True
             self.fields["unit"].disabled = True
-            self.fields["price"].label = "New price"
-            self.fields["price"].help_text = (
+            self.fields["price"].label = _("New price")
+            self.fields["price"].help_text = _(
                 "EUR per kg/liter/piece. Added to the price history; "
                 "leave empty to keep the current price."
             )
@@ -107,7 +109,7 @@ class IngredientForm(forms.ModelForm):
         name = self.cleaned_data["name"]
         duplicates = Ingredient.objects.filter(name__iexact=name)
         if duplicates.exclude(pk=self.instance.pk).exists():
-            raise ValidationError("An ingredient with this name already exists.")
+            raise ValidationError(_("An ingredient with this name already exists."))
         return name
 
     @transaction.atomic

@@ -1,11 +1,13 @@
-// Add an ingredient from the recipe form without losing what was typed.
+// Add an ingredient from a form (recipe, bill review) without losing what was typed.
 (() => {
   const dialog = document.getElementById("new-ingredient-dialog");
   const form = dialog.querySelector("form");
   const errors = document.getElementById("new-ingredient-errors");
+  const nameInput = form.querySelector('input[name$="-name"]');
+  // The select the dialog was opened for, if any.
+  let target = null;
 
-  const ingredientSelects = () =>
-    document.querySelectorAll('select[name^="ingredients-"][name$="-ingredient"]');
+  const ingredientSelects = () => document.querySelectorAll(dialog.dataset.selects);
 
   const showErrors = (messages) => {
     errors.textContent = messages.join(" ");
@@ -21,21 +23,33 @@
     select.add(option, next || null);
   };
 
-  const useInFirstEmptyRow = (ingredient) => {
-    const select = Array.from(ingredientSelects()).find((s) => !s.value);
+  const use = (select, ingredient) => {
     if (!select) return;
     select.value = ingredient.id;
     const unitName = select.name.replace(/-ingredient$/, "-unit");
-    document.querySelector(`select[name="${unitName}"]`).value = ingredient.unit;
+    const unit = document.querySelector(`select[name="${unitName}"]`);
+    if (unit) unit.value = ingredient.unit;
   };
 
-  document.getElementById("new-ingredient-open").addEventListener("click", () => {
-    errors.hidden = true;
-    dialog.showModal();
+  document.querySelectorAll("[data-new-ingredient]").forEach((opener) => {
+    opener.addEventListener("click", () => {
+      errors.hidden = true;
+      target = opener.dataset.select
+        ? document.querySelector(`select[name="${opener.dataset.select}"]`)
+        : null;
+      const source = opener.dataset.nameFrom
+        ? document.querySelector(`[name="${opener.dataset.nameFrom}"]`)
+        : null;
+      if (source && nameInput && !nameInput.value) nameInput.value = source.value;
+      dialog.showModal();
+    });
   });
   document
     .getElementById("new-ingredient-cancel")
-    .addEventListener("click", () => dialog.close());
+    .addEventListener("click", () => {
+      form.reset();
+      dialog.close();
+    });
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -51,7 +65,7 @@
       });
       body = await response.json();
     } catch {
-      showErrors(["Couldn't save the ingredient. Check that you're still logged in."]);
+      showErrors([dialog.dataset.saveError]);
       return;
     }
     if (!response.ok) {
@@ -63,7 +77,7 @@
       return;
     }
     ingredientSelects().forEach((select) => addOption(select, body));
-    useInFirstEmptyRow(body);
+    use(target || Array.from(ingredientSelects()).find((s) => !s.value), body);
     form.reset();
     dialog.close();
   });

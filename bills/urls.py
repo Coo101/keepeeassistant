@@ -4,6 +4,8 @@ from bills import views
 
 urlpatterns = [
     path("camps/<int:camp_id>/bills/", views.bill_list, name="bill_list"),
+    path("camps/<int:camp_id>/report/", views.report, name="financial_report"),
+    path("camps/<int:camp_id>/report.pdf", views.report_pdf, name="report_pdf"),
     path(
         "camps/<int:camp_id>/bills/<int:bill_id>/",
         views.bill_detail,

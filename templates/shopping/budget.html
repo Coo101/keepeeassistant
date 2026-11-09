@@ -1,14 +1,16 @@
 {% extends "base.html" %}
-{% block title %}{{ camp.name }} — Budget{% endblock %}
+{% load i18n %}
+{% block title %}{{ camp.name }} — {% translate "Budget" %}{% endblock %}
 {% block content %}
-<p><a class="back-link" href="{% url 'shopping' camp.pk %}">← shopping lists</a></p>
-<h1>{{ camp.name }} — budget</h1>
+<p><a class="back-link" href="{% url 'shopping' camp.pk %}">← {% translate "shopping lists" %}</a></p>
+<h1>{{ camp.name }} — {% translate "budget" %}</h1>
+{% include "camps/_example_note.html" %}
 <p class="page-meta">
-  Estimated cost:
+  {% translate "Estimated cost:" %}
   <strong>€ {{ budget.total|floatformat:2 }}</strong>
-  {% if budget.cost_per_portion_day %} · € {{ budget.cost_per_portion_day|floatformat:2 }} per portion per day{% endif %}
-  · <a href="{% url 'bill_list' camp.pk %}">compare with the bills</a>
-  · prices are on the <a href="{% url 'ingredient_list' %}">ingredients page</a>
+  {% if budget.cost_per_portion_day %} · {% blocktranslate with cost=budget.cost_per_portion_day|floatformat:2 %}€ {{ cost }} per portion per day{% endblocktranslate %}{% endif %}
+  · <a href="{% url 'bill_list' camp.pk %}">{% translate "compare with the bills" %}</a>
+  · {% url 'ingredient_list' as ingredients_url %}{% blocktranslate %}prices are on the <a href="{{ ingredients_url }}">ingredients page</a>{% endblocktranslate %}
 </p>
 
 {% if budget.shop_totals %}
@@ -17,53 +19,54 @@
   <div class="shop-total{% if st.missing_count %} shop-total-partial{% endif %}">
     <span class="shop-total-label">{{ st.label }}</span>
     <span class="shop-total-value">€ {{ st.total|floatformat:2 }}</span>
-    {% if st.missing_count %}<span class="shop-total-note">+ {{ st.missing_count }} without price</span>{% endif %}
+    {% if st.missing_count %}<span class="shop-total-note">{% blocktranslate with count=st.missing_count %}+ {{ count }} without price{% endblocktranslate %}</span>{% endif %}
   </div>
   {% endfor %}
 </div>
 {% endif %}
 
+{% url 'ingredient_list' as ingredients_url %}
 {% if budget.missing %}
 <div class="warning">
-  ⚠️ <strong>No price yet for:</strong>
+  ⚠️ <strong>{% translate "No price yet for:" %}</strong>
   {% for ingredient in budget.missing %}{{ ingredient.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
-  — these are not counted. Set prices on the <a href="{% url 'ingredient_list' %}">ingredients page</a>.
+  — {% blocktranslate %}these are not counted. Set prices on the <a href="{{ ingredients_url }}">ingredients page</a>.{% endblocktranslate %}
 </div>
 {% endif %}
 
 {% if budget.unit_conflicts %}
 <div class="warning">
-  ⚠️ <strong>Recipe and price use different units:</strong>
+  ⚠️ <strong>{% translate "Recipe and price use different units:" %}</strong>
   {% for ingredient in budget.unit_conflicts %}{{ ingredient.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
-  — these are not counted. Make the units match in the admin.
+  — {% translate "these are not counted. Make the units match in the admin." %}
 </div>
 {% endif %}
 
 {% if budget.plan.uncovered_days %}
 <div class="warning">
-  ⚠️ Uncovered days are not in this budget:
+  ⚠️ {% translate "Uncovered days are not in this budget:" %}
   {% for d in budget.plan.uncovered_days %}{{ d|date:"D d M" }}{% if not forloop.last %}, {% endif %}{% endfor %}
 </div>
 {% endif %}
 
 {% for tb in budget.trips %}
-<h2>Shop on {{ tb.trip_list.trip.date|date:"l d M" }} <span class="badge">€ {{ tb.total|floatformat:2 }}</span></h2>
-<p class="muted">Covers {{ tb.trip_list.cover_start|date:"D d M" }} – {{ tb.trip_list.cover_end|date:"D d M" }}</p>
+<h2>{% blocktranslate with date=tb.trip_list.trip.date|date:"l d M" %}Shop on {{ date }}{% endblocktranslate %} <span class="badge">€ {{ tb.total|floatformat:2 }}</span></h2>
+<p class="muted">{% blocktranslate with start=tb.trip_list.cover_start|date:"D d M" end=tb.trip_list.cover_end|date:"D d M" %}Covers {{ start }} – {{ end }}{% endblocktranslate %}</p>
 {% for shop in tb.shops %}
-<h3 class="shop-title">{{ shop.label }} <span class="badge">€ {{ shop.total|floatformat:2 }}</span>{% if shop.missing_count %} <span class="muted">+ {{ shop.missing_count }} without price</span>{% endif %}</h3>
+<h3 class="shop-title">{{ shop.label }} <span class="badge">€ {{ shop.total|floatformat:2 }}</span>{% if shop.missing_count %} <span class="muted">{% blocktranslate with count=shop.missing_count %}+ {{ count }} without price{% endblocktranslate %}</span>{% endif %}</h3>
 {% for category, lines in shop.lines_by_category.items %}
 <div class="category-block">
   <h4>{{ category }}</h4>
   <table class="budget-table">
-    <thead><tr><th>Ingredient</th><th>Qty</th><th>Unit price</th><th>Cost</th></tr></thead>
+    <thead><tr><th>{% translate "Ingredient" %}</th><th>{% translate "Qty" %}</th><th>{% translate "Unit price" %}</th><th>{% translate "Cost" %}</th></tr></thead>
     <tbody>
       {% for line in lines %}
       <tr{% if line.cost is None %} class="row-missing"{% endif %}>
         <td>{{ line.ingredient.name }}</td>
-        <td>{{ line.quantity }} {{ line.unit }}</td>
-        <td>{% if line.unit_price is not None %}€ {{ line.unit_price|floatformat:2 }}/{{ line.unit }}
-          <span class="muted">{% if line.price.is_camp_price %}this camp{% else %}latest{% endif %}, {{ line.price.date|date:"d M Y" }}</span>{% else %}—{% endif %}</td>
-        <td>{% if line.cost is not None %}€ {{ line.cost|floatformat:2 }}{% else %}<span class="muted">no price</span>{% endif %}</td>
+        <td>{{ line.quantity }} {% translate line.unit %}</td>
+        <td>{% if line.unit_price is not None %}€ {{ line.unit_price|floatformat:2 }}/{% translate line.unit %}
+          <span class="muted">{% if line.price.is_camp_price %}{% translate "this camp" %}{% else %}{% translate "latest" %}{% endif %}, {{ line.price.date|date:"d M Y" }}</span>{% else %}—{% endif %}</td>
+        <td>{% if line.cost is not None %}€ {{ line.cost|floatformat:2 }}{% else %}<span class="muted">{% translate "no price" %}</span>{% endif %}</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -72,7 +75,8 @@
 {% endfor %}
 {% endfor %}
 {% empty %}
-<p class="empty-slot">No shopping trips selected yet — pick shopping days on the
-<a href="{% url 'shopping' camp.pk %}">shopping page</a> first.</p>
+<p class="empty-slot">{% url 'shopping' camp.pk as shopping_url %}{% blocktranslate trimmed %}
+  No shopping trips selected yet — pick shopping days on the <a href="{{ shopping_url }}">shopping page</a> first.
+{% endblocktranslate %}</p>
 {% endfor %}
 {% endblock %}

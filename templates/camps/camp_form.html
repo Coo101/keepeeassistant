@@ -1,12 +1,14 @@
 {% extends "base.html" %}
-{% block title %}{% if camp.pk %}{{ camp.name }}{% else %}New camp{% endif %} — Camps{% endblock %}
+{% load i18n static %}
+{% block title %}{% if camp.pk %}{{ camp.name }}{% else %}{% translate "New camp" %}{% endif %} — {% translate "Camps" %}{% endblock %}
 {% block content %}
 {% if camp.pk %}
-<p><a class="back-link" href="{% url 'planner' camp.pk %}">← back to menu plan</a></p>
-<h1>Edit {{ camp.name }}</h1>
+<p><a class="back-link" href="{% url 'planner' camp.pk %}">← {% translate "back to menu plan" %}</a></p>
+<h1>{% blocktranslate with name=camp.name %}Edit {{ name }}{% endblocktranslate %}</h1>
+{% include "camps/_example_note.html" %}
 {% else %}
-<p><a class="back-link" href="{% url 'camp_list' %}">← all camps</a></p>
-<h1>New camp</h1>
+<p><a class="back-link" href="{% url 'camp_list' %}">← {% translate "all camps" %}</a></p>
+<h1>{% translate "New camp" %}</h1>
 {% endif %}
 
 <form method="post" class="stacked-form">
@@ -19,17 +21,26 @@
       {% if field.is_hidden %}{{ field }}{% else %}<div class="form-row">{{ field.as_field_group }}</div>{% endif %}
     {% endfor %}
   </div>
+  {% if forloop.first %}{% include "camps/_groups.html" %}{% endif %}
   {% endfor %}
   <div class="actions">
-    <button class="btn" type="submit">Save camp</button>
-    {% if can_delete %}<a class="btn btn-danger-outline" href="{% url 'camp_delete' camp.pk %}">Delete camp</a>{% endif %}
+    <button class="btn" type="submit">{% translate "Save camp" %}</button>
+    {% if can_delete %}<a class="btn btn-danger-outline" href="{% url 'camp_delete' camp.pk %}">{% translate "Delete camp" %}</a>{% endif %}
   </div>
 </form>
 {% if camp.pk %}
+<h2>{% translate "Kitchen utilities" %}</h2>
+<div class="card">
+  <p>{% blocktranslate trimmed with chiro=camp.chiro.name %}
+    Pots, fire pits and other utilities this camp needs. They're compared with the stock of {{ chiro }}, and what's missing goes on the shopping page.
+  {% endblocktranslate %}</p>
+  <a class="btn btn-outline" href="{% url 'camp_utensils' camp.pk %}">{% translate "Kitchen utilities for this camp" %}</a>
+</div>
 <form method="post" action="{% url 'camp_archive' camp.pk %}" class="actions">
   {% csrf_token %}
-  <button class="btn btn-outline" type="submit">{% if camp.is_archived %}Bring back from the archive{% else %}Archive camp{% endif %}</button>
-  <span class="muted">Archived camps stay available, under the camp list.</span>
+  <button class="btn btn-outline" type="submit">{% if camp.is_archived %}{% translate "Bring back from the archive" %}{% else %}{% translate "Archive camp" %}{% endif %}</button>
+  <span class="muted">{% translate "Archived camps stay available, under the camp list." %}</span>
 </form>
 {% endif %}
 {% endblock %}
+{% block scripts %}<script src="{% static 'js/headcount.js' %}"></script>{% endblock %}

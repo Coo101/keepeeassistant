@@ -5,6 +5,7 @@ from pathlib import Path
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms import modelformset_factory
+from django.utils.translation import gettext_lazy as _
 from PIL import Image
 
 from bills.models import Bill, BillLine
@@ -16,7 +17,7 @@ MAX_UNIT_PRICE = 9999
 
 class BillUploadForm(forms.ModelForm):
     file = forms.FileField(
-        label="PDF or photo",
+        label=_("PDF or photo"),
         widget=forms.ClearableFileInput(
             attrs={"accept": ",".join(sorted(ALLOWED_SUFFIXES))}
         ),
@@ -31,9 +32,9 @@ class BillUploadForm(forms.ModelForm):
         upload = self.cleaned_data["file"]
         suffix = Path(upload.name).suffix.lower()
         if suffix not in ALLOWED_SUFFIXES:
-            raise ValidationError("Upload a PDF, JPG, PNG or WebP file.")
+            raise ValidationError(_("Upload a PDF, JPG, PNG or WebP file."))
         if upload.size > MAX_UPLOAD_BYTES:
-            raise ValidationError("The file can be 15 MB at most.")
+            raise ValidationError(_("The file can be 15 MB at most."))
         if suffix == ".pdf":
             valid = upload.read(5) == b"%PDF-"
         else:
@@ -45,11 +46,15 @@ class BillUploadForm(forms.ModelForm):
                 valid = False
         upload.seek(0)
         if not valid:
-            raise ValidationError("This file doesn't look like a real PDF or image.")
+            raise ValidationError(_("This file doesn't look like a real PDF or image."))
         return upload
 
 
 class BillLineForm(forms.ModelForm):
+    # Choices are the Chiro's stock, set by the view; once a line is in the stock
+    # the page shows where it went instead.
+    stock = forms.ChoiceField(required=False, label=_("Add to stock"))
+
     class Meta:
         model = BillLine
         fields = [
@@ -64,10 +69,13 @@ class BillLineForm(forms.ModelForm):
 
     def clean(self) -> dict:
         cleaned = super().clean()
-        if cleaned.get("skipped") or cleaned.get("category") != BillLine.Category.FOOD:
+        category = cleaned.get("category")
+        if cleaned.get("stock") and category != BillLine.Category.UTENSILS:
+            self.add_error("stock", _("Only kitchen utilities go into the stock."))
+        if cleaned.get("skipped") or category != BillLine.Category.FOOD:
             return cleaned
         if cleaned.get("ingredient") and not cleaned.get("pack_amount"):
-            self.add_error("pack_amount", "How much is one item, in this unit?")
+            self.add_error("pack_amount", _("How much is one item, in this unit?"))
         quantity = cleaned.get("quantity")
         amount = cleaned.get("pack_amount")
         total = cleaned.get("line_total")
@@ -78,7 +86,7 @@ class BillLineForm(forms.ModelForm):
             and cleaned.get("ingredient")
             and total / (quantity * amount) > MAX_UNIT_PRICE
         ):
-            self.add_error("pack_amount", "That makes the price per unit too high.")
+            self.add_error("pack_amount", _("That makes the price per unit too high."))
         return cleaned
 
 

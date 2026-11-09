@@ -234,7 +234,7 @@ def _quantities(camp) -> list[list[Decimal]]:
 
 def _add_pantry(camp, quantity: str) -> None:
     PantryItem.objects.create(
-        camp=camp,
+        chiro=camp.chiro,
         ingredient=Ingredient.objects.get(name="Potatoes"),
         quantity=Decimal(quantity),
     )
@@ -267,24 +267,38 @@ def test_pantry_lowers_the_budget() -> None:
     assert build_budget(camp).total == Decimal("5.00")
 
 
+def _pantry_rows(rows: list[dict]) -> dict:
+    data = {
+        key.replace("form-", "pantry-", 1): value for key, value in _rows(rows).items()
+    }
+    return {"section": "pantry", **data}
+
+
 def test_pantry_page_saves_and_rejects_duplicates(camp) -> None:
     make_recipe("Stew", ingredients=[("Potatoes", "4", KG, PRODUCE)])
     potatoes = Ingredient.objects.get(name="Potatoes")
     client = member_client(camp)
-    url = reverse("pantry", args=[camp.pk])
+    url = reverse("chiro_stock", args=[camp.chiro.pk])
     assert client.get(url).status_code == 200
 
     row = {"ingredient": potatoes.pk, "quantity": "2"}
-    assert client.post(url, _rows([row, row])).status_code == 200
+    assert client.post(url, _pantry_rows([row, row])).status_code == 200
     assert not PantryItem.objects.exists()
 
-    assert client.post(url, _rows([row])).status_code == 302
-    assert PantryItem.objects.get().camp == camp
+    assert client.post(url, _pantry_rows([row])).status_code == 302
+    assert PantryItem.objects.get().chiro == camp.chiro
 
 
 def test_pantry_page_is_limited_to_members(camp) -> None:
-    url = reverse("pantry", args=[camp.pk])
+    url = reverse("chiro_stock", args=[camp.chiro.pk])
     assert account_client("vreemd").get(url).status_code == 404
+
+
+def test_the_pantry_serves_every_camp_of_the_chiro() -> None:
+    camp = _pantry_camp()
+    other = make_camp(chiro=camp.chiro)
+    _add_pantry(other, "1")
+    assert _quantities(camp) == [[Decimal("3.0")], [Decimal("4.0")]]
 
 
 # --- diets

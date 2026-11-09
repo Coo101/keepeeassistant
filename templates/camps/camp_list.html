@@ -1,15 +1,16 @@
 {% extends "base.html" %}
-{% block title %}Camps — Camp Meal Planner{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Camps" %} — {% translate "Camp Meal Planner" %}{% endblock %}
 {% block content %}
-<h1>Camps</h1>
-{% if has_chiro %}<div class="actions"><a class="btn" href="{% url 'camp_create' %}">New camp</a></div>{% endif %}
+{% translate "Camps" as page_title %}{% include "components/page_header.html" with title=page_title %}
+{% if has_chiro %}<div class="actions"><a class="btn" href="{% url 'camp_create' %}">{% translate "New camp" %}</a></div>{% endif %}
 {% if camps %}
 <div class="table-scroll">
 <table>
   <thead>
     <tr>
-      <th>Camp</th><th>Dates</th><th>Children</th><th>Teens</th><th>Staff</th>
-      <th>Portions</th><th></th>
+      <th>{% translate "Camp" %}</th><th>{% translate "Dates" %}</th><th>{% translate "Children" %}</th><th>{% translate "Teens" %}</th><th>{% translate "Staff" %}</th>
+      <th>{% translate "Portions" %}</th><th></th>
     </tr>
   </thead>
   <tbody>
@@ -22,11 +23,11 @@
       <td>{{ camp.num_staff }}</td>
       <td><span class="badge">{{ camp.demand_portions }}</span></td>
       <td>
-        <a href="{% url 'planner' camp.pk %}">Menu plan</a> ·
-        <a href="{% url 'shopping' camp.pk %}">Shopping</a> ·
-        <a href="{% url 'runbook' camp.pk %}">Draaiboek</a> ·
-        <a href="{% url 'bill_list' camp.pk %}">Bills</a> ·
-        <a href="{% url 'camp_edit' camp.pk %}">Edit</a>
+        <a href="{% url 'planner' camp.pk %}">{% translate "Menu plan" %}</a> ·
+        <a href="{% url 'shopping' camp.pk %}">{% translate "Shopping" %}</a> ·
+        <a href="{% url 'runbook' camp.pk %}">{% translate "Runbook" %}</a> ·
+        <a href="{% url 'bill_list' camp.pk %}">{% translate "Bills" %}</a> ·
+        <a href="{% url 'camp_edit' camp.pk %}">{% translate "Edit" %}</a>
       </td>
     </tr>
     {% endfor %}
@@ -36,14 +37,23 @@
 {% else %}
 <div class="card">
   {% if has_chiro %}
-  <p>No camps for your Chiro yet. <a href="{% url 'camp_create' %}">Add the first one</a>.</p>
+  <p>{% url 'camp_create' as create_url %}{% blocktranslate %}No camps for your Chiro yet. <a href="{{ create_url }}">Add the first one</a>.{% endblocktranslate %}</p>
   {% else %}
-  <p>Your account isn't linked to a Chiro yet. Ask your Chiro's admin for an invitation.</p>
+  <p>{% translate "Your account isn't linked to a Chiro yet. Ask your Chiro's admin for an invitation." %}</p>
   {% endif %}
 </div>
 {% endif %}
+{% if examples %}
+<h2>{% translate "Example camp" %}</h2>
+<p class="muted">{% translate "A whole camp, planned and paid, to see how everything fits together. Everyone can look at it; nobody can change it." %}</p>
+<ul>
+  {% for camp in examples %}
+  <li><a href="{% url 'planner' camp.pk %}">{{ camp.name }}</a> <span class="muted">{{ camp.start_date|date:"Y" }} · {{ camp.chiro.name }}</span></li>
+  {% endfor %}
+</ul>
+{% endif %}
 {% if archived %}
-<h2>Archive</h2>
+<h2>{% translate "Archive" %}</h2>
 <ul>
   {% for camp in archived %}
   <li><a href="{% url 'planner' camp.pk %}">{{ camp.name }}</a> <span class="muted">{{ camp.start_date|date:"Y" }}</span></li>

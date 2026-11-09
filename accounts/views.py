@@ -10,6 +10,7 @@ from django.db import transaction
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from accounts.forms import (
@@ -32,7 +33,7 @@ def account(request: HttpRequest) -> HttpResponse:
     form = ProfileForm(request.POST or None, instance=request.user)
     if request.method == "POST" and form.is_valid():
         form.save()
-        messages.success(request, "Your details were saved.")
+        messages.success(request, _("Your details were saved."))
         return redirect("account")
     return render(
         request,
@@ -99,7 +100,7 @@ def _member_chiro(request: HttpRequest, chiro_id: int) -> Chiro:
 def _admin_chiro(request: HttpRequest, chiro_id: int) -> Chiro:
     chiro = _member_chiro(request, chiro_id)
     if not chiro.is_admin(request.user):
-        raise PermissionDenied("Only an admin of this Chiro can do this.")
+        raise PermissionDenied(_("Only an admin of this Chiro can do this."))
     return chiro
 
 
@@ -116,16 +117,19 @@ def chiro_detail(request: HttpRequest, chiro_id: int) -> HttpResponse:
             invitation.save()
             try:
                 send_invitation(request, invitation)
-                messages.success(request, f"Invitation sent to {invitation.email}.")
+                messages.success(
+                    request,
+                    _("Invitation sent to %(email)s.") % {"email": invitation.email},
+                )
             except MAIL_ERRORS as exc:
                 logger.warning("Invitation %s not sent: %s", invitation.pk, exc)
                 messages.error(
                     request,
-                    "The mail couldn't be sent. Pass on the link below yourself.",
+                    _("The mail couldn't be sent. Pass on the link below yourself."),
                 )
             return redirect("chiro_detail", chiro_id=chiro.pk)
     elif request.method == "POST":
-        raise PermissionDenied("Only an admin of this Chiro can do this.")
+        raise PermissionDenied(_("Only an admin of this Chiro can do this."))
     invitations = [
         (invitation, invitation_link(request, invitation))
         for invitation in chiro.invitation_set.all()
@@ -161,7 +165,7 @@ def chiro_member(
     admins = chiro.membership_set.select_for_update().filter(role=Role.ADMIN)
     other_admins = [admin for admin in admins if admin.pk != membership.pk]
     if (remove or role != Role.ADMIN) and not other_admins:
-        messages.error(request, "A Chiro needs at least one admin.")
+        messages.error(request, _("A Chiro needs at least one admin."))
     elif remove:
         membership.delete()
         logger.info("%s removed %s from %s", request.user, membership.user, chiro)

@@ -1,8 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
+{% load i18n %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
   <meta charset="utf-8">
-  <title>{{ camp.name }} — shopping lists</title>
+  <title>{{ camp.name }} — {% translate "shopping lists" %}</title>
   <style>
     @page { size: A4; margin: 1.5cm; }
     body { font-family: system-ui, sans-serif; color: #111; font-size: 10pt; }
@@ -20,24 +20,24 @@
                   padding: 3pt 6pt; border-radius: 3pt; margin-bottom: 4pt; }
     .warning { border: 1.5pt solid #f59e0b; background: #fef3c7; padding: 6pt; margin: 8pt 0; }
     .checkbox { display: inline-block; width: 9pt; height: 9pt; border: 1pt solid #333; margin-right: 4pt; vertical-align: middle; }
-    {% if pdf_fallback %}@media screen { body::before { content: "PDF engine unavailable — use your browser's Print to save as PDF."; display:block; background:#fef3c7; padding:8px; margin-bottom:12px; } }{% endif %}
+    {% if pdf_fallback %}@media screen { body::before { content: "{% translate "PDF engine unavailable — use your browser's Print to save as PDF." %}"; display:block; background:#fef3c7; padding:8px; margin-bottom:12px; } }{% endif %}
   </style>
 </head>
 <body>
-<h1>{{ camp.name }} — shopping lists</h1>
-<p class="meta">{{ camp.start_date }} – {{ camp.end_date }} · {{ camp.demand_portions }} portions</p>
+<h1>{{ camp.name }} — {% translate "shopping lists" %}</h1>
+<p class="meta">{{ camp.start_date }} – {{ camp.end_date }} · {% blocktranslate with portions=camp.demand_portions %}{{ portions }} portions{% endblocktranslate %}</p>
 
 {% if plan.uncovered_days %}
 <div class="warning">
-  ⚠️ Uncovered days (no trip buys for them):
+  ⚠️ {% translate "Uncovered days (no trip buys for them):" %}
   {% for d in plan.uncovered_days %}{{ d|date:"D d M" }}{% if not forloop.last %}, {% endif %}{% endfor %}
 </div>
 {% endif %}
 
 {% for tl in plan.trip_lists %}
 <div class="trip">
-  <h2>Shop on {{ tl.trip.date|date:"l d F Y" }}</h2>
-  <p class="meta">Covers {{ tl.cover_start|date:"D d M" }} – {{ tl.cover_end|date:"D d M" }}</p>
+  <h2>{% blocktranslate with date=tl.trip.date|date:"l d F Y" %}Shop on {{ date }}{% endblocktranslate %}</h2>
+  <p class="meta">{% blocktranslate with start=tl.cover_start|date:"D d M" end=tl.cover_end|date:"D d M" %}Covers {{ start }} – {{ end }}{% endblocktranslate %}</p>
   {% for section in tl.shop_sections %}
   <div class="shop-block">
     <h2 class="shop-title">{{ section.label }}</h2>
@@ -48,7 +48,7 @@
         {% for item in items %}
         <tr>
           <td><span class="checkbox"></span>{{ item.ingredient.name }}</td>
-          <td class="qty">{{ item.quantity }} {{ item.unit }}</td>
+          <td class="qty">{{ item.quantity }} {% translate item.unit %}</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -56,9 +56,25 @@
     {% endfor %}
   </div>
   {% empty %}
-  <p class="meta">Nothing to buy for this trip.</p>
+  <p class="meta">{% translate "Nothing to buy for this trip." %}</p>
   {% endfor %}
 </div>
 {% endfor %}
+
+{% if utensils_to_buy %}
+<div class="trip">
+  <h2>{% translate "Kitchen utilities to buy" %}</h2>
+  <table>
+    <tbody>
+      {% for need in utensils_to_buy %}
+      <tr>
+        <td><span class="checkbox"></span>{{ need.utensil.name }}</td>
+        <td class="qty">{{ need.to_buy }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
 </body>
 </html>

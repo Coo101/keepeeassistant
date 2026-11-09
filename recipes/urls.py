@@ -5,6 +5,11 @@ from recipes import views
 urlpatterns = [
     path("recipes/", views.recipe_list, name="recipe_list"),
     path("recipes/new/", views.recipe_create, name="recipe_create"),
+    path(
+        "recipes/rows/<slug:prefix>/",
+        views.recipe_formset_row,
+        name="recipe_formset_row",
+    ),
     path("recipes/<int:recipe_id>/", views.recipe_detail, name="recipe_detail"),
     path("recipes/<int:recipe_id>/edit/", views.recipe_edit, name="recipe_edit"),
     path("recipes/<int:recipe_id>/copy/", views.recipe_copy, name="recipe_copy"),

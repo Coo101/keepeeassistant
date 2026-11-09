@@ -1,23 +1,27 @@
 {% extends "base.html" %}
-{% block title %}{{ camp.name }} — Shopping{% endblock %}
+{% load i18n %}
+{% block title %}{{ camp.name }} — {% translate "Shopping" %}{% endblock %}
 {% block content %}
-<p><a class="back-link" href="{% url 'planner' camp.pk %}">← back to menu plan</a></p>
-<h1>{{ camp.name }} — shopping</h1>
+<p><a class="back-link" href="{% url 'planner' camp.pk %}">← {% translate "back to menu plan" %}</a></p>
+<h1>{{ camp.name }} — {% translate "shopping" %}</h1>
+{% include "camps/_example_note.html" %}
 
 {% if outside_entries %}
 {% include "planning/_outside_entries.html" with back="shopping" %}
 {% endif %}
 {% if outside_trips %}
 <div class="warning">
-  ⚠️ <strong>Shopping days outside the dates below.</strong>
-  They still count; <a href="{% url 'camp_edit' camp.pk %}">change the camp dates</a> to get them back on this list, or remove them:
+  ⚠️ <strong>{% translate "Shopping days outside the dates below." %}</strong>
+  {% url 'camp_edit' camp.pk as edit_url %}{% blocktranslate trimmed %}
+  They still count; <a href="{{ edit_url }}">change the camp dates</a> to get them back on this list, or remove them:
+  {% endblocktranslate %}
   <ul class="outside-list">
     {% for trip in outside_trips %}
     <li>
       {{ trip.date|date:"D d M Y" }}
       <form method="post" action="{% url 'remove_outside_trip' camp.pk trip.pk %}">
         {% csrf_token %}
-        <button class="btn btn-outline btn-small" type="submit">Remove</button>
+        <button class="btn btn-outline btn-small" type="submit">{% translate "Remove" %}</button>
       </form>
     </li>
     {% endfor %}
@@ -25,11 +29,13 @@
 </div>
 {% endif %}
 
-<p><a href="{% url 'pantry' camp.pk %}">Already have something? Add it to the pantry</a> and it comes off these lists.</p>
+<p>{% url 'chiro_stock' camp.chiro.pk as stock_url %}{% blocktranslate with chiro=camp.chiro.name %}<a href="{{ stock_url }}#pantry">Already have something? Add it to the pantry of {{ chiro }}</a> and it comes off these lists.{% endblocktranslate %}</p>
 
-<h2>Shopping days</h2>
-<p class="muted">A trip buys for the days <strong>after</strong> it, up to and including the
-next trip day — never its own day. Add a trip before the camp starts to cover the opening days.</p>
+<h2>{% translate "Shopping days" %}</h2>
+<p class="muted">{% blocktranslate trimmed %}
+  A trip buys for the days <strong>after</strong> it, up to and including the
+  next trip day — never its own day. Add a trip before the camp starts to cover the opening days.
+{% endblocktranslate %}</p>
 <div class="card">
   <form method="post">
     {% csrf_token %}
@@ -38,44 +44,44 @@ next trip day — never its own day. Add a trip before the camp starts to cover 
       <li>
         <label>
           <input type="checkbox" name="trip_dates" value="{{ c.date|date:'Y-m-d' }}" {% if c.selected %}checked{% endif %}>
-          {{ c.date|date:"D d M" }}{% if c.pre_camp %} <span class="muted">(before camp)</span>{% endif %}
+          {{ c.date|date:"D d M" }}{% if c.pre_camp %} <span class="muted">({% translate "before camp" %})</span>{% endif %}
         </label>
       </li>
       {% endfor %}
     </ul>
-    <button class="btn" type="submit">Save shopping days</button>
+    <button class="btn" type="submit">{% translate "Save shopping days" %}</button>
   </form>
 </div>
 
 {% if plan.uncovered_days %}
 <div class="warning">
-  ⚠️ <strong>Uncovered days:</strong>
+  ⚠️ <strong>{% translate "Uncovered days:" %}</strong>
   {% for d in plan.uncovered_days %}{{ d|date:"D d M" }}{% if not forloop.last %}, {% endif %}{% endfor %}
-  — no shopping trip covers these days. Add a trip dated before them.
+  — {% translate "no shopping trip covers these days. Add a trip dated before them." %}
 </div>
 {% endif %}
 
 {% if plan.trip_lists %}
 <div class="actions">
-  <a class="btn" href="{% url 'shopping_pdf' camp.pk %}">Shopping lists PDF</a>
-  <a class="btn btn-outline" href="{% url 'budget' camp.pk %}">Budget</a>
+  <a class="btn" href="{% url 'shopping_pdf' camp.pk %}">{% translate "Shopping lists PDF" %}</a>
+  <a class="btn btn-outline" href="{% url 'budget' camp.pk %}">{% translate "Budget" %}</a>
 </div>
 {% for tl in plan.trip_lists %}
-<h2>Shop on {{ tl.trip.date|date:"l d M" }}</h2>
-<p class="muted">Covers {{ tl.cover_start|date:"D d M" }} – {{ tl.cover_end|date:"D d M" }}
-  ({{ tl.covered_days|length }} camp day{{ tl.covered_days|length|pluralize }})</p>
+<h2>{% blocktranslate with date=tl.trip.date|date:"l d M" %}Shop on {{ date }}{% endblocktranslate %}</h2>
+<p class="muted">{% blocktranslate with start=tl.cover_start|date:"D d M" end=tl.cover_end|date:"D d M" %}Covers {{ start }} – {{ end }}{% endblocktranslate %}
+  ({% blocktranslate count counter=tl.covered_days|length %}{{ counter }} camp day{% plural %}{{ counter }} camp days{% endblocktranslate %})</p>
 {% if tl.shop_sections %}
   <div class="shop-grid">
     {% for section in tl.shop_sections %}
     <section class="shop-section">
-      <h3 class="shop-title">{{ section.label }} <span class="muted">{{ section.item_count }} item{{ section.item_count|pluralize }}</span></h3>
+      <h3 class="shop-title">{{ section.label }} <span class="muted">{% blocktranslate count counter=section.item_count %}{{ counter }} item{% plural %}{{ counter }} items{% endblocktranslate %}</span></h3>
       {% for category, items in section.items_by_category.items %}
       <div class="category-block">
         <h4>{{ category }}</h4>
         <table class="compact">
           <tbody>
             {% for item in items %}
-            <tr><td>{{ item.ingredient.name }}</td><td>{{ item.quantity }} {{ item.unit }}</td></tr>
+            <tr><td>{{ item.ingredient.name }}</td><td>{{ item.quantity }} {% translate item.unit %}</td></tr>
             {% endfor %}
           </tbody>
         </table>
@@ -85,8 +91,19 @@ next trip day — never its own day. Add a trip before the camp starts to cover 
     {% endfor %}
   </div>
 {% else %}
-<p class="empty-slot">Nothing to buy — no menu entries in the covered days.</p>
+<p class="empty-slot">{% translate "Nothing to buy — no menu entries in the covered days." %}</p>
 {% endif %}
 {% endfor %}
 {% endif %}
+<h2>{% translate "Kitchen utilities to buy" %}</h2>
+{% if utensils_to_buy %}
+<table class="compact">
+  <tbody>
+    {% for need in utensils_to_buy %}
+    <tr><td>{{ need.utensil.name }}</td><td>{{ need.to_buy }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+<p class="muted">{% url 'camp_utensils' camp.pk as utensils_url %}{% blocktranslate %}Compared with your Chiro's stock on the <a href="{{ utensils_url }}">kitchen utilities page</a>.{% endblocktranslate %}</p>
 {% endblock %}

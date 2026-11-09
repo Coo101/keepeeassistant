@@ -24,6 +24,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.http import HttpRequest
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from accounts.models import RateLimitHit
 
@@ -89,7 +90,7 @@ class _LoginLimitMixin:
             address_key, MAX_FAILS_PER_ADDRESS
         ):
             raise ValidationError(
-                "Too many failed attempts. Wait 15 minutes, or reset your password."
+                _("Too many failed attempts. Wait 15 minutes, or reset your password.")
             )
         try:
             cleaned = super().clean()

@@ -7,6 +7,7 @@ from django.db import models
 from django.db.models import ProtectedError
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
+from django.utils.translation import gettext as _
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,7 @@ def confirm_delete(
             obj.delete()
         except ProtectedError:
             # Something started using it after the page was opened.
-            blocked_reason = "It is in use, so it can't be deleted."
+            blocked_reason = _("It is in use, so it can't be deleted.")
         else:
             logger.info("%s deleted %r", request.user, label)
             return redirect(success_url)

@@ -12,4 +12,4 @@ Ingredients without a price are listed and left out of the total, so the total c
 
 ## Pantry
 
-Already have something? Add it under *Pantry* on the shopping page. It comes off the shopping lists and the budget, starting with the first trip.
+Already have something? Add it to your Chiro's pantry: on the shopping page, follow the link to the pantry. Every camp of the Chiro takes it off its shopping lists and budget, starting with the first trip. Kitchen utilities like pots and fire pits are on the same stock page.

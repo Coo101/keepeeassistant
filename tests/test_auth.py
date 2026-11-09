@@ -8,9 +8,11 @@ from django.test import Client
 from django.urls import URLPattern, reverse
 
 from accounts.models import Chiro, Membership, Role
+from bills.urls import urlpatterns as bills_urls
 from camps.models import DayNote
 from camps.urls import urlpatterns as camp_urls
 from core.constants import DishType, MealType
+from kitchen.urls import urlpatterns as kitchen_urls
 from planning.models import MenuEntry
 from planning.urls import urlpatterns as planning_urls
 from shopping.models import ShoppingTrip
@@ -31,20 +33,22 @@ PATH_ARGS = {"date": AUG_1.isoformat(), "meal_type": MealType.DINNER}
 def _camp_url_names() -> list[str]:
     """Every page under a camp, so a new page is covered automatically. The
     POST-only remove URLs are tested in test_delete_and_remove.py."""
-    patterns: list[URLPattern] = [*camp_urls, *planning_urls, *shopping_urls]
     return [
         p.name
-        for p in patterns
+        for p in _patterns()
         if "camp_id" in p.pattern.converters
+        and "bill_id" not in p.pattern.converters
         and not p.name.startswith("remove_outside_")
         and p.name != "camp_archive"
     ]
 
 
+def _patterns() -> list[URLPattern]:
+    return [*camp_urls, *planning_urls, *shopping_urls, *bills_urls, *kitchen_urls]
+
+
 def _camp_url(url_name: str, camp) -> str:
-    pattern = next(
-        p for p in [*camp_urls, *planning_urls, *shopping_urls] if p.name == url_name
-    ).pattern
+    pattern = next(p for p in _patterns() if p.name == url_name).pattern
     kwargs = {k: PATH_ARGS[k] for k in pattern.converters if k != "camp_id"}
     return reverse(url_name, kwargs={"camp_id": camp.pk, **kwargs})
 
@@ -55,7 +59,7 @@ def camp():
 
 
 def test_camp_urls_are_found() -> None:
-    assert len(_camp_url_names()) == 12
+    assert len(_camp_url_names()) == 15
 
 
 @pytest.mark.parametrize("url_name", _camp_url_names())
@@ -69,6 +73,25 @@ def test_camp_pages_need_a_login(camp, url_name) -> None:
 def test_camp_pages_open_for_members(camp, url_name) -> None:
     client = member_client(camp, role=Role.ADMIN)
     assert client.get(_camp_url(url_name, camp)).status_code == 200
+
+
+@pytest.mark.parametrize("url_name", _camp_url_names())
+def test_example_camp_pages_open_for_every_account(camp, url_name) -> None:
+    camp.chiro.is_example = True
+    camp.chiro.save()
+    # Deleting asks a Chiro admin, which an example has none of.
+    expected = 403 if url_name == "camp_delete" else 200
+    assert (
+        account_client("vreemd").get(_camp_url(url_name, camp)).status_code == expected
+    )
+
+
+@pytest.mark.parametrize("url_name", _camp_url_names())
+def test_example_camp_pages_refuse_changes(camp, url_name) -> None:
+    camp.chiro.is_example = True
+    camp.chiro.save()
+    response = account_client("vreemd").post(_camp_url(url_name, camp), {})
+    assert response.status_code in {403, 405}
 
 
 @pytest.mark.parametrize("url_name", _camp_url_names())

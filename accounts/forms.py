@@ -4,6 +4,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 
 from accounts.models import Invitation, JoinRequest, Membership
 
@@ -23,7 +24,8 @@ class ProfileForm(forms.ModelForm):
     current_password = forms.CharField(
         required=False,
         widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}),
-        help_text="Needed to change your email address.",
+        label=_("Current password"),
+        help_text=_("Needed to change your email address."),
     )
 
     class Meta:
@@ -35,10 +37,10 @@ class ProfileForm(forms.ModelForm):
         # The address logs in and resets the password, so it must point to one user
         # and can't be claimed before the invited person gets there.
         if email and email_is_taken(email, self.instance.pk):
-            raise ValidationError("Another account uses this address.")
+            raise ValidationError(_("Another account uses this address."))
         if email and "email" in self.changed_data and _has_open_invitation(email):
             raise ValidationError(
-                "This address has an open invitation. Use the link in that mail."
+                _("This address has an open invitation. Use the link in that mail.")
             )
         return email
 
@@ -47,7 +49,7 @@ class ProfileForm(forms.ModelForm):
         # A borrowed session must not be able to redirect password resets.
         password = cleaned.get("current_password") or ""
         if "email" in self.changed_data and not self.instance.check_password(password):
-            self.add_error("current_password", "That isn't your current password.")
+            self.add_error("current_password", _("That isn't your current password."))
         return cleaned
 
 
@@ -69,12 +71,12 @@ class InvitationForm(forms.ModelForm):
     def clean_email(self) -> str:
         email = self.cleaned_data["email"]
         if Membership.objects.filter(chiro=self.chiro, user__email__iexact=email):
-            raise ValidationError("This person is already a member.")
+            raise ValidationError(_("This person is already a member."))
         open_invitations = Invitation.objects.filter(
             chiro=self.chiro, email__iexact=email
         )
         if any(invitation.is_open for invitation in open_invitations):
-            raise ValidationError("This address already has an open invitation.")
+            raise ValidationError(_("This address already has an open invitation."))
         return email
 
 

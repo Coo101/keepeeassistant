@@ -5,6 +5,7 @@ from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from accounts.models import Chiro
 from core.constants import Diet
@@ -13,51 +14,74 @@ from core.portions import portions
 
 class CampQuerySet(models.QuerySet):
     def for_user(self, user) -> "CampQuerySet":
-        """Only the camps of the user's Chiros (SPEC §9.8)."""
-        return self.filter(chiro__members=user)
+        """The camps of the user's Chiros (SPEC §9.8), and the example camps that
+        everyone may look at (SPEC §9.16)."""
+        return self.filter(
+            models.Q(chiro__in=user.chiros.all()) | models.Q(chiro__is_example=True)
+        )
 
     def active(self) -> "CampQuerySet":
         return self.filter(is_archived=False)
 
 
 class Camp(models.Model):
-    chiro = models.ForeignKey(Chiro, on_delete=models.PROTECT, related_name="camps")
-    name = models.CharField(max_length=200)
-    start_date = models.DateField()
-    end_date = models.DateField()
-    num_children = models.PositiveIntegerField(default=0, verbose_name="children (<12)")
-    num_teens = models.PositiveIntegerField(default=0, verbose_name="teens (12+)")
-    num_staff = models.PositiveIntegerField(default=0)
-    breakfast_time = models.TimeField(default=datetime.time(8, 0))
-    lunch_time = models.TimeField(default=datetime.time(12, 30))
-    teatime_time = models.TimeField(default=datetime.time(16, 0))
-    dinner_time = models.TimeField(default=datetime.time(18, 30))
+    chiro = models.ForeignKey(
+        Chiro, on_delete=models.PROTECT, related_name="camps", verbose_name="Chiro"
+    )
+    name = models.CharField(max_length=200, verbose_name=_("name"))
+    start_date = models.DateField(verbose_name=_("start date"))
+    end_date = models.DateField(verbose_name=_("end date"))
+    num_children = models.PositiveIntegerField(
+        default=0, verbose_name=_("children (<12)")
+    )
+    num_teens = models.PositiveIntegerField(default=0, verbose_name=_("teens (12+)"))
+    num_staff = models.PositiveIntegerField(default=0, verbose_name=_("staff"))
+    breakfast_time = models.TimeField(
+        default=datetime.time(8, 0), verbose_name=_("breakfast")
+    )
+    lunch_time = models.TimeField(
+        default=datetime.time(12, 30), verbose_name=_("lunch")
+    )
+    teatime_time = models.TimeField(
+        default=datetime.time(16, 0), verbose_name=_("tea time")
+    )
+    dinner_time = models.TimeField(
+        default=datetime.time(18, 30), verbose_name=_("dinner")
+    )
 
     # Runbook front-page info (mirrors the draaiboek kookploeg documents)
     cook_team = models.TextField(
         blank=True,
-        verbose_name="kookploeg",
-        help_text="One member per line: name + phone number",
+        verbose_name=_("cook team"),
+        help_text=_("One member per line: name + phone number"),
     )
-    location = models.TextField(blank=True, help_text="Camp site name + address")
+    location = models.TextField(
+        blank=True,
+        verbose_name=_("location"),
+        help_text=_("Camp site name + address"),
+    )
     contact_leader = models.TextField(
         blank=True,
-        verbose_name="aanspreekpunt leiding",
-        help_text="Name + phone number",
+        verbose_name=_("contact for the leaders"),
+        help_text=_("Name + phone number"),
     )
     contact_rental = models.TextField(
         blank=True,
-        verbose_name="aanspreekpunt verhuur",
-        help_text="Name + phone/mail",
+        verbose_name=_("contact for the rental"),
+        help_text=_("Name + phone/mail"),
     )
     bakery = models.TextField(
-        blank=True, verbose_name="bakker", help_text="Bakery name, phone, address"
+        blank=True,
+        verbose_name=_("bakery"),
+        help_text=_("Bakery name, phone, address"),
     )
     general_notes = models.TextField(
-        blank=True, help_text="Shown on the runbook front page"
+        blank=True,
+        verbose_name=_("general notes"),
+        help_text=_("Shown on the runbook front page"),
     )
     # Out of the way on the camp list, but kept as history; unlike deleting.
-    is_archived = models.BooleanField(default=False)
+    is_archived = models.BooleanField(default=False, verbose_name=_("archived"))
 
     objects = CampQuerySet.as_manager()
 
@@ -69,7 +93,7 @@ class Camp(models.Model):
 
     def clean(self) -> None:
         if self.start_date and self.end_date and self.end_date < self.start_date:
-            raise ValidationError("End date must be on or after start date.")
+            raise ValidationError(_("End date must be on or after start date."))
 
     @property
     def demand_portions(self) -> Decimal:
@@ -82,6 +106,17 @@ class Camp(models.Model):
         """Every date of the camp, start to end inclusive."""
         n = (self.end_date - self.start_date).days + 1
         return [self.start_date + datetime.timedelta(days=i) for i in range(n)]
+
+    def update_headcount(self) -> None:
+        """Set the three totals from the camp's groups (SPEC §9.3). Everything that
+        scales reads the totals, so the groups only change how they're entered."""
+        totals = {kind: 0 for kind in CampGroup.Kind.values}
+        for kind, count in self.groups.values_list("kind", "count"):
+            totals[kind] += count
+        self.num_children = totals[CampGroup.Kind.CHILDREN]
+        self.num_teens = totals[CampGroup.Kind.TEENS]
+        self.num_staff = totals[CampGroup.Kind.STAFF]
+        self.save(update_fields=["num_children", "num_teens", "num_staff"])
 
     def can_delete(self, user) -> bool:
         return user.is_staff or self.chiro.is_admin(user)
@@ -117,9 +152,11 @@ class DietaryNeed(models.Model):
     camp = models.ForeignKey(
         Camp, on_delete=models.CASCADE, related_name="dietary_needs"
     )
-    diet = models.CharField(max_length=20, choices=Diet.CHOICES)
-    count = models.PositiveIntegerField(default=1, verbose_name="people")
-    note = models.CharField(max_length=200, blank=True)
+    diet = models.CharField(
+        max_length=20, choices=Diet.CHOICES, verbose_name=_("diet or allergy")
+    )
+    count = models.PositiveIntegerField(default=1, verbose_name=_("people"))
+    note = models.CharField(max_length=200, blank=True, verbose_name=_("note"))
 
     class Meta:
         ordering = ["diet"]
@@ -129,3 +166,36 @@ class DietaryNeed(models.Model):
 
     def __str__(self) -> str:
         return f"{self.camp}: {self.count} {self.get_diet_display()}"
+
+
+class CampGroup(models.Model):
+    """An afdeling or team at the camp and how many come (SPEC §9.3). The camp's
+    three totals are the sums per kind."""
+
+    class Kind(models.TextChoices):
+        CHILDREN = "children", _("under 12")
+        TEENS = "teens", _("12+")
+        STAFF = "staff", _("staff")
+
+    camp = models.ForeignKey(Camp, on_delete=models.CASCADE, related_name="groups")
+    name = models.CharField(max_length=100, verbose_name=_("group"))
+    kind = models.CharField(
+        max_length=10,
+        choices=Kind.choices,
+        default=Kind.CHILDREN,
+        verbose_name=_("counts as"),
+    )
+    count = models.PositiveIntegerField(default=0, verbose_name=_("number"))
+
+    class Meta:
+        # Rows keep their ids when saved again (core.rows), so this is the order
+        # they were added in: youngest afdeling first, as entered.
+        ordering = ["pk"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["camp", "name"], name="unique_camp_group_name"
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.camp}: {self.count} {self.name}"

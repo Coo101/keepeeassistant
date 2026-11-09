@@ -2,6 +2,7 @@
 
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 
 class PostQuerySet(models.QuerySet):
@@ -10,11 +11,13 @@ class PostQuerySet(models.QuerySet):
 
 
 class Post(models.Model):
-    title = models.CharField(max_length=200)
+    title = models.CharField(max_length=200, verbose_name=_("title"))
     slug = models.SlugField(unique=True)
-    body = models.TextField(help_text="Written in Markdown")
-    is_published = models.BooleanField(default=True)
-    published_at = models.DateTimeField(default=timezone.now)
+    body = models.TextField(verbose_name=_("text"), help_text=_("Written in Markdown"))
+    is_published = models.BooleanField(default=True, verbose_name=_("published"))
+    published_at = models.DateTimeField(
+        default=timezone.now, verbose_name=_("publication date")
+    )
 
     objects = PostQuerySet.as_manager()
 

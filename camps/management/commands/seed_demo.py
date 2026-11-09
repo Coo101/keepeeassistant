@@ -11,8 +11,9 @@ from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
 
 from accounts.models import Chiro, Membership, Role
-from camps.models import Camp
+from camps.models import Camp, CampGroup
 from core.constants import Course, DishType, IngredientCategory, MealType, Unit
+from kitchen.models import CampUtensil, Utensil
 from planning.models import MenuEntry
 from recipes.models import Ingredient, Recipe, RecipeIngredient, RecipeStep
 from shopping.models import ShoppingTrip
@@ -190,6 +191,10 @@ RECIPES: list[dict[str, Any]] = [
 ]
 
 
+UTENSILS = [("Large pot (50 L)", 3), ("Fire pit", 2), ("Gas burner", 2), ("Ladle", 4)]
+CAMP_UTENSILS = [("Large pot (50 L)", 5), ("Fire pit", 2), ("Ladle", 4)]
+
+
 class Command(BaseCommand):
     help = "Seed demo data (dev admin, ingredients, recipes, one planned camp)."
 
@@ -249,12 +254,23 @@ class Command(BaseCommand):
                 "chiro": chiro,
                 "start_date": start,
                 "end_date": start + datetime.timedelta(days=6),
-                "num_children": 28,
-                "num_teens": 26,
-                "num_staff": 9,
             },
         )
         if created:
+            CampGroup.objects.bulk_create(
+                CampGroup(camp=camp, name=name, kind=kind, count=count)
+                for name, kind, count in [
+                    ("Ribbels", CampGroup.Kind.CHILDREN, 9),
+                    ("Speelclub", CampGroup.Kind.CHILDREN, 9),
+                    ("Rakwi's", CampGroup.Kind.CHILDREN, 10),
+                    ("Tito's", CampGroup.Kind.TEENS, 9),
+                    ("Keti's", CampGroup.Kind.TEENS, 9),
+                    ("Aspi's", CampGroup.Kind.TEENS, 8),
+                    ("Leiding", CampGroup.Kind.STAFF, 6),
+                    ("Kookploeg", CampGroup.Kind.STAFF, 3),
+                ]
+            )
+            camp.update_headcount()
             menu = {
                 (MealType.BREAKFAST, ""): ["Porridge with apples", "Bread breakfast"],
                 (MealType.LUNCH, Course.SOUP): ["Tomato soup", "Lentil soup"],
@@ -282,6 +298,18 @@ class Command(BaseCommand):
                     entry.save()
             for trip_day in [start - datetime.timedelta(days=1), camp.days[2]]:
                 ShoppingTrip.objects.get_or_create(camp=camp, date=trip_day)
+
+        # The Chiro's kitchen stock, and a camp that needs more pots than it has.
+        for name, in_stock in UTENSILS:
+            Utensil.objects.get_or_create(
+                chiro=chiro, name=name, defaults={"in_stock": in_stock}
+            )
+        for name, needed in CAMP_UTENSILS:
+            CampUtensil.objects.get_or_create(
+                camp=camp,
+                utensil=Utensil.objects.get(chiro=chiro, name=name),
+                defaults={"needed": needed},
+            )
 
         logger.info("Demo data seeded")
         self.stdout.write(self.style.SUCCESS("Demo data ready."))

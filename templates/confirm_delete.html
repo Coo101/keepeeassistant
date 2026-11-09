@@ -1,13 +1,14 @@
 {% extends "base.html" %}
-{% block title %}Delete {{ label }}{% endblock %}
+{% load i18n %}
+{% block title %}{% blocktranslate %}Delete {{ label }}{% endblocktranslate %}{% endblock %}
 {% block content %}
-<h1>Delete {{ label }}?</h1>
+<h1>{% blocktranslate %}Delete {{ label }}?{% endblocktranslate %}</h1>
 {% if blocked_reason %}
-<div class="warning">⚠️ <strong>This can't be deleted.</strong> {{ blocked_reason }}</div>
-<div class="actions"><a class="btn btn-outline" href="{{ cancel_url }}">Back</a></div>
+<div class="warning">⚠️ <strong>{% translate "This can't be deleted." %}</strong> {{ blocked_reason }}</div>
+<div class="actions"><a class="btn btn-outline" href="{{ cancel_url }}">{% translate "Back" %}</a></div>
 {% else %}
 <div class="card">
-  <p>This can't be undone.</p>
+  <p>{% translate "This can't be undone." %}</p>
   {% if consequences %}
   <ul>
     {% for consequence in consequences %}<li>{{ consequence }}</li>{% endfor %}
@@ -16,8 +17,8 @@
 </div>
 <form method="post" class="actions">
   {% csrf_token %}
-  <button class="btn btn-danger" type="submit">Delete</button>
-  <a class="btn btn-outline" href="{{ cancel_url }}">Cancel</a>
+  <button class="btn btn-danger" type="submit">{% translate "Delete" %}</button>
+  <a class="btn btn-outline" href="{{ cancel_url }}">{% translate "Cancel" %}</a>
 </form>
 {% endif %}
 {% endblock %}

@@ -7,17 +7,19 @@ from django.contrib.auth.decorators import login_not_required
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils.safestring import mark_safe
+from django.utils.translation import get_language
+from django.utils.translation import gettext_lazy as _
 
 from pages.models import Post
 
 CONTENT_DIR = Path(__file__).parent / "content"
 # Also the allow-list: only these files can be opened through the URL.
 DOCS = {
-    "getting-started": "Getting started",
-    "recipes": "Recipes and ingredients",
-    "planning": "Planning a camp",
-    "shopping-and-budget": "Shopping and budget",
-    "bills": "Bills and what you paid",
+    "getting-started": _("Getting started"),
+    "recipes": _("Recipes and ingredients"),
+    "planning": _("Planning a camp"),
+    "shopping-and-budget": _("Shopping and budget"),
+    "bills": _("Bills and what you paid"),
 }
 
 
@@ -50,7 +52,10 @@ def post_detail(request: HttpRequest, slug: str) -> HttpResponse:
 def doc(request: HttpRequest, slug: str) -> HttpResponse:
     if slug not in DOCS:
         raise Http404(f"No document {slug}")
-    text = (CONTENT_DIR / f"{slug}.md").read_text(encoding="utf-8")
+    # English is the source; a translation sits next to it as <slug>.<language>.md.
+    translated = CONTENT_DIR / f"{slug}.{get_language()}.md"
+    path = translated if translated.exists() else CONTENT_DIR / f"{slug}.md"
+    text = path.read_text(encoding="utf-8")
     return render(
         request,
         "pages/doc.html",

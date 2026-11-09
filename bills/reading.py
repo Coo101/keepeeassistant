@@ -12,6 +12,7 @@ from pathlib import Path
 
 import pdfplumber
 from django.conf import settings
+from django.utils.translation import gettext as _
 from PIL import Image, ImageOps
 
 from bills.models import Bill
@@ -103,7 +104,7 @@ def _ask_ollama(image: bytes) -> dict:
     except (OSError, urllib.error.URLError, http.client.HTTPException) as exc:
         raise OllamaUnavailable(str(exc)) from exc
     except (ValueError, KeyError, TypeError) as exc:
-        raise BillUnreadable("The model's answer wasn't valid JSON.") from exc
+        raise BillUnreadable(_("The model's answer wasn't valid JSON.")) from exc
 
 
 def _parse_answer(answer: dict) -> ParsedBill:
@@ -144,7 +145,7 @@ def read_with_ollama(bill: Bill) -> None:
     # Pillow and pdfium raise several types on damaged or oversized files.
     except Exception:
         logger.warning("Couldn't open bill %s", bill.pk, exc_info=True)
-        _mark_failed(bill, "The file couldn't be opened. Add the lines by hand.")
+        _mark_failed(bill, _("The file couldn't be opened. Add the lines by hand."))
         return
     lines: list[ParsedLine] = []
     printed_total = None
@@ -157,7 +158,7 @@ def read_with_ollama(bill: Bill) -> None:
         _mark_failed(bill, str(exc))
         return
     if not lines:
-        _mark_failed(bill, "No lines were found. Add them by hand.")
+        _mark_failed(bill, _("No lines were found. Add them by hand."))
         return
     store_parsed_bill(bill, ParsedBill(lines=lines, printed_total=printed_total))
 

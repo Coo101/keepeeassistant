@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_not_required
 from django.urls import include, path
+from django.views.i18n import set_language
 
 from accounts.ratelimit import (
     LimitedLoginForm,
@@ -38,6 +39,7 @@ urlpatterns = [
         name="logout",
     ),
     path("accounts/", include("django.contrib.auth.urls")),
+    path("language/", login_not_required(set_language), name="set_language"),
     path("", include("accounts.urls")),
     path("", include("pages.urls")),
     path("", include("camps.urls")),
@@ -45,4 +47,5 @@ urlpatterns = [
     path("", include("planning.urls")),
     path("", include("shopping.urls")),
     path("", include("bills.urls")),
+    path("", include("kitchen.urls")),
 ]

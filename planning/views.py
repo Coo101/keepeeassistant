@@ -6,10 +6,12 @@ import logging
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
+from camps.access import get_camp
 from camps.models import Camp, DayNote
-from core.constants import MEAL_SLOTS, MealType
+from core.constants import MEAL_SLOTS, Course, MealType
 from core.pdf import render_pdf
 from planning.checks import menu_checks
 from planning.forms import SlotForm
@@ -19,6 +21,7 @@ from planning.services import scale_entry
 logger = logging.getLogger(__name__)
 
 MEAL_LABELS = dict(MealType.CHOICES)
+COURSE_LABELS = dict(Course.CHOICES)
 
 
 def _parse_date(value: str) -> datetime.date:
@@ -64,7 +67,7 @@ def _build_grid(camp: Camp, with_recipe_details: bool = False) -> list[dict]:
 
 
 def planner(request: HttpRequest, camp_id: int) -> HttpResponse:
-    camp = get_object_or_404(Camp.objects.for_user(request.user), pk=camp_id)
+    camp = get_camp(request, camp_id)
     return render(
         request,
         "planning/planner.html",
@@ -80,7 +83,7 @@ def planner(request: HttpRequest, camp_id: int) -> HttpResponse:
 def edit_slot(
     request: HttpRequest, camp_id: int, date: str, meal_type: str
 ) -> HttpResponse:
-    camp = get_object_or_404(Camp.objects.for_user(request.user), pk=camp_id)
+    camp = get_camp(request, camp_id)
     day = _parse_date(date)
     if day not in camp.days:
         raise Http404(f"{day} is not a camp day")
@@ -125,7 +128,7 @@ def edit_slot(
             "day": day,
             "meal_type": meal_type,
             "meal_label": MEAL_LABELS[meal_type],
-            "course": course,
+            "course": COURSE_LABELS.get(course, ""),
             "form": form,
             "entry": entry,
             "scaled": scaled,
@@ -138,7 +141,7 @@ def remove_outside_entry(
     request: HttpRequest, camp_id: int, entry_id: int
 ) -> HttpResponse:
     """Meals outside the camp dates have no slot in the grid to clear."""
-    camp = get_object_or_404(Camp.objects.for_user(request.user), pk=camp_id)
+    camp = get_camp(request, camp_id)
     entry = get_object_or_404(camp.entries_outside_dates(), pk=entry_id)
     logger.info("%s removed %s", request.user, entry)
     entry.delete()
@@ -184,7 +187,7 @@ def _runbook_days(camp: Camp) -> list[dict]:
 
 def runbook(request: HttpRequest, camp_id: int) -> HttpResponse:
     """Digital draaiboek: front-page info, per-day menu/steps/notes."""
-    camp = get_object_or_404(Camp.objects.for_user(request.user), pk=camp_id)
+    camp = get_camp(request, camp_id)
 
     if request.method == "POST":
         day = _parse_date(request.POST.get("date", ""))
@@ -204,18 +207,18 @@ def runbook(request: HttpRequest, camp_id: int) -> HttpResponse:
 
 
 def runbook_pdf(request: HttpRequest, camp_id: int) -> HttpResponse:
-    camp = get_object_or_404(Camp.objects.for_user(request.user), pk=camp_id)
+    camp = get_camp(request, camp_id)
     return render_pdf(
         request,
         "planning/runbook_print.html",
         {"camp": camp, "days": _runbook_days(camp)},
-        filename=f"{camp.name}-draaiboek.pdf",
+        filename=_("%(camp)s-runbook.pdf") % {"camp": camp.name},
     )
 
 
 def overview_pdf(request: HttpRequest, camp_id: int) -> HttpResponse:
     """Camp/day overview with scaled quantities per meal (SPEC §9.5)."""
-    camp = get_object_or_404(Camp.objects.for_user(request.user), pk=camp_id)
+    camp = get_camp(request, camp_id)
     grid = _build_grid(camp, with_recipe_details=True)
     for row in grid:
         for meal in row["meals"]:
@@ -226,5 +229,5 @@ def overview_pdf(request: HttpRequest, camp_id: int) -> HttpResponse:
         request,
         "planning/overview_print.html",
         {"camp": camp, "grid": grid},
-        filename=f"{camp.name}-overview.pdf",
+        filename=_("%(camp)s-overview.pdf") % {"camp": camp.name},
     )

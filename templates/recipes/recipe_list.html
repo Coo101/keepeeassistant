@@ -1,15 +1,16 @@
 {% extends "base.html" %}
-{% block title %}Recipes — Camp Meal Planner{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Recipes" %} — {% translate "Camp Meal Planner" %}{% endblock %}
 {% block content %}
-<h1>Recipes</h1>
-<p class="page-meta">The recipe library is shared between all Chiros. <a href="{% url 'recipe_create' %}">Add a recipe</a>.</p>
+<h1>{% translate "Recipes" %}</h1>
+<p class="page-meta">{% url 'recipe_create' as create_url %}{% blocktranslate %}The recipe library is shared between all Chiros. <a href="{{ create_url }}">Add a recipe</a>.{% endblocktranslate %}</p>
 <form method="get" class="actions">
-  <input type="search" name="q" value="{{ query }}" placeholder="Search recipes or ingredients…" aria-label="Search recipes">
-  <button class="btn" type="submit">Search</button>
-  {% if query %}<a class="btn btn-outline" href="{% url 'recipe_list' %}">Clear</a>{% endif %}
+  <input type="search" name="q" value="{{ query }}" placeholder="{% translate 'Search recipes or ingredients…' %}" aria-label="{% translate 'Search recipes' %}">
+  <button class="btn" type="submit">{% translate "Search" %}</button>
+  {% if query %}<a class="btn btn-outline" href="{% url 'recipe_list' %}">{% translate "Clear" %}</a>{% endif %}
 </form>
 {% if query and not groups %}
-<p class="empty-slot">No recipes match "{{ query }}".</p>
+<p class="empty-slot">{% blocktranslate %}No recipes match "{{ query }}".{% endblocktranslate %}</p>
 {% endif %}
 {% for group in groups %}
 <h2>{{ group.label }}</h2>
@@ -18,12 +19,12 @@
   <li>
     <a class="recipe-card" href="{% url 'recipe_detail' recipe.pk %}">
       <span class="recipe-name">{{ recipe.name }}</span>
-      <span class="muted">{{ recipe.base_portions }} portions{% if recipe.total_duration_minutes %} · {{ recipe.total_duration_minutes }} min{% endif %}</span>
+      <span class="muted">{% blocktranslate with portions=recipe.base_portions %}{{ portions }} portions{% endblocktranslate %}{% if recipe.total_duration_minutes %} · {{ recipe.total_duration_minutes }} min{% endif %}</span>
     </a>
   </li>
   {% endfor %}
 </ul>
 {% empty %}
-<p>No recipes yet. <a href="{% url 'recipe_create' %}">Add the first one</a>.</p>
+<p>{% url 'recipe_create' as create_url %}{% blocktranslate %}No recipes yet. <a href="{{ create_url }}">Add the first one</a>.{% endblocktranslate %}</p>
 {% endfor %}
 {% endblock %}

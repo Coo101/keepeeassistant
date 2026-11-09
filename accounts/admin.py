@@ -3,6 +3,8 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.urls import reverse
+from django.utils.translation import gettext
+from django.utils.translation import gettext_lazy as _
 
 from accounts.invitations import MAIL_ERRORS, send_invitation
 from accounts.models import (
@@ -33,7 +35,7 @@ class UserChiroInline(admin.TabularInline):
     model = Membership
     extra = 1
     autocomplete_fields = ["chiro"]
-    verbose_name_plural = "Chiros"
+    verbose_name_plural = _("Chiros")
 
 
 admin.site.login_form = LimitedAdminLoginForm
@@ -77,7 +79,7 @@ class InvitationAdmin(admin.ModelAdmin):
     readonly_fields = ["link", "invited_by", "created_at", "accepted_at"]
     actions = ["send_again"]
 
-    @admin.display(description="Link (after this site's address)")
+    @admin.display(description=_("Link (after this site's address)"))
     def link(self, obj: Invitation) -> str:
         return reverse("invitation_accept", args=[obj.token]) if obj.pk else "-"
 
@@ -90,15 +92,21 @@ class InvitationAdmin(admin.ModelAdmin):
     def _send(self, request, invitation: Invitation) -> None:
         try:
             send_invitation(request, invitation)
-            messages.success(request, f"Mail sent to {invitation.email}.")
+            messages.success(
+                request,
+                gettext("Mail sent to %(email)s.") % {"email": invitation.email},
+            )
         except MAIL_ERRORS as exc:
             messages.error(
                 request,
-                f"The mail to {invitation.email} failed ({exc}). "
-                "Pass on the link on the invitation's page instead.",
+                gettext(
+                    "The mail to %(email)s failed (%(error)s). "
+                    "Pass on the link on the invitation's page instead."
+                )
+                % {"email": invitation.email, "error": exc},
             )
 
-    @admin.action(description="Send the invitation mail again")
+    @admin.action(description=_("Send the invitation mail again"))
     def send_again(self, request, queryset) -> None:
         for invitation in queryset:
             if invitation.is_open:
@@ -106,7 +114,8 @@ class InvitationAdmin(admin.ModelAdmin):
             else:
                 messages.warning(
                     request,
-                    f"{invitation.email}: used or expired. Create a new invitation.",
+                    gettext("%(email)s: used or expired. Create a new invitation.")
+                    % {"email": invitation.email},
                 )
 
 
@@ -120,26 +129,32 @@ class JoinRequestAdmin(admin.ModelAdmin):
     def has_add_permission(self, request) -> bool:
         return False
 
-    @admin.action(description="Approve: create the Chiro if needed, and invite")
+    @admin.action(description=_("Approve: create the Chiro if needed, and invite"))
     def approve(self, request, queryset) -> None:
         for join in queryset.filter(status=JoinRequest.Status.OPEN):
             invitation = self._invitation_for(join, request)
             if invitation is None:
                 messages.info(
                     request,
-                    f"{join.email} is already a member or has an open invitation.",
+                    gettext("%(email)s is already a member or has an open invitation.")
+                    % {"email": join.email},
                 )
                 continue
             try:
                 send_invitation(request, invitation)
                 messages.success(
-                    request, f"Invited {join.email} to {invitation.chiro}."
+                    request,
+                    gettext("Invited %(email)s to %(chiro)s.")
+                    % {"email": join.email, "chiro": invitation.chiro},
                 )
             except MAIL_ERRORS as exc:
                 messages.error(
                     request,
-                    f"The mail to {join.email} failed ({exc}). Pass on the link on "
-                    "the invitation's page instead.",
+                    gettext(
+                        "The mail to %(email)s failed (%(error)s). "
+                        "Pass on the link on the invitation's page instead."
+                    )
+                    % {"email": join.email, "error": exc},
                 )
 
     @transaction.atomic
@@ -161,7 +176,7 @@ class JoinRequestAdmin(admin.ModelAdmin):
             chiro=chiro, email=join.email, role=role, invited_by=request.user
         )
 
-    @admin.action(description="Reject (sends no mail)")
+    @admin.action(description=_("Reject (sends no mail)"))
     def reject(self, request, queryset) -> None:
         queryset.filter(status=JoinRequest.Status.OPEN).update(
             status=JoinRequest.Status.REJECTED

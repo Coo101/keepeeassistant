@@ -1,74 +1,85 @@
 {% extends "base.html" %}
-{% block title %}{{ camp.name }} — Draaiboek{% endblock %}
+{% load i18n %}
+{% block title %}{{ camp.name }} — {% translate "Runbook" %}{% endblock %}
 {% block content %}
-<h1 id="info">Draaiboek kookploeg — {{ camp.name }}</h1>
+<h1 id="info">{% translate "Cook team runbook" %} — {{ camp.name }}</h1>
+{% include "camps/_example_note.html" %}
 <p class="page-meta">
   {{ camp.start_date|date:"d M Y" }} – {{ camp.end_date|date:"d M Y" }} ·
-  {{ camp.num_children }} children + {{ camp.num_teens }} teens + {{ camp.num_staff }} staff
-  = <strong>{{ camp.demand_portions }} portions</strong>
+  {% include "planning/_headcount.html" %}
 </p>
 <div class="actions no-print">
-  <a class="btn btn-outline" href="{% url 'planner' camp.pk %}">← menu plan</a>
-  <a class="btn" href="{% url 'runbook_pdf' camp.pk %}">Draaiboek PDF</a>
+  <a class="btn btn-outline" href="{% url 'planner' camp.pk %}">← {% translate "menu plan" %}</a>
+  <a class="btn" href="{% url 'runbook_pdf' camp.pk %}">{% translate "Runbook PDF" %}</a>
 </div>
 
 <nav class="toc no-print">
-  <a href="#info">Info</a>
+  <a href="#info">{% translate "Info" %}</a>
   {% for day in days %}
-  <a href="#day-{{ day.date|date:'Y-m-d' }}">Dag {{ day.number }}</a>
+  <a href="#day-{{ day.date|date:'Y-m-d' }}">{% blocktranslate with number=day.number %}Day {{ number }}{% endblocktranslate %}</a>
   {% endfor %}
 </nav>
 
 <div class="runbook-info-grid">
   <div class="card">
-    <h3>Kookploeg</h3>
+    <h3>{% translate "Cook team" %}</h3>
     {% if camp.cook_team %}<p class="prewrap">{{ camp.cook_team }}</p>
-    {% else %}<p class="empty-slot">Vul aan bij de <a href="{% url 'camp_edit' camp.pk %}">camp-instellingen</a>.</p>{% endif %}
+    {% else %}<p class="empty-slot">{% url 'camp_edit' camp.pk as edit_url %}{% blocktranslate %}Fill it in under the <a href="{{ edit_url }}">camp settings</a>.{% endblocktranslate %}</p>{% endif %}
   </div>
   <div class="card">
-    <h3>Locatie</h3>
+    <h3>{% translate "Location" %}</h3>
     {% if camp.location %}<p class="prewrap">{{ camp.location }}</p>
     {% else %}<p class="empty-slot">—</p>{% endif %}
   </div>
   <div class="card">
-    <h3>Aanspreekpunt leiding</h3>
+    <h3>{% translate "Contact for the leaders" %}</h3>
     {% if camp.contact_leader %}<p class="prewrap">{{ camp.contact_leader }}</p>
     {% else %}<p class="empty-slot">—</p>{% endif %}
   </div>
   <div class="card">
-    <h3>Aanspreekpunt verhuur</h3>
+    <h3>{% translate "Contact for the rental" %}</h3>
     {% if camp.contact_rental %}<p class="prewrap">{{ camp.contact_rental }}</p>
     {% else %}<p class="empty-slot">—</p>{% endif %}
   </div>
   <div class="card">
-    <h3>Bakker</h3>
+    <h3>{% translate "Bakery" %}</h3>
     {% if camp.bakery %}<p class="prewrap">{{ camp.bakery }}</p>
     {% else %}<p class="empty-slot">—</p>{% endif %}
   </div>
   <div class="card">
-    <h3>Dagklapper (maaltijden)</h3>
+    <h3>{% translate "Meal times" %}</h3>
     <table class="compact">
       <tbody>
-        <tr><td>Ontbijt</td><td>{{ camp.breakfast_time|time:"H:i" }}</td></tr>
-        <tr><td>Middagmaal</td><td>{{ camp.lunch_time|time:"H:i" }}</td></tr>
-        <tr><td>Vieruurtje</td><td>{{ camp.teatime_time|time:"H:i" }}</td></tr>
-        <tr><td>Avondmaal</td><td>{{ camp.dinner_time|time:"H:i" }}</td></tr>
+        <tr><td>{% translate "Breakfast" %}</td><td>{{ camp.breakfast_time|time:"H:i" }}</td></tr>
+        <tr><td>{% translate "Lunch" %}</td><td>{{ camp.lunch_time|time:"H:i" }}</td></tr>
+        <tr><td>{% translate "Tea time" %}</td><td>{{ camp.teatime_time|time:"H:i" }}</td></tr>
+        <tr><td>{% translate "Dinner" %}</td><td>{{ camp.dinner_time|time:"H:i" }}</td></tr>
       </tbody>
     </table>
   </div>
+  {% with groups=camp.groups.all %}{% if groups %}
+  <div class="card">
+    <h3>{% translate "Headcount per group" %}</h3>
+    <table class="compact">
+      <tbody>
+        {% for group in groups %}<tr><td>{{ group.name }}</td><td>{{ group.count }}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}{% endwith %}
 </div>
 {% if camp.general_notes %}
-<div class="card"><h3>Algemene info</h3><p class="prewrap">{{ camp.general_notes }}</p></div>
+<div class="card"><h3>{% translate "General info" %}</h3><p class="prewrap">{{ camp.general_notes }}</p></div>
 {% endif %}
 
 {% for day in days %}
 <section class="runbook-day" id="day-{{ day.date|date:'Y-m-d' }}">
-  <h2>Dag {{ day.number }} — {{ day.date|date:"l d F Y" }}</h2>
+  <h2>{% blocktranslate with number=day.number %}Day {{ number }}{% endblocktranslate %} — {{ day.date|date:"l d F Y" }}</h2>
 
   <div class="table-scroll">
   <table class="runbook-menu">
     <thead>
-      <tr><th style="width:16%">Maaltijd</th><th style="width:28%">Menu</th><th>Ingrediënten ({{ camp.demand_portions }} porties)</th></tr>
+      <tr><th style="width:16%">{% translate "Meal" %}</th><th style="width:28%">{% translate "Menu" %}</th><th>{% blocktranslate with portions=camp.demand_portions %}Ingredients ({{ portions }} portions){% endblocktranslate %}</th></tr>
     </thead>
     <tbody>
       {% for meal in day.meals %}
@@ -77,7 +88,7 @@
           <td>{% if forloop.first %}<strong>{{ meal.label }}</strong>{% endif %}
               <div class="slot-course">{{ cell.slot.label }}</div></td>
           <td>{% if cell.entry %}<a href="{% url 'recipe_detail' cell.entry.recipe.pk %}">{{ cell.entry.recipe.name }}</a>{% else %}<span class="empty-slot">—</span>{% endif %}</td>
-          <td>{% if cell.scaled %}{% for item in cell.scaled.ingredients %}<span class="qty">{{ item.ingredient.name }} {{ item.quantity }}&nbsp;{{ item.unit }}</span>{% if not forloop.last %} · {% endif %}{% endfor %}{% endif %}</td>
+          <td>{% if cell.scaled %}{% for item in cell.scaled.ingredients %}<span class="qty">{{ item.ingredient.name }} {{ item.quantity }}&nbsp;{% translate item.unit %}</span>{% if not forloop.last %} · {% endif %}{% endfor %}{% endif %}</td>
         </tr>
         {% endfor %}
       {% endfor %}
@@ -86,7 +97,7 @@
   </div>
 
   {% if day.step_blocks %}
-  <h3>Stappenplan</h3>
+  <h3>{% translate "Step by step" %}</h3>
   {% for block in day.step_blocks %}
   <div class="step-block">
     <h4>{{ block.recipe.name }} <span class="muted">({{ block.meal_label }}{% if block.recipe.total_duration_minutes %} · {{ block.recipe.total_duration_minutes }} min{% endif %})</span></h4>
@@ -99,12 +110,12 @@
   {% endfor %}
   {% endif %}
 
-  <h3>No-tities</h3>
+  <h3>{% translate "Notes" context "runbook" %}</h3>
   <form method="post" class="note-form no-print">
     {% csrf_token %}
     <input type="hidden" name="date" value="{{ day.date|date:'Y-m-d' }}">
-    <textarea name="text" rows="3" placeholder="Notities voor deze dag…">{{ day.note_text }}</textarea>
-    <button class="btn" type="submit">Bewaar notities</button>
+    <textarea name="text" rows="3" placeholder="{% translate 'Notes for this day…' %}">{{ day.note_text }}</textarea>
+    <button class="btn" type="submit">{% translate "Save notes" %}</button>
   </form>
 </section>
 {% endfor %}

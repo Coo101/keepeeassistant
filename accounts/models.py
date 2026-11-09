@@ -6,6 +6,7 @@ import secrets
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 INVITATION_DAYS = 14
 
@@ -15,23 +16,29 @@ def _new_token() -> str:
 
 
 class Role(models.TextChoices):
-    MEMBER = "member", "Member"
-    ADMIN = "admin", "Admin (invites members, deletes camps)"
+    MEMBER = "member", _("Member")
+    ADMIN = "admin", _("Admin (invites members, deletes camps)")
 
 
 class Chiro(models.Model):
     """A Chiro group. Created in the admin only: access is by invitation."""
 
-    name = models.CharField(max_length=200, unique=True)
+    name = models.CharField(max_length=200, unique=True, verbose_name=_("name"))
     members = models.ManyToManyField(
         settings.AUTH_USER_MODEL, through="Membership", related_name="chiros"
     )
+    # Every account can look at an example Chiro and its camps; only staff change
+    # them (SPEC §9.16).
+    is_example = models.BooleanField(default=False, verbose_name=_("example"))
 
     class Meta:
         ordering = ["name"]
 
     def __str__(self) -> str:
         return self.name
+
+    def is_read_only_for(self, user) -> bool:
+        return self.is_example and not user.is_staff
 
     def has_admin(self) -> bool:
         return self.membership_set.filter(role=Role.ADMIN).exists()
@@ -43,7 +50,9 @@ class Chiro(models.Model):
 class Membership(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     chiro = models.ForeignKey(Chiro, on_delete=models.CASCADE)
-    role = models.CharField(max_length=10, choices=Role.choices, default=Role.MEMBER)
+    role = models.CharField(
+        max_length=10, choices=Role.choices, default=Role.MEMBER, verbose_name=_("role")
+    )
 
     class Meta:
         constraints = [
@@ -60,8 +69,10 @@ class Invitation(models.Model):
     """A one-time link that adds someone to a Chiro. Access is by invitation."""
 
     chiro = models.ForeignKey(Chiro, on_delete=models.CASCADE)
-    email = models.EmailField()
-    role = models.CharField(max_length=10, choices=Role.choices, default=Role.MEMBER)
+    email = models.EmailField(verbose_name=_("email address"))
+    role = models.CharField(
+        max_length=10, choices=Role.choices, default=Role.MEMBER, verbose_name=_("role")
+    )
     token = models.CharField(
         max_length=64, unique=True, default=_new_token, editable=False
     )
@@ -98,16 +109,19 @@ class JoinRequest(models.Model):
     """Someone asking for access from the public site; staff decide."""
 
     class Status(models.TextChoices):
-        OPEN = "open", "Open"
-        APPROVED = "approved", "Approved"
-        REJECTED = "rejected", "Rejected"
+        OPEN = "open", _("Open")
+        APPROVED = "approved", _("Approved")
+        REJECTED = "rejected", _("Rejected")
 
-    name = models.CharField(max_length=100)
-    email = models.EmailField()
-    chiro_name = models.CharField(max_length=200, verbose_name="your Chiro")
-    message = models.TextField(blank=True)
+    name = models.CharField(max_length=100, verbose_name=_("name"))
+    email = models.EmailField(verbose_name=_("email address"))
+    chiro_name = models.CharField(max_length=200, verbose_name=_("your Chiro"))
+    message = models.TextField(blank=True, verbose_name=_("message"))
     status = models.CharField(
-        max_length=10, choices=Status.choices, default=Status.OPEN
+        max_length=10,
+        choices=Status.choices,
+        default=Status.OPEN,
+        verbose_name=_("status"),
     )
     created_at = models.DateTimeField(auto_now_add=True)
 

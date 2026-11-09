@@ -16,10 +16,14 @@ Nothing changes until you've checked the lines and saved:
 
 - **Ingredient**: what this line is. Leave it empty for things you don't track.
 - **Amount per item**: in the ingredient's unit. A bag of 500 g priced per kg is 0.5.
-- **Category**: camp food, activity, personal or other.
+- **Category**: camp food, kitchen utilities, activity, personal or other. Kitchen utilities can go into your Chiro's stock.
 - **Skipped**: text that isn't a purchase at all.
 
 A camp-food line with an ingredient sets your camp's price. Your choices are remembered for the next bill from that shop.
+
+## The financial report
+
+The financial report shows what every planned meal cost, at your camp's prices from the bills. It first checks that every planned ingredient is on a bill: anything missing uses the latest known price and is marked. Personal costs are listed apart.
 
 ## Categories
 

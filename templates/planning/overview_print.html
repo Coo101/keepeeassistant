@@ -1,8 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
+{% load i18n %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
   <meta charset="utf-8">
-  <title>{{ camp.name }} — overview</title>
+  <title>{{ camp.name }} — {% translate "overview" %}</title>
   <style>
     @page { size: A4; margin: 1.5cm; }
     body { font-family: system-ui, sans-serif; color: #111; font-size: 10pt; }
@@ -16,15 +16,14 @@
     .course { color: #555; text-transform: capitalize; }
     .qty { white-space: nowrap; }
     .empty { color: #999; font-style: italic; }
-    {% if pdf_fallback %}@media screen { body::before { content: "PDF engine unavailable — use your browser's Print to save as PDF."; display:block; background:#fef3c7; padding:8px; margin-bottom:12px; } }{% endif %}
+    {% if pdf_fallback %}@media screen { body::before { content: "{% translate "PDF engine unavailable — use your browser's Print to save as PDF." %}"; display:block; background:#fef3c7; padding:8px; margin-bottom:12px; } }{% endif %}
   </style>
 </head>
 <body>
-<h1>{{ camp.name }} — meal plan</h1>
+<h1>{{ camp.name }} — {% translate "meal plan" %}</h1>
 <p class="meta">
   {{ camp.start_date }} – {{ camp.end_date }} ·
-  {{ camp.num_children }} children + {{ camp.num_teens }} teens + {{ camp.num_staff }} staff
-  = {{ camp.demand_portions }} portions
+  {% include "planning/_headcount.html" %}
 </p>
 
 {% for row in grid %}
@@ -32,7 +31,7 @@
   <h2>{{ row.day|date:"l d F Y" }}</h2>
   <table>
     <thead>
-      <tr><th style="width:14%">Meal</th><th style="width:30%">Recipe</th><th>Scaled ingredients</th></tr>
+      <tr><th style="width:14%">{% translate "Meal" %}</th><th style="width:30%">{% translate "Recipe" %}</th><th>{% translate "Scaled ingredients" %}</th></tr>
     </thead>
     <tbody>
       {% for meal in row.meals %}
@@ -43,7 +42,7 @@
           <td>{% if cell.entry %}{{ cell.entry.recipe.name }}{% else %}<span class="empty">—</span>{% endif %}</td>
           <td>
             {% if cell.scaled %}
-              {% for item in cell.scaled.ingredients %}<span class="qty">{{ item.ingredient.name }} {{ item.quantity }}&nbsp;{{ item.unit }}</span>{% if not forloop.last %} · {% endif %}{% endfor %}
+              {% for item in cell.scaled.ingredients %}<span class="qty">{{ item.ingredient.name }} {{ item.quantity }}&nbsp;{% translate item.unit %}</span>{% if not forloop.last %} · {% endif %}{% endfor %}
             {% endif %}
           </td>
         </tr>

@@ -6,10 +6,11 @@ from decimal import Decimal, InvalidOperation
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Q
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import Http404, HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template.defaultfilters import pluralize
 from django.urls import reverse
+from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
 from django.views.decorators.http import require_POST
 
 from core.constants import DishType
@@ -32,6 +33,20 @@ logger = logging.getLogger(__name__)
 NEW_INGREDIENT_PREFIX = "new_ingredient"
 
 DISH_TYPE_LABELS = dict(DishType.CHOICES)
+
+# The recipe form's row lists, by formset prefix, for the "add a row" buttons.
+ROW_FORMSETS = {"ingredients": IngredientFormSet, "steps": StepFormSet}
+# Formsets refuse more than 1000 rows anyway; this only bounds the index.
+MAX_ROW_INDEX = 1000
+
+
+def _row_index(total_forms: str | None) -> int:
+    """The next row's index: the TOTAL_FORMS the page sent, bounded."""
+    try:
+        index = int(total_forms or 0)
+    except ValueError:
+        return 0
+    return max(0, min(index, MAX_ROW_INDEX))
 
 
 def recipe_list(request: HttpRequest) -> HttpResponse:
@@ -126,13 +141,22 @@ def recipe_copy(request: HttpRequest, recipe_id: int) -> HttpResponse:
 
 def _recipe_form_page(request: HttpRequest, recipe: Recipe) -> HttpResponse:
     data = request.POST if request.method == "POST" else None
+    # Without JavaScript, "add ingredient/step" posts the form: show it again
+    # with one more empty row, keeping what was typed, and save nothing.
+    adding_row = data is not None and "add_row" in data
+    if adding_row and data["add_row"] in ROW_FORMSETS:
+        data = data.copy()
+        total = f"{data['add_row']}-TOTAL_FORMS"
+        data[total] = str(_row_index(data.get(total)) + 1)
     form = RecipeForm(data, instance=recipe, user=request.user)
     ingredients = IngredientFormSet(data, instance=recipe, prefix="ingredients")
     steps = StepFormSet(data, instance=recipe, prefix="steps")
 
     # A list, not a generator: show the errors of all three at once.
-    if data is not None and all(
-        [form.is_valid(), ingredients.is_valid(), steps.is_valid()]
+    if (
+        data is not None
+        and not adding_row
+        and all([form.is_valid(), ingredients.is_valid(), steps.is_valid()])
     ):
         with transaction.atomic():
             saved = form.save()
@@ -163,6 +187,23 @@ def _recipe_form_page(request: HttpRequest, recipe: Recipe) -> HttpResponse:
     )
 
 
+def recipe_formset_row(request: HttpRequest, prefix: str) -> HttpResponse:
+    """One empty ingredient or step row for the recipe form (HTMX), numbered by
+    the page's TOTAL_FORMS, which the response bumps out of band."""
+    formset_class = ROW_FORMSETS.get(prefix)
+    if formset_class is None:
+        raise Http404
+    index = _row_index(request.GET.get(f"{prefix}-TOTAL_FORMS"))
+    formset = formset_class(prefix=prefix)
+    row = formset.empty_form
+    row.prefix = formset.add_prefix(index)
+    return render(
+        request,
+        "partials/_formset_row.html",
+        {"row": row, "formset": formset, "total_forms": index + 1},
+    )
+
+
 def recipe_create(request: HttpRequest) -> HttpResponse:
     return _recipe_form_page(request, Recipe(author=request.user))
 
@@ -170,29 +211,31 @@ def recipe_create(request: HttpRequest) -> HttpResponse:
 def recipe_edit(request: HttpRequest, recipe_id: int) -> HttpResponse:
     recipe = get_object_or_404(Recipe, pk=recipe_id)
     if not recipe.can_edit(request.user):
-        raise PermissionDenied("This recipe can't be changed; save a copy instead.")
+        raise PermissionDenied(_("This recipe can't be changed; save a copy instead."))
     return _recipe_form_page(request, recipe)
 
 
 def recipe_delete(request: HttpRequest, recipe_id: int) -> HttpResponse:
     recipe = get_object_or_404(Recipe, pk=recipe_id)
     if not recipe.can_manage_access(request.user):
-        raise PermissionDenied("Only the author can delete this recipe.")
+        raise PermissionDenied(_("Only the author can delete this recipe."))
     # A count only: the camps may belong to other Chiros.
     camp_count = recipe.menuentry_set.values("camp").distinct().count()
     blocked_reason = ""
     if camp_count:
-        blocked_reason = (
-            f"It is planned in {camp_count} camp{pluralize(camp_count)}, which may "
-            "include other Chiros' camps. It can only be deleted once no camp "
-            "plans it."
-        )
+        blocked_reason = ngettext(
+            "It is planned in %(count)d camp, which may include other Chiros' "
+            "camps. It can only be deleted once no camp plans it.",
+            "It is planned in %(count)d camps, which may include other Chiros' "
+            "camps. It can only be deleted once no camp plans it.",
+            camp_count,
+        ) % {"count": camp_count}
     return confirm_delete(
         request,
         recipe,
         cancel_url=reverse("recipe_detail", args=[recipe.pk]),
         success_url=reverse("recipe_list"),
-        consequences=["Its ingredient list and steps"],
+        consequences=[_("Its ingredient list and steps")],
         blocked_reason=blocked_reason,
     )
 
@@ -227,7 +270,7 @@ def _ingredient_form_page(
         {
             "ingredient": ingredient,
             "form": form,
-            "prices": ingredient.prices.all() if ingredient else [],
+            "prices": ingredient.prices.shared() if ingredient else [],
         },
     )
 
@@ -257,16 +300,22 @@ def ingredient_delete(request: HttpRequest, ingredient_id: int) -> HttpResponse:
             "name", flat=True
         )
     )
-    blocked_reason = f"These recipes use it: {', '.join(names)}." if names else ""
+    blocked_reason = (
+        _("These recipes use it: %(names)s.") % {"names": ", ".join(names)}
+        if names
+        else ""
+    )
     if not names and ingredient.prices.exclude(camp=None).exists():
         # A paid price is a camp's history, possibly another Chiro's.
-        blocked_reason = "Camps have recorded prices for it."
+        blocked_reason = _("Camps have recorded prices for it.")
     return confirm_delete(
         request,
         ingredient,
         cancel_url=reverse("ingredient_edit", args=[ingredient.pk]),
         success_url=reverse("ingredient_list"),
-        consequences=[f"{ingredient.prices.count()} prices in its history"],
+        consequences=[
+            _("%(count)d prices in its history") % {"count": ingredient.prices.count()}
+        ],
         blocked_reason=blocked_reason,
     )
 

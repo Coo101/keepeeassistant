@@ -1,7 +1,8 @@
 {% extends "base.html" %}
-{% block title %}Invitation — Camp Meal Planner{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Invitation" %} — {% translate "Camp Meal Planner" %}{% endblock %}
 {% block content %}
-<h1>This invitation is for another account</h1>
-<p>You're logged in as <strong>{{ user.get_username }}</strong>, and this link is for {{ invitation.email }}.</p>
-<p>Log out and open the link again. If this is your address, add it to <a href="{% url 'account' %}">your account</a> first.</p>
+<h1>{% translate "This invitation is for another account" %}</h1>
+<p>{% blocktranslate with username=user.get_username email=invitation.email %}You're logged in as <strong>{{ username }}</strong>, and this link is for {{ email }}.{% endblocktranslate %}</p>
+<p>{% url 'account' as account_url %}{% blocktranslate %}Log out and open the link again. If this is your address, add it to <a href="{{ account_url }}">your account</a> first.{% endblocktranslate %}</p>
 {% endblock %}

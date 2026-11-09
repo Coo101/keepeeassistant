@@ -6,21 +6,29 @@ from django.db import transaction
 from django.http import FileResponse, Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from bills.forms import BillLineFormSet, BillUploadForm
+from accounts.models import Chiro
+from bills.forms import BillLineForm, BillLineFormSet, BillUploadForm
 from bills.models import Bill
 from bills.reading import read_text_pdf
+from bills.report import build_report
 from bills.services import apply_review, camp_spending
+from camps.access import get_camp
 from camps.models import Camp
 from core.delete import confirm_delete
+from core.pdf import render_pdf
+from kitchen.services import NEW_ITEM, add_to_stock
+from recipes.forms import IngredientForm
 from recipes.models import Ingredient
+from recipes.views import NEW_INGREDIENT_PREFIX
 
 logger = logging.getLogger(__name__)
 
 
 def _camp(request: HttpRequest, camp_id: int) -> Camp:
-    return get_object_or_404(Camp.objects.for_user(request.user), pk=camp_id)
+    return get_camp(request, camp_id)
 
 
 def _bill(request: HttpRequest, camp_id: int, bill_id: int) -> Bill:
@@ -59,13 +67,20 @@ def bill_detail(request: HttpRequest, camp_id: int, bill_id: int) -> HttpRespons
     """The review: nothing changes a price before someone saves this page."""
     bill = _bill(request, camp_id, bill_id)
     data = request.POST if request.method == "POST" else None
-    formset = BillLineFormSet(data, queryset=bill.lines.select_related("ingredient"))
-    # One query for the dropdown, instead of one per line.
+    formset = BillLineFormSet(
+        data, queryset=bill.lines.select_related("ingredient", "utensil")
+    )
+    chiro = bill.camp.chiro
+    # One query per dropdown, instead of one per line.
     choices = [("", "---------")] + [
         (ingredient.pk, str(ingredient)) for ingredient in Ingredient.objects.all()
     ]
+    stock_choices = [("", "—"), (NEW_ITEM, _("New item"))] + [
+        (str(utensil.pk), utensil.name) for utensil in chiro.utensils.all()
+    ]
     for form in [*formset.forms, formset.empty_form]:
         form.fields["ingredient"].choices = choices
+        form.fields["stock"].choices = stock_choices
 
     if data is not None and formset.is_valid():
         with transaction.atomic():
@@ -75,6 +90,8 @@ def bill_detail(request: HttpRequest, camp_id: int, bill_id: int) -> HttpRespons
                 line.save()
             for line in formset.deleted_objects:
                 line.delete()
+            for form in formset.forms:
+                _add_to_stock(form, chiro)
             apply_review(bill)
         logger.info("%s reviewed bill %s", request.user, bill.pk)
         return redirect("bill_list", camp_id=camp_id)
@@ -90,8 +107,23 @@ def bill_detail(request: HttpRequest, camp_id: int, bill_id: int) -> HttpRespons
             "total_differs": (
                 bill.printed_total is not None and bill.printed_total != total
             ),
+            "new_ingredient_form": IngredientForm(
+                prefix=NEW_INGREDIENT_PREFIX, user=request.user
+            ),
         },
     )
+
+
+def _add_to_stock(form: BillLineForm, chiro: Chiro) -> None:
+    """Each line goes into the stock once, however often the review is saved."""
+    line = form.instance
+    choice = form.cleaned_data.get("stock")
+    if not choice or not line.pk or line.utensil_id or line.skipped:
+        return
+    if form.cleaned_data.get("DELETE"):
+        return
+    line.utensil = add_to_stock(chiro, choice, line.description, line.quantity)
+    line.save(update_fields=["utensil"])
 
 
 def bill_file(request: HttpRequest, camp_id: int, bill_id: int) -> FileResponse:
@@ -137,7 +169,24 @@ def bill_delete(request: HttpRequest, camp_id: int, bill_id: int) -> HttpRespons
         cancel_url=reverse("bill_detail", args=[camp_id, bill.pk]),
         success_url=reverse("bill_list", args=[camp_id]),
         consequences=[
-            "The file, if it's still there",
-            "Its lines, and the camp prices they set",
+            _("The file, if it's still there"),
+            _("Its lines, and the camp prices they set"),
         ],
+    )
+
+
+def report(request: HttpRequest, camp_id: int) -> HttpResponse:
+    camp = _camp(request, camp_id)
+    return render(
+        request, "bills/report.html", {"camp": camp, "report": build_report(camp)}
+    )
+
+
+def report_pdf(request: HttpRequest, camp_id: int) -> HttpResponse:
+    camp = _camp(request, camp_id)
+    return render_pdf(
+        request,
+        "bills/report_print.html",
+        {"camp": camp, "report": build_report(camp)},
+        filename=_("%(camp)s-financial-report.pdf") % {"camp": camp.name},
     )

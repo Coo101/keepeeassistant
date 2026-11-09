@@ -8,6 +8,8 @@ import datetime
 from collections import defaultdict
 from dataclasses import dataclass, field
 
+from django.utils.translation import gettext as _
+
 from camps.models import Camp
 from core.constants import Diet, DishType, FoodTag, MealType
 from planning.models import MenuEntry
@@ -54,7 +56,7 @@ def _diet_conflicts(entries: list[MenuEntry], camp: Camp) -> list[DietConflict]:
                         recipe=entry.recipe.name,
                         diet=_DIET_LABELS[need.diet],
                         people=need.count,
-                        contains=", ".join(sorted(_TAG_LABELS[t] for t in found)),
+                        contains=", ".join(sorted(str(_TAG_LABELS[t]) for t in found)),
                     )
                 )
     return conflicts
@@ -83,14 +85,18 @@ def _day_balance(entries: list[MenuEntry]) -> list[str]:
             and FoodTag.VEGETABLE not in tags
             and _all_known([entry])
         ):
-            warnings.append(f"{entry.recipe.name} has no vegetables")
+            warnings.append(
+                _("%(recipe)s has no vegetables") % {"recipe": entry.recipe.name}
+            )
     if _all_known(entries):
         if FoodTag.VEGETABLE not in day_tags:
-            warnings.append("No vegetables this day")
+            warnings.append(_("No vegetables this day"))
         if FoodTag.FRUIT not in day_tags:
-            warnings.append("No fruit this day")
+            warnings.append(_("No fruit this day"))
     if len(sweet) > MAX_SWEET_RECIPES_PER_DAY:
-        warnings.append(f"A lot of sugar: {', '.join(sweet)}")
+        warnings.append(
+            _("A lot of sugar: %(recipes)s") % {"recipes": ", ".join(sweet)}
+        )
     return warnings
 
 

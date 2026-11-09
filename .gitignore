@@ -6,6 +6,7 @@ db.sqlite3*
 colruyt-products.json
 .idea/
 .claude
+.opencode
 .pytest_cache/
 .ruff_cache/
 staticfiles/

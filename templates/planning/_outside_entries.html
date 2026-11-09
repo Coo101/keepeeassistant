@@ -1,6 +1,6 @@
-<div class="warning">
-  ⚠️ <strong>Planned outside the camp dates</strong> (not shown in the menu plan and not on any shopping list).
-  <a href="{% url 'camp_edit' camp.pk %}">Change the camp dates</a> to bring them back, or remove them:
+{% load i18n %}<div class="warning">
+  ⚠️ <strong>{% translate "Planned outside the camp dates" %}</strong> ({% translate "not shown in the menu plan and not on any shopping list" %}).
+  {% url 'camp_edit' camp.pk as edit_url %}{% blocktranslate %}<a href="{{ edit_url }}">Change the camp dates</a> to bring them back, or remove them:{% endblocktranslate %}
   <ul class="outside-list">
     {% for entry in outside_entries %}
     <li>
@@ -8,7 +8,7 @@
       <form method="post" action="{% url 'remove_outside_entry' camp.pk entry.pk %}">
         {% csrf_token %}
         <input type="hidden" name="back" value="{{ back }}">
-        <button class="btn btn-outline btn-small" type="submit">Remove</button>
+        <button class="btn btn-outline btn-small" type="submit">{% translate "Remove" %}</button>
       </form>
     </li>
     {% endfor %}
