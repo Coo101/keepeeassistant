@@ -1,4 +1,5 @@
-"""The financial report: what every planned meal cost, from the bills (SPEC §9.17).
+"""The financial report: what every planned meal cost, from the bills
+(docs/spec/finance.md).
 
 A meal's cost is its scaled recipe at the camp's prices from the bills. Where a bill
 has no price for an ingredient the latest known price stands in, and the meal is
@@ -115,7 +116,8 @@ def build_report(camp: Camp) -> FinancialReport:
         missing = []
         for ri in entry.recipe.ingredients.all():
             price = prices.get(ri.ingredient_id)
-            # A recipe in another unit than the price can't be costed (SPEC §3).
+            # A recipe in another unit than the price can't be costed
+            # (docs/spec/recipes.md).
             if price is None or ri.unit != ri.ingredient.unit:
                 unpriced.add(ri.ingredient_id)
                 missing.append(ri.ingredient.name)

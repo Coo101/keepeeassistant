@@ -1,4 +1,4 @@
-"""Camp models (SPEC §6)."""
+"""Camp models (docs/spec/planning.md)."""
 
 import datetime
 from decimal import Decimal
@@ -14,8 +14,9 @@ from core.portions import portions
 
 class CampQuerySet(models.QuerySet):
     def for_user(self, user) -> "CampQuerySet":
-        """The camps of the user's Chiros (SPEC §9.8), and the example camps that
-        everyone may look at (SPEC §9.16)."""
+        """The camps of the user's Chiros
+        (docs/spec/accounts.md), and the example camps that
+        everyone may look at (docs/spec/accounts.md)."""
         return self.filter(
             models.Q(chiro__in=user.chiros.all()) | models.Q(chiro__is_example=True)
         )
@@ -108,7 +109,8 @@ class Camp(models.Model):
         return [self.start_date + datetime.timedelta(days=i) for i in range(n)]
 
     def update_headcount(self) -> None:
-        """Set the three totals from the camp's groups (SPEC §9.3). Everything that
+        """Set the three totals from the camp's groups
+        (docs/spec/planning.md). Everything that
         scales reads the totals, so the groups only change how they're entered."""
         totals = {kind: 0 for kind in CampGroup.Kind.values}
         for kind, count in self.groups.values_list("kind", "count"):
@@ -147,7 +149,7 @@ class DayNote(models.Model):
 
 
 class DietaryNeed(models.Model):
-    """How many people in a camp have a diet or allergy (SPEC §9.11)."""
+    """How many people in a camp have a diet or allergy (docs/spec/planning.md)."""
 
     camp = models.ForeignKey(
         Camp, on_delete=models.CASCADE, related_name="dietary_needs"
@@ -169,7 +171,8 @@ class DietaryNeed(models.Model):
 
 
 class CampGroup(models.Model):
-    """An afdeling or team at the camp and how many come (SPEC §9.3). The camp's
+    """An afdeling or team at the camp and how many come
+    (docs/spec/planning.md). The camp's
     three totals are the sums per kind."""
 
     class Kind(models.TextChoices):

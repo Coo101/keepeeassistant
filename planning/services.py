@@ -1,4 +1,4 @@
-"""Scaled quantities for menu entries (SPEC §7, §9.3)."""
+"""Scaled quantities for menu entries (docs/spec/planning.md)."""
 
 import logging
 from dataclasses import dataclass

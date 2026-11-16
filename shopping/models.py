@@ -1,4 +1,4 @@
-"""Shopping trip models (SPEC §6, §8)."""
+"""Shopping trip models (docs/spec/shopping.md)."""
 
 from decimal import Decimal
 
@@ -31,7 +31,7 @@ class ShoppingTrip(models.Model):
 
 class PantryItem(models.Model):
     """Food a Chiro already has, in the ingredient's unit; every camp of the Chiro
-    takes it off its shopping lists (SPEC §9.12)."""
+    takes it off its shopping lists (docs/spec/shopping.md)."""
 
     chiro = models.ForeignKey(
         Chiro, on_delete=models.CASCADE, related_name="pantry_items"

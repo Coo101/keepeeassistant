@@ -1,4 +1,4 @@
-"""Recipe library models (SPEC §6)."""
+"""Recipe library models (docs/spec/recipes.md)."""
 
 from decimal import Decimal
 
@@ -36,7 +36,7 @@ class Ingredient(models.Model):
         verbose_name=_("category"),
     )
 
-    # Budgeting (SPEC §9.6): EUR per canonical unit, set by hand.
+    # Budgeting (docs/spec/recipes.md): EUR per canonical unit, set by hand.
     shop = models.CharField(
         max_length=12,
         choices=Shop.CHOICES,
@@ -82,7 +82,8 @@ class IngredientPriceQuerySet(models.QuerySet):
 
 class IngredientPrice(models.Model):
     """One price at one moment. Without a camp it's a general price, entered on
-    the ingredients page; with a camp it's what that camp paid (SPEC §9.6)."""
+    the ingredients page; with a camp it's what that camp paid
+    (docs/spec/recipes.md)."""
 
     ingredient = models.ForeignKey(
         Ingredient, on_delete=models.CASCADE, related_name="prices"
@@ -151,7 +152,8 @@ class Recipe(models.Model):
     )
     notes = models.TextField(blank=True, verbose_name=_("notes"))
 
-    # Sharing (SPEC §9.1): everyone with an account can read and copy a recipe.
+    # Sharing
+    # (docs/spec/recipes.md): everyone with an account can read and copy a recipe.
     # No author (imported recipes, deleted accounts) means staff manage it.
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -239,7 +241,7 @@ class RecipeIngredient(models.Model):
 
     def clean(self) -> None:
         # The ingredient's price is per its own unit, so a different unit here
-        # could not be costed (SPEC §3: no conversions).
+        # could not be costed (docs/spec/recipes.md: no conversions).
         if self.ingredient_id and self.unit != self.ingredient.unit:
             raise ValidationError(
                 {

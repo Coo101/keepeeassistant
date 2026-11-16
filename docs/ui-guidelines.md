@@ -10,7 +10,7 @@ Reference for every frontend change: how screens behave. How they look (colours,
 
 Design rule of thumb: **kitchen screens optimise for reading and tapping, planning screens optimise for overview and data entry.**
 
-What each screen does is in `docs/SPEC.md` (kitchen mode: §9.19). Printed output (runbook, shopping lists, report) is rendered by WeasyPrint with its own CSS and is out of scope unless a task says otherwise; its look follows `docs/DESIGN.md` §7.
+What each screen does is in the area files in `docs/spec/` (kitchen mode: `docs/spec/kitchen.md`). Printed output (runbook, shopping lists, report) is rendered by WeasyPrint with its own CSS and is out of scope unless a task says otherwise; its look follows `docs/DESIGN.md` §7.
 
 ## Stack
 

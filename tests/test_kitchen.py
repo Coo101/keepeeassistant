@@ -1,4 +1,5 @@
-"""Kitchen utilities: the Chiro's stock, a camp's needs and bills (SPEC §9.15)."""
+"""Kitchen utilities: the Chiro's stock, a camp's needs and bills
+(docs/spec/kitchen.md)."""
 
 from decimal import Decimal
 

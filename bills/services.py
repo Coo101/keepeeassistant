@@ -1,4 +1,4 @@
-"""Bill lines to ingredient matches, camp prices and totals (SPEC §9.10)."""
+"""Bill lines to ingredient matches, camp prices and totals (docs/spec/finance.md)."""
 
 import difflib
 from dataclasses import dataclass

@@ -1,4 +1,4 @@
-"""PDF rendering via WeasyPrint, with graceful HTML fallback (SPEC §9.5).
+"""PDF rendering via WeasyPrint, with graceful HTML fallback (docs/spec/planning.md).
 
 WeasyPrint needs the GTK/Pango native libraries; on machines without them we
 serve the same template as a print-friendly HTML page instead of a PDF.

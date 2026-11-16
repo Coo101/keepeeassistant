@@ -1,4 +1,4 @@
-"""Forms for the menu planner (SPEC §9.3)."""
+"""Forms for the menu planner (docs/spec/planning.md)."""
 
 from django import forms
 from django.utils.translation import gettext_lazy as _

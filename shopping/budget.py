@@ -1,4 +1,4 @@
-"""Camp budget: shopping-list quantities x ingredient prices (SPEC §9.6).
+"""Camp budget: shopping-list quantities x ingredient prices (docs/spec/shopping.md).
 
 A camp's own price wins; otherwise the estimate uses the latest known price.
 

@@ -1,4 +1,4 @@
-"""Shopping list views (SPEC §9.4, §9.5)."""
+"""Shopping list views (docs/spec/shopping.md)."""
 
 import datetime
 import logging
@@ -18,7 +18,8 @@ from shopping.services import build_shopping_plan
 
 logger = logging.getLogger(__name__)
 
-# Offer trip dates from a few days before camp start (arrival-eve shop, SPEC §8)
+# Offer trip dates from a few days before camp start (arrival-eve shop,
+# docs/spec/shopping.md)
 PRE_CAMP_DAYS = 3
 
 

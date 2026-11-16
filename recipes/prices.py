@@ -1,4 +1,4 @@
-"""Which price a camp uses for an ingredient (SPEC §9.6)."""
+"""Which price a camp uses for an ingredient (docs/spec/recipes.md)."""
 
 import datetime
 from collections.abc import Iterable

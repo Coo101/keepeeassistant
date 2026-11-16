@@ -1,4 +1,4 @@
-"""Shopping list coverage and aggregation (SPEC §8)."""
+"""Shopping list coverage and aggregation (docs/spec/shopping.md)."""
 
 import datetime
 from decimal import Decimal

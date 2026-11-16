@@ -1,4 +1,4 @@
-"""Recipe sharing logic (SPEC §9.1)."""
+"""Recipe sharing logic (docs/spec/recipes.md)."""
 
 from django.db import transaction
 

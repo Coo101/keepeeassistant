@@ -1,4 +1,4 @@
-"""Who may open and change a camp or a Chiro's stock (SPEC §9.8, §9.16)."""
+"""Who may open and change a camp or a Chiro's stock (docs/spec/accounts.md)."""
 
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q

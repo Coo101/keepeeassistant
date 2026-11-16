@@ -1,4 +1,5 @@
-"""The financial report and the example camp (SPEC §9.16, §9.17)."""
+"""The financial report and the example camp
+(docs/spec/finance.md, docs/spec/accounts.md)."""
 
 import datetime
 from decimal import Decimal

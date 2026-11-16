@@ -1,4 +1,4 @@
-"""Portion maths and rounding (SPEC §4, §7)."""
+"""Portion maths and rounding (docs/spec/planning.md)."""
 
 from decimal import Decimal
 

@@ -1,4 +1,4 @@
-"""Form for creating and editing camps (SPEC §9.3)."""
+"""Form for creating and editing camps (docs/spec/planning.md)."""
 
 from django import forms
 from django.forms import BoundField, modelformset_factory

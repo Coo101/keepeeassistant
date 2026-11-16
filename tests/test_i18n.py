@@ -1,4 +1,4 @@
-"""Dutch and English: picking a language, and what changes with it (SPEC §10)."""
+"""Dutch and English: picking a language, and what changes with it (docs/SPEC.md)."""
 
 import datetime
 from decimal import Decimal

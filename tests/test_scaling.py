@@ -1,4 +1,4 @@
-"""Recipe scaling for menu entries (SPEC §7)."""
+"""Recipe scaling for menu entries (docs/spec/planning.md)."""
 
 import datetime
 from decimal import Decimal

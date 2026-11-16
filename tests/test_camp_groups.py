@@ -1,4 +1,4 @@
-"""Headcount per afdeling on the camp form (SPEC §9.3)."""
+"""Headcount per afdeling on the camp form (docs/spec/planning.md)."""
 
 import importlib
 from decimal import Decimal

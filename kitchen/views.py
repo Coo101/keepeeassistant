@@ -1,5 +1,5 @@
-"""The Chiro's stock (kitchen utilities and food) and a camp's needs (SPEC §9.12,
-§9.15)."""
+"""The Chiro's stock (kitchen utilities and food) and a camp's needs
+(docs/spec/kitchen.md, docs/spec/shopping.md)."""
 
 import logging
 

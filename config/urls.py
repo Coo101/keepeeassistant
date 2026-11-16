@@ -1,4 +1,4 @@
-"""URL configuration (SPEC §9)."""
+"""URL configuration (docs/SPEC.md)."""
 
 from django.contrib import admin
 from django.contrib.auth import views as auth_views

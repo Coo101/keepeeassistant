@@ -1,4 +1,4 @@
-"""Menu planning models (SPEC §6, §9.3)."""
+"""Menu planning models (docs/spec/planning.md)."""
 
 from django.core.exceptions import ValidationError
 from django.db import models

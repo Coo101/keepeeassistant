@@ -1,4 +1,4 @@
-"""The Chiro's pantry (SPEC §9.12)."""
+"""The Chiro's pantry (docs/spec/shopping.md)."""
 
 from django.forms import modelformset_factory
 

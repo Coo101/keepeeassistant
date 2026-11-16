@@ -1,4 +1,4 @@
-"""Shared choice sets and constants (SPEC §4-6)."""
+"""Shared choice sets and constants (docs/SPEC.md)."""
 
 from dataclasses import dataclass
 from decimal import Decimal
@@ -119,7 +119,7 @@ class Course:
 
 @dataclass(frozen=True)
 class MealSlot:
-    """One plannable slot of a meal (SPEC §5)."""
+    """One plannable slot of a meal (docs/spec/planning.md)."""
 
     meal_type: str
     course: str  # "" for the meal's single/main slot

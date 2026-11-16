@@ -1,4 +1,5 @@
-"""PDF output (SPEC §9.5). The native tests need WeasyPrint's system libraries;
+"""PDF output
+(docs/spec/planning.md). The native tests need WeasyPrint's system libraries;
 the deploy job also checks that the Docker image can render a PDF."""
 
 import sys

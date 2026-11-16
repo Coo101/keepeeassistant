@@ -1,4 +1,4 @@
-"""Warnings for the planner: diets and allergies, and balance (SPEC §9.11, §9.13).
+"""Warnings for the planner: diets and allergies, and balance (docs/spec/planning.md).
 
 They read the tags on ingredients, so they're only as good as those tags: a
 planned ingredient nobody checked is reported, not assumed safe.

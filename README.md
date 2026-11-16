@@ -1,7 +1,7 @@
 # keepeeassistant
 
 Tool to help you make menus and shopping lists for de chiro.
-A summer camp meal planner — see [docs/SPEC.md](docs/SPEC.md) for the full specification.
+A summer camp meal planner — see [docs/SPEC.md](docs/SPEC.md) for what it does, with one file per area in [docs/spec/](docs/spec/).
 
 ## Setup
 
@@ -76,7 +76,7 @@ including those for running behind a proxy.
 - **Dutch and English**: Dutch by default, English when the browser asks for it. The
   NL/EN switch in the header remembers the choice in a cookie.
 
-See [docs/SPEC.md](docs/SPEC.md) for the details and [docs/TODO.md](docs/TODO.md) for what's open.
+See [docs/SPEC.md](docs/SPEC.md) and the area files in [docs/spec/](docs/spec/) for the details, and the roadmap in [docs/TODO.md](docs/TODO.md) for what's open. Designs and plans for changes are in `docs/superpowers/`.
 
 ### PDF export on Windows
 
@@ -135,7 +135,7 @@ docker compose cp db.sqlite3 web:/data/db.sqlite3 && docker compose restart web
   and deploys it to the homelab Docker host. Merging into `main` therefore
   **is** a production release.
 
-The open work is tracked in [docs/TODO.md](docs/TODO.md).
+The open work is the roadmap in [docs/TODO.md](docs/TODO.md).
 
 ## Development
 

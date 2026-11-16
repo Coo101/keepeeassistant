@@ -1,4 +1,4 @@
-"""Chiros and who belongs to them (SPEC §6, §9.8)."""
+"""Chiros and who belongs to them (docs/spec/accounts.md)."""
 
 import datetime
 import secrets
@@ -28,7 +28,7 @@ class Chiro(models.Model):
         settings.AUTH_USER_MODEL, through="Membership", related_name="chiros"
     )
     # Every account can look at an example Chiro and its camps; only staff change
-    # them (SPEC §9.16).
+    # them (docs/spec/accounts.md).
     is_example = models.BooleanField(default=False, verbose_name=_("example"))
 
     class Meta:

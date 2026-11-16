@@ -1,4 +1,4 @@
-"""Shopping list generation (SPEC §8).
+"""Shopping list generation (docs/spec/shopping.md).
 
 Lists are grouped per shop (Colruyt / Van Zon / bakker / beenhouwer) so each
 trip maps onto the errands you actually run, and per ingredient category
@@ -71,7 +71,7 @@ class ShoppingPlan:
 def _coverage_windows(
     camp: Camp, trips: list[ShoppingTrip]
 ) -> list[tuple[ShoppingTrip, datetime.date, datetime.date]]:
-    """Per SPEC §8: a trip covers the day after it up to and including the
+    """Per docs/spec/shopping.md: a trip covers the day after it up to and including the
     next trip's date (or the camp end for the last trip). Never its own day."""
     windows = []
     for i, trip in enumerate(trips):
@@ -99,7 +99,8 @@ def _aggregate_days(
     pantry: dict[int, Decimal],
 ) -> list[ShopSection]:
     """Aggregate scaled ingredient quantities for the given camp days,
-    grouped by shop and then by ingredient category (SPEC §8). What's used from
+    grouped by shop and then by ingredient category
+    (docs/spec/shopping.md). What's used from
     `pantry` is taken out of it, so a later trip doesn't count it again."""
     totals: dict[tuple[int, str], Decimal] = defaultdict(Decimal)
     ingredients: dict[int, Ingredient] = {}

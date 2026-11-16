@@ -1,4 +1,5 @@
-"""The Chiro's stock and a camp's needs, both edited as a table (SPEC §9.15)."""
+"""The Chiro's stock and a camp's needs, both edited as a table
+(docs/spec/kitchen.md)."""
 
 from django import forms
 from django.core.exceptions import ValidationError

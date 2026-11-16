@@ -1,4 +1,5 @@
-"""Roles, archive, pantry, diets, balance and join requests (SPEC §9.11-§9.14)."""
+"""Roles, archive, pantry, diets, balance and join requests
+(docs/spec/accounts.md, docs/spec/planning.md, docs/spec/shopping.md)."""
 
 import datetime
 from decimal import Decimal

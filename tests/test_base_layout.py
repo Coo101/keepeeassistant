@@ -1,4 +1,4 @@
-"""The shared layout on Bootstrap and HTMX (SPEC §12, docs/ui-guidelines.md)."""
+"""The shared layout on Bootstrap and HTMX (docs/SPEC.md, docs/ui-guidelines.md)."""
 
 import re
 

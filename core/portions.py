@@ -1,4 +1,4 @@
-"""Portion maths and rounding (SPEC §4, §7)."""
+"""Portion maths and rounding (docs/spec/planning.md)."""
 
 from decimal import ROUND_HALF_UP, Decimal
 
@@ -20,8 +20,9 @@ def scale_factor(demand_portions: Decimal, base_portions: Decimal) -> Decimal:
 
 
 def round_quantity(quantity: Decimal, unit: str) -> Decimal:
-    """SPEC §7: 1 decimal for kg/liter, whole numbers for piece. Anything needed
-    rounds to at least the smallest step, so it stays on the shopping list."""
+    """1 decimal for kg/liter, whole numbers for piece (docs/spec/planning.md).
+    Anything needed rounds to at least the smallest step, so it stays on the
+    shopping list."""
     step = Decimal("1") if unit == Unit.PIECE else Decimal("0.1")
     rounded = quantity.quantize(step, rounding=ROUND_HALF_UP)
     if quantity > 0 and rounded == 0:

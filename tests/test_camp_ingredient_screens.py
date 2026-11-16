@@ -1,4 +1,5 @@
-"""Camp and ingredient screens outside the admin (SPEC §9.2, §9.6)."""
+"""Camp and ingredient screens outside the admin
+(docs/spec/planning.md, docs/spec/recipes.md)."""
 
 import datetime
 from decimal import Decimal

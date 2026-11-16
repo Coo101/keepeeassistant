@@ -1,6 +1,6 @@
 # Kitchen mode: design
 
-Date: 2026-11-16. Replaces the outline in SPEC §9.19 once approved.
+Date: 2026-11-16. Replaces the kitchen mode outline once built (`docs/spec/kitchen.md`, Planned).
 
 ## Intent
 
@@ -50,7 +50,7 @@ stage 2 wrote.
 
 ## Constraints
 
-- Stack per SPEC §3 and `docs/ui-guidelines.md`: Django templates, Bootstrap 5.3,
+- Stack per `docs/SPEC.md` (Tech stack) and `docs/ui-guidelines.md`: Django templates, Bootstrap 5.3,
   HTMX, plain JS files in `static/js/` only where HTMX can't do it (timers, wake
   lock). No build step, no npm, vendored assets.
 - Kitchen screen rules (ui-guidelines "Kitchen views"): base font at least 1.125rem,
@@ -59,10 +59,10 @@ stage 2 wrote.
   the planner.
 - Every action works without JavaScript (a tick or missing mark is a form post; a
   timer shows its duration as text).
-- Access per SPEC §9.9: only members of the camp's Chiro, others get a 404. Example
+- Access per `docs/SPEC.md` and `docs/spec/accounts.md`: only members of the camp's Chiro, others get a 404. Example
   camps are read-only for everyone except staff. Ticking, marking missing, the extra
   list and notes need no extra role.
-- Quantities scale per SPEC §7 (`core/portions.py`), with its rounding. The day view
+- Quantities scale per `docs/spec/planning.md` (`core/portions.py`), with its rounding. The day view
   shows what the meal needs; it does **not** subtract the pantry (that belongs to the
   trip lists).
 - **Reachability:** the app is on the LAN only for now. Kitchen mode is only useful
@@ -121,7 +121,7 @@ Evaluation ▸
 - Meals in order (breakfast, lunch, tea, dinner) with the camp's meal times. Each
   meal lists its planned recipes (link to the cooking view), then one ingredient list
   merged over those recipes: per ingredient, the sum of the scaled quantities, in its
-  unit, rounded per §7.
+  unit, rounded per `docs/spec/planning.md`.
 - A meal with nothing planned shows an empty state, not an error.
 - The meal header counts missing and still-to-check lines; "all there" when done.
 
@@ -233,8 +233,8 @@ A page per camp, linked from the camp and next to the financial report:
 
 ### Pantry count at the end of the camp
 
-Leftover dry goods last until next year. The Chiro's pantry (`PantryItem`, SPEC
-§9.12) already holds this and every later camp subtracts it from its lists, so the
+Leftover dry goods last until next year. The Chiro's pantry (`PantryItem`,
+`docs/spec/shopping.md`) already holds this and every later camp subtracts it from its lists, so the
 end of the camp updates that pantry rather than keeping anything new.
 
 - The day view of the **last camp day** shows "Update the pantry". The page stays
@@ -281,11 +281,13 @@ Changed, in the `recipes` app:
 - `Recipe.copied_from`: optional link to the recipe it was copied from, set by
   `copy_recipe`. Migration needed.
 
-Docs to update with the build: SPEC §6 (recipes, kitchen), §9.1 (copies) and §9.19, TODO step 5, help pages
-(EN + NL).
+Docs to update with the build: fold this design into `docs/spec/kitchen.md` (and
+the copies part into `docs/spec/recipes.md`, the pantry count into
+`docs/spec/shopping.md`), roadmap step 5 in `docs/TODO.md`, help pages (EN + NL).
 
-**This reverses SPEC §13 decision 16** ("Kitchen mode checks ingredients, it doesn't
-shop") and the §9.4 sentence "Kitchen mode has no shopping list". Rewrite both, dated
+**This reverses D16** in `docs/spec/kitchen.md` ("Kitchen mode checks ingredients, it
+doesn't shop") and the sentence "Kitchen mode has no shopping list" in
+`docs/spec/planning.md` (Menu planner grid). Rewrite both, dated
 2026-11-16: the trip shopping lists stay with the planner; kitchen mode adds an extra
 shopping list for trips during the camp, filled from missing marks and free text. It
 never touches prices, the budget or the trip lists.

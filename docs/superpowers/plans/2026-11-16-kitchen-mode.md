@@ -16,7 +16,8 @@ file. `recipes` gets one field, `Recipe.copied_from`.
 WeasyPrint (via `core/pdf.py`), pytest, ruff, black.
 
 **Spec:** `docs/superpowers/specs/2026-11-16-kitchen-mode-design.md` (read it
-first), and `docs/SPEC.md` §5, §7, §9.9, §9.12, §10.
+first), `docs/SPEC.md` (rules for every area), and `docs/spec/kitchen.md`,
+`planning.md` (meal slots, scaling), `shopping.md` (pantry), `accounts.md` (access).
 
 ## Global Constraints
 
@@ -29,7 +30,7 @@ first), and `docs/SPEC.md` §5, §7, §9.9, §9.12, §10.
 - Kitchen screens: base font ≥ 1.125rem, quantities and step text `fs-4` or larger,
   tap targets ≥ 44×44px, enlarged checkboxes/buttons.
 - Access: every new view gets its camp through `camps.access.get_camp` (non-member →
-  404, POST on an example camp → 403). A date outside the camp → 404 (SPEC §10).
+  404, POST on an example camp → 403). A date outside the camp → 404 (`docs/SPEC.md`, Errors).
   No extra role needed for anything here.
 - **Nothing in this plan writes to `Recipe`, `RecipeIngredient` or `RecipeStep`**,
   except `copy_recipe` setting `copied_from` on a new copy.
@@ -132,7 +133,7 @@ def test_deleting_the_original_keeps_the_copy(): ...
   - `day_plan(camp: Camp, date: datetime.date) -> list[MealPlan]`: all four meals in
     `MealType.ORDER`, with the camp's `breakfast_time` / `lunch_time` /
     `teatime_time` / `dinner_time`; recipes in course order (soup, main, extra,
-    dessert per SPEC §5); lines sorted by category then name.
+    dessert per `docs/spec/planning.md`); lines sorted by category then name.
   - `meal_line(camp, date, meal_type, ingredient_id) -> IngredientLine | None`.
 
 - [ ] **Step 1: Write the failing tests** (factories from `tests/factories.py`;
@@ -511,9 +512,11 @@ def test_new_stock_reaches_shopping_lists(): # build_shopping_plan of a later ca
 ### Task 12: Docs, translations, final checks and browser review
 
 **Files:**
-- Modify: `docs/SPEC.md` (§6 recipes + kitchen, §9.1 copies, §9.4 sentence, §9.12
-  pantry count, §9.19 rewritten from the design, §13 decision 16 rewritten dated
-  2026-11-16), `docs/TODO.md` (step 5 replaced by this plan's tasks, ticked),
+- Modify: `docs/spec/kitchen.md` (fold the design in: Data, Behaviour, Acceptance;
+  D16 rewritten, dated; remove the Planned link), `docs/spec/recipes.md`
+  (`copied_from`, notes follow copies), `docs/spec/shopping.md` (pantry count),
+  `docs/spec/planning.md` (the "no shopping list" sentence), the design ("Built;
+  folded into …"), `docs/TODO.md` (step 5 marked done),
   `pages/content/` help page for kitchen mode (EN + `.nl.md`), `README.md` if it
   lists pages, `locale/nl/LC_MESSAGES/django.po` + `.mo`.
 

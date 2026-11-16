@@ -1,4 +1,4 @@
-"""Menu planner views (SPEC §9.3, §9.5)."""
+"""Menu planner views (docs/spec/planning.md)."""
 
 import datetime
 import logging
@@ -217,7 +217,7 @@ def runbook_pdf(request: HttpRequest, camp_id: int) -> HttpResponse:
 
 
 def overview_pdf(request: HttpRequest, camp_id: int) -> HttpResponse:
-    """Camp/day overview with scaled quantities per meal (SPEC §9.5)."""
+    """Camp/day overview with scaled quantities per meal (docs/spec/planning.md)."""
     camp = get_camp(request, camp_id)
     grid = _build_grid(camp, with_recipe_details=True)
     for row in grid:

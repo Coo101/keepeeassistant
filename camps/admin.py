@@ -12,7 +12,7 @@ class CampGroupInline(admin.TabularInline):
 @admin.register(Camp)
 class CampAdmin(admin.ModelAdmin):
     inlines = [CampGroupInline]
-    # Set from the groups (SPEC §9.3).
+    # Set from the groups (docs/spec/planning.md).
     readonly_fields = ["num_children", "num_teens", "num_staff"]
     list_display = [
         "name",

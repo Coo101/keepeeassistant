@@ -1,4 +1,4 @@
-"""Recipes: list, one-pager with scaling, PDF, edit and copy (SPEC §9.1)."""
+"""Recipes: list, one-pager with scaling, PDF, edit and copy (docs/spec/recipes.md)."""
 
 import logging
 from decimal import Decimal, InvalidOperation

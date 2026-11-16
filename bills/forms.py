@@ -1,4 +1,4 @@
-"""Forms for uploading and reviewing bills (SPEC §9.10)."""
+"""Forms for uploading and reviewing bills (docs/spec/finance.md)."""
 
 from pathlib import Path
 

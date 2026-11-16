@@ -1,4 +1,4 @@
-"""Camp pages: overview, create, edit and delete (SPEC §9.3)."""
+"""Camp pages: overview, create, edit and delete (docs/spec/planning.md)."""
 
 import logging
 

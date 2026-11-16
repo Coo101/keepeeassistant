@@ -1,4 +1,4 @@
-"""Bills and what a camp actually paid (SPEC §9.10)."""
+"""Bills and what a camp actually paid (docs/spec/finance.md)."""
 
 import uuid
 from decimal import Decimal

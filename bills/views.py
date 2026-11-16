@@ -1,4 +1,4 @@
-"""Bills per camp: upload, review and what was paid (SPEC §9.10)."""
+"""Bills per camp: upload, review and what was paid (docs/spec/finance.md)."""
 
 import logging
 

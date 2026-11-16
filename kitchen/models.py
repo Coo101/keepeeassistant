@@ -1,4 +1,5 @@
-"""Kitchen utilities: what a Chiro owns, and what a camp needs (SPEC §9.15)."""
+"""Kitchen utilities: what a Chiro owns, and what a camp needs
+(docs/spec/kitchen.md)."""
 
 from django.core.validators import MinValueValidator
 from django.db import models

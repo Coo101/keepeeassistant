@@ -1,4 +1,4 @@
-"""Recipe list and one-pager views (SPEC §9.1)."""
+"""Recipe list and one-pager views (docs/spec/recipes.md)."""
 
 import pytest
 from django.urls import reverse

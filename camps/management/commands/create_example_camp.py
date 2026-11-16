@@ -1,4 +1,4 @@
-"""Create the example camp everyone can look at (SPEC §9.16).
+"""Create the example camp everyone can look at (docs/spec/accounts.md).
 
 It uses the recipes already in the database; everything else is made up: dates,
 headcount, contacts, stock, shopping days and bills. Run it again with --reset to

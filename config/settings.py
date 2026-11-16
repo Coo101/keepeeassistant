@@ -248,7 +248,7 @@ CLIENT_IP_HEADER = os.environ.get("DJANGO_CLIENT_IP_HEADER", "")
 if _env_flag("DJANGO_BEHIND_TLS_PROXY"):
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-# Logging (SPEC §10: Python logging, no print)
+# Logging (docs/SPEC.md: Python logging, no print)
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

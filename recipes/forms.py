@@ -1,4 +1,4 @@
-"""Forms for recipes and ingredients (SPEC §9.1, §9.6)."""
+"""Forms for recipes and ingredients (docs/spec/recipes.md)."""
 
 from django import forms
 from django.core.exceptions import ValidationError

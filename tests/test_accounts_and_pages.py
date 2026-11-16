@@ -1,4 +1,4 @@
-"""Accounts, invitations and the public pages (SPEC §9.8, §9.9)."""
+"""Accounts, invitations and the public pages (docs/spec/accounts.md)."""
 
 import datetime
 import re

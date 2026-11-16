@@ -1,4 +1,4 @@
-"""Bills: upload, reading, review, prices and access (SPEC §9.10)."""
+"""Bills: upload, reading, review, prices and access (docs/spec/finance.md)."""
 
 import datetime
 import io

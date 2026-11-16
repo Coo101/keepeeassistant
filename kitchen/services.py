@@ -1,4 +1,4 @@
-"""Comparing a camp's needs with its Chiro's stock (SPEC §9.15)."""
+"""Comparing a camp's needs with its Chiro's stock (docs/spec/kitchen.md)."""
 
 from decimal import ROUND_HALF_UP, Decimal
 

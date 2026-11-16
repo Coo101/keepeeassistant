@@ -1,4 +1,4 @@
-"""News posts on the public site (SPEC §9.9)."""
+"""News posts on the public site (docs/spec/accounts.md)."""
 
 from django.db import models
 from django.utils import timezone

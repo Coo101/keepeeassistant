@@ -1,7 +1,7 @@
 # Vendored frontend libraries
 
 Served from here instead of a CDN, because camp sites can have poor connectivity
-(SPEC §12). Copied from the npm packages, unchanged; the tarballs were checked
+(docs/SPEC.md, UI). Copied from the npm packages, unchanged; the tarballs were checked
 against the registry's sha512.
 
 | Library | Version | Files |
