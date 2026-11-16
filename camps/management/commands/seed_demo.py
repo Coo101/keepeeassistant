@@ -1,16 +1,19 @@
-"""Seed demo data: a dev admin, ingredients, recipes, a camp with a planned
-menu and shopping trips. Idempotent — safe to run twice."""
+"""Seed demo data: a dev admin and a plain member, ingredients, recipes, a camp
+with a planned menu and shopping trips. Idempotent — safe to run twice."""
 
 import datetime
 import logging
 from decimal import Decimal
 from typing import Any
 
+from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
-from camps.models import Camp
+from accounts.models import Chiro, Membership, Role
+from camps.models import Camp, CampGroup
 from core.constants import Course, DishType, IngredientCategory, MealType, Unit
+from kitchen.models import CampUtensil, Utensil
 from planning.models import MenuEntry
 from recipes.models import Ingredient, Recipe, RecipeIngredient, RecipeStep
 from shopping.models import ShoppingTrip
@@ -188,13 +191,38 @@ RECIPES: list[dict[str, Any]] = [
 ]
 
 
+UTENSILS = [("Large pot (50 L)", 3), ("Fire pit", 2), ("Gas burner", 2), ("Ladle", 4)]
+CAMP_UTENSILS = [("Large pot (50 L)", 5), ("Fire pit", 2), ("Ladle", 4)]
+
+
 class Command(BaseCommand):
-    help = "Seed demo data (dev admin, ingredients, recipes, one planned camp)."
+    help = (
+        "Seed demo data (dev admin and member, ingredients, recipes, one planned camp)."
+    )
 
     def handle(self, *args: Any, **options: Any) -> None:
+        if not settings.DEBUG:
+            raise CommandError(
+                "seed_demo creates the logins admin/admin and member/member, so it "
+                "only runs with DJANGO_DEBUG=1."
+            )
         if not User.objects.filter(username="admin").exists():
             User.objects.create_superuser("admin", password="admin")
             self.stdout.write("Created dev superuser admin/admin — change it!")
+        chiro, _ = Chiro.objects.get_or_create(name="Demo Chiro")
+        Membership.objects.get_or_create(
+            user=User.objects.get(username="admin"),
+            chiro=chiro,
+            defaults={"role": Role.ADMIN},
+        )
+        if not User.objects.filter(username="member").exists():
+            User.objects.create_user("member", password="member")
+            self.stdout.write("Created dev login member/member (plain member).")
+        Membership.objects.get_or_create(
+            user=User.objects.get(username="member"),
+            chiro=chiro,
+            defaults={"role": Role.MEMBER},
+        )
 
         for name, unit, category in INGREDIENTS:
             Ingredient.objects.get_or_create(
@@ -233,14 +261,26 @@ class Command(BaseCommand):
         camp, created = Camp.objects.get_or_create(
             name="Summer Camp 2026",
             defaults={
+                "chiro": chiro,
                 "start_date": start,
                 "end_date": start + datetime.timedelta(days=6),
-                "num_children": 28,
-                "num_teens": 26,
-                "num_staff": 9,
             },
         )
         if created:
+            CampGroup.objects.bulk_create(
+                CampGroup(camp=camp, name=name, kind=kind, count=count)
+                for name, kind, count in [
+                    ("Ribbels", CampGroup.Kind.CHILDREN, 9),
+                    ("Speelclub", CampGroup.Kind.CHILDREN, 9),
+                    ("Rakwi's", CampGroup.Kind.CHILDREN, 10),
+                    ("Tito's", CampGroup.Kind.TEENS, 9),
+                    ("Keti's", CampGroup.Kind.TEENS, 9),
+                    ("Aspi's", CampGroup.Kind.TEENS, 8),
+                    ("Leiding", CampGroup.Kind.STAFF, 6),
+                    ("Kookploeg", CampGroup.Kind.STAFF, 3),
+                ]
+            )
+            camp.update_headcount()
             menu = {
                 (MealType.BREAKFAST, ""): ["Porridge with apples", "Bread breakfast"],
                 (MealType.LUNCH, Course.SOUP): ["Tomato soup", "Lentil soup"],
@@ -268,6 +308,18 @@ class Command(BaseCommand):
                     entry.save()
             for trip_day in [start - datetime.timedelta(days=1), camp.days[2]]:
                 ShoppingTrip.objects.get_or_create(camp=camp, date=trip_day)
+
+        # The Chiro's kitchen stock, and a camp that needs more pots than it has.
+        for name, in_stock in UTENSILS:
+            Utensil.objects.get_or_create(
+                chiro=chiro, name=name, defaults={"in_stock": in_stock}
+            )
+        for name, needed in CAMP_UTENSILS:
+            CampUtensil.objects.get_or_create(
+                camp=camp,
+                utensil=Utensil.objects.get(chiro=chiro, name=name),
+                defaults={"needed": needed},
+            )
 
         logger.info("Demo data seeded")
         self.stdout.write(self.style.SUCCESS("Demo data ready."))

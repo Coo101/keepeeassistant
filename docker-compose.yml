@@ -2,14 +2,29 @@ services:
   web:
     build: .
     ports:
-      - "8000:8000"
+      - "8010:8000"
+    # Secrets and host config come from .env (see .env.example)
+    env_file:
+      - .env
     environment:
-      # Generate your own: python -c "import secrets; print(secrets.token_urlsafe(50))"
-      DJANGO_SECRET_KEY: "change-me-to-a-long-random-string"
-      # Hostnames/IPs the app may be reached on (comma-separated)
-      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1"
-      # Add e.g. https://meals.example.com when serving behind a proxy/domain
-      DJANGO_CSRF_TRUSTED_ORIGINS: ""
+      # Overrides env_file: never inherit a developer's DJANGO_DEBUG=1.
+      DJANGO_DEBUG: "0"
+    volumes:
+      - campdata:/data
+    restart: unless-stopped
+
+  # Reads scans and photos of bills through Ollama whenever it's reachable.
+  bill-reader:
+    build: .
+    command: python manage.py read_bills --loop
+    env_file:
+      - .env
+    environment:
+      DJANGO_DEBUG: "0"
+      # localhost would be this container; the PC's address goes here.
+      OLLAMA_URL: ${OLLAMA_URL_FROM_DOCKER:-http://host.docker.internal:11434}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - campdata:/data
     restart: unless-stopped

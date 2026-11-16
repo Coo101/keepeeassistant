@@ -1,18 +1,62 @@
-{% load static %}<!DOCTYPE html>
-<html lang="en">
+{% load static i18n assets %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}" data-bs-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Camp Meal Planner{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <title>{% block title %}{% translate "Camp Meal Planner" %}{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'vendor/bootstrap-icons/bootstrap-icons.min.css' %}">
+  <link rel="stylesheet" href="{% asset 'css/app.css' %}">
 </head>
-<body>
-<header>
-  <a class="brand" href="{% url 'camp_list' %}">🏕️ Camp Meal Planner</a>
-  <a href="/admin/">Admin</a>
-</header>
-<main>
-{% block content %}{% endblock %}
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+{% url 'camp_list' as camps_url %}{% url 'recipe_list' as recipes_url %}{% url 'ingredient_list' as ingredients_url %}
+<nav class="navbar navbar-expand-lg navbar-chiro" data-bs-theme="dark">
+  <div class="container">
+    <a class="navbar-brand" href="{% url 'home' %}"><i class="bi bi-egg-fried me-2" aria-hidden="true"></i>{% translate "Camp Meal Planner" %}</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#main-nav" aria-controls="main-nav" aria-expanded="false" aria-label="{% translate 'Menu' %}">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="main-nav">
+      <ul class="navbar-nav me-auto">
+        {% if user.is_authenticated %}
+        <li class="nav-item"><a class="nav-link" href="{{ camps_url }}"{% if request.path|slice:":7" == camps_url %} aria-current="page"{% endif %}>{% translate "Camps" %}</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ recipes_url }}"{% if request.path|slice:":9" == recipes_url %} aria-current="page"{% endif %}>{% translate "Recipes" %}</a></li>
+        <li class="nav-item"><a class="nav-link" href="{{ ingredients_url }}"{% if request.path|slice:":13" == ingredients_url %} aria-current="page"{% endif %}>{% translate "Ingredients" %}</a></li>
+        {% endif %}
+        <li class="nav-item"><a class="nav-link" href="{% url 'post_list' %}"{% if request.resolver_match.url_name == 'post_list' or request.resolver_match.url_name == 'post_detail' %} aria-current="page"{% endif %}>{% translate "News" %}</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'doc' 'getting-started' %}"{% if request.resolver_match.url_name == 'doc' %} aria-current="page"{% endif %}>{% translate "Docs" %}</a></li>
+        {% if user.is_staff %}
+        <li class="nav-item"><a class="nav-link" href="/admin/">{% translate "Admin" %}</a></li>
+        {% endif %}
+      </ul>
+      <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-2">
+        <form method="post" action="{% url 'set_language' %}" class="d-flex gap-2">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          {% get_language_info_list for LANGUAGES as languages %}
+          {% for language in languages %}
+          <button class="nav-link px-3{% if language.code == LANGUAGE_CODE %} fw-bold{% endif %}" type="submit" name="language" value="{{ language.code }}" lang="{{ language.code }}" title="{{ language.name_local }}" aria-label="{{ language.name_local }}"{% if language.code == LANGUAGE_CODE %} aria-current="true"{% endif %}>{{ language.code|upper }}</button>
+          {% endfor %}
+        </form>
+        {% if user.is_authenticated %}
+        <a class="nav-link" href="{% url 'account' %}">{{ user.get_username }}</a>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button class="nav-link" type="submit">{% translate "Log out" %}</button>
+        </form>
+        {% else %}
+        <a class="nav-link" href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">{% translate "Log in" %}</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</nav>
+<main class="container py-4">
+  {% include "components/messages.html" %}
+  {% block content %}{% endblock %}
 </main>
+<script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'vendor/htmx/htmx.min.js' %}"></script>
+{% block scripts %}{% endblock %}
 </body>
 </html>

@@ -1,0 +1,11 @@
+{% comment %}
+{% include "components/form_errors.html" with form=form formset=groups %}
+A summary above the form; crispy shows each error under its field.
+{% endcomment %}
+{% load i18n %}{% if form.errors or formset.total_error_count %}
+<div class="alert alert-danger" role="alert">
+  <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+  {% translate "Some fields need your attention; see below." %}
+  {% if form.non_field_errors %}<ul class="mb-0 mt-2">{% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+</div>
+{% endif %}

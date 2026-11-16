@@ -1,6 +1,7 @@
-"""Forms for the menu planner (SPEC §9.3)."""
+"""Forms for the menu planner (docs/spec/planning.md)."""
 
 from django import forms
+from django.utils.translation import gettext_lazy as _
 
 from core.constants import allowed_dish_types
 from recipes.models import Recipe
@@ -11,8 +12,9 @@ class SlotForm(forms.Form):
 
     recipe = forms.ModelChoiceField(
         queryset=Recipe.objects.none(),
+        label=_("Recipe"),
         required=False,
-        empty_label="— no recipe (clear slot) —",
+        empty_label=_("— no recipe (clear slot) —"),
     )
 
     def __init__(self, *args, meal_type: str, course: str, **kwargs) -> None:

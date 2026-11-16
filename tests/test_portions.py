@@ -1,4 +1,4 @@
-"""Portion maths and rounding (SPEC §4, §7)."""
+"""Portion maths and rounding (docs/spec/planning.md)."""
 
 from decimal import Decimal
 
@@ -37,6 +37,22 @@ def test_round_kg_one_decimal() -> None:
 
 def test_round_liter_one_decimal() -> None:
     assert round_quantity(Decimal("0.44"), Unit.LITER) == Decimal("0.4")
+
+
+@pytest.mark.parametrize(
+    ("quantity", "unit", "expected"),
+    [
+        ("0.04", Unit.KG, "0.1"),
+        ("0.001", Unit.LITER, "0.1"),
+        ("0.4", Unit.PIECE, "1"),
+    ],
+)
+def test_small_quantities_never_round_to_zero(quantity, unit, expected) -> None:
+    assert round_quantity(Decimal(quantity), unit) == Decimal(expected)
+
+
+def test_zero_stays_zero() -> None:
+    assert round_quantity(Decimal("0"), Unit.KG) == 0
 
 
 def test_round_piece_whole() -> None:

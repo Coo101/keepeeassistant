@@ -1,1 +1,0 @@
-Build per docs/SPEC.md. Follow §10 for style/testing. Build order: models (§6) → admin CRUD → menu planner (§9.3) → shopping lists (§9.4) → PDF export (§9.5).

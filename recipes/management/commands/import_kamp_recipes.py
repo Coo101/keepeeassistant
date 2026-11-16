@@ -51,6 +51,7 @@ INGREDIENTS: dict[str, tuple[str, str]] = {
     "Komkommer": (P, PRODUCE),
     "Tomaat": (P, PRODUCE),
     "Kersttomaten": (KG, PRODUCE),
+    "Rijpe tomaten": (KG, PRODUCE),
     "Sla (krop)": (P, PRODUCE),
     "IJsbergsla (krop)": (P, PRODUCE),
     "Paprika": (KG, PRODUCE),
@@ -73,6 +74,7 @@ INGREDIENTS: dict[str, tuple[str, str]] = {
     "Kruidenkaas (potje)": (P, DAIRY),
     "Eieren": (P, DAIRY),
     "Yoghurt": (KG, DAIRY),
+    "Room (culinair)": (L, DAIRY),
     "Vanille-ijs": (L, DAIRY),
     "Spuitwater": (L, OTHER),
     # Meat & fish
@@ -84,6 +86,8 @@ INGREDIENTS: dict[str, tuple[str, str]] = {
     "Pitavlees": (KG, MEAT),
     "Stoofvlees": (KG, MEAT),
     "BBQ-vlees (pak)": (P, MEAT),
+    "Chipolata": (P, MEAT),
+    "Baksaucis": (P, MEAT),
     "Hamburgers": (P, MEAT),
     "Kipschnitzel": (P, MEAT),
     "Visburgers (groot)": (P, MEAT),
@@ -122,6 +126,8 @@ INGREDIENTS: dict[str, tuple[str, str]] = {
     "Passata": (L, DRY),
     "Kippenbouillon": (L, DRY),
     "Groentenbouillon": (L, DRY),
+    "Vleesbouillon": (L, DRY),
+    "Erwten (diepvries)": (KG, PRODUCE),
     "Tuinkruidenbouillon (blokje)": (P, DRY),
     "Gele pudding (zakje)": (P, DRY),
     "Chocomousse (zak)": (P, DRY),
@@ -168,6 +174,19 @@ RECIPES: list[dict[str, Any]] = [
             ("Suiker", "0.3"),
             ("Koffie (gemalen)", "0.2"),
         ],
+        "steps": [
+            (
+                "Melk opwarmen; chocomelk aanmaken met cacaopoeder en "
+                "suiker; koffie zetten.",
+                20,
+            ),
+            ("Brood snijden en in manden verdelen.", 15),
+            (
+                "Afdelingsbakken klaarzetten: boter, choco, confituur, "
+                "smeerkaas en al het gerief per bak.",
+                15,
+            ),
+        ],
         "notes": "Afgeleid uit aankopen Klein Kamp (58 pers. ~ 50 porties, "
         "~10 melk/beleg-maaltijden per kamp), geschaald naar 71 pers. "
         "Boter/choco/confituur/suiker/koffie: schatting volgens richtlijnen "
@@ -176,18 +195,39 @@ RECIPES: list[dict[str, Any]] = [
     {
         "name": "Beleg (kaas, hesp, saucis)",
         "dish_type": DishType.BREAD_MEAL_EXTRA,
+        "steps": [
+            (
+                "Kaas, hesp en saucis openen/snijden en verdelen over de "
+                "afdelingsbakken.",
+                10,
+            ),
+        ],
         "notes": "Extra bij standaardontbijt; hoeveelheden nog aan te vullen.",
     },
     {
         "name": "Cornflakes",
         "dish_type": DishType.BREAD_MEAL_EXTRA,
         "ingredients": [("Cornflakes (doos)", "8")],
+        "steps": [
+            (
+                "Cornflakes, yoghurtpotjes en (koud gezet) fruitsap "
+                "verdelen over de afdelingsbakken.",
+                10,
+            ),
+        ],
         "notes": "Extra bij standaardontbijt. Ook: fruitsap en yoghurtpotjes "
         "(aantallen aan te vullen).",
     },
     {
         "name": "Speculaas & hagelslag",
         "dish_type": DishType.BREAD_MEAL_EXTRA,
+        "steps": [
+            (
+                "Hagelslag in confituurpotten met lepel; samen met de "
+                "speculaas verdelen over de afdelingsbakken.",
+                10,
+            ),
+        ],
         "notes": "Extra bij standaardontbijt; hagelslag in confituurpotten "
         "+ lepel. Hoeveelheden nog aan te vullen.",
     },
@@ -195,6 +235,10 @@ RECIPES: list[dict[str, Any]] = [
         "name": "Eieren (ontbijt)",
         "dish_type": DishType.BREAD_MEAL_EXTRA,
         "ingredients": [("Eieren", "130")],
+        "steps": [
+            ("Eieren hard koken of in porties bakken.", 30),
+            ("Met kaas en hesp verdelen over de afdelingsbakken.", 10),
+        ],
         "notes": "Extra bij standaardontbijt, met kaas en hesp.",
     },
     {
@@ -209,6 +253,20 @@ RECIPES: list[dict[str, Any]] = [
             ("Melk", "1.8"),
             ("Fruitsla (diepvries)", "1"),
         ],
+        "steps": [
+            (
+                "Pancakebeslag maken: bloem, bakpoeder en suiker mengen; "
+                "eieren en melk erdoor kloppen.",
+                20,
+            ),
+            ("American pancakes in porties bakken en warmhouden.", 45),
+            ("Spek krokant bakken; roereieren bakken.", 40),
+            (
+                "Buffet klaarzetten: yoghurt, fruitsla, beleg, speculaas en " "siroop.",
+                20,
+            ),
+            ("Afdelingsbakken klaarzetten met al het gerief.", 15),
+        ],
         "notes": STANDARD_BREAKFAST_NOTE
         + " Brunch-extra's: speculaas, kaas en hesp, salami, hagelslag, "
         "yoghurtpotjes, American pancakes (bloem/bakpoeder/melk/12 eieren "
@@ -218,6 +276,10 @@ RECIPES: list[dict[str, Any]] = [
     {
         "name": "Spek & ei",
         "dish_type": DishType.BREAD_MEAL_EXTRA,
+        "steps": [
+            ("Spek krokant bakken; eieren in porties bakken.", 40),
+            ("Verdelen over de afdelingsbakken.", 10),
+        ],
         "notes": "Extra bij standaardontbijt. Uit menu 2026; hoeveelheden "
         "nog aan te vullen.",
     },
@@ -233,13 +295,21 @@ RECIPES: list[dict[str, Any]] = [
             ("Spek", "3"),
         ],
         "steps": [
-            ("2 ketels water koken.", 15),
-            ("Uien schillen en in grote stukken snijden; boter in ketel smelten.", 15),
-            ("Ajuin stoven, courgette afbakken.", 15),
-            ("Aardappelen in blokjes snijden en toevoegen met de courgettes.", 10),
-            ("Bouillon smelten in kom en toevoegen.", 5),
-            ("Als groenten gaar zijn: soep mixen, heet water toevoegen tot 11 l.", 15),
-            ("Proeven en bijkruiden met peper en zout.", 5),
+            (
+                "Spek in reepjes snijden en krokant uitbakken; een deel apart "
+                "houden als garnituur.",
+                15,
+            ),
+            ("Ajuin schillen, grof snijden en stoven in het spekvet.", 15),
+            ("Courgette in stukken snijden en kort meebakken.", 15),
+            ("Aardappelen in blokjes snijden en toevoegen.", 10),
+            ("Kippenbouillon toevoegen en alles gaar koken.", 20),
+            ("Soep mixen en aanlengen met heet water tot 11 l.", 10),
+            (
+                "Proeven, bijkruiden met peper en zout; krokante spekjes er "
+                "bovenop bij het serveren.",
+                5,
+            ),
         ],
         "notes": "11 liter soep voor 71 personen.",
         "source": "2025 dag 1",
@@ -248,23 +318,29 @@ RECIPES: list[dict[str, Any]] = [
         "name": "Preisoep",
         "dish_type": DishType.SOUP,
         "ingredients": [
-            ("Ajuin", "0.5"),
-            ("Selder (struik)", "1"),
+            ("Ajuin", "1.1"),
+            ("Selder (struik)", "1.5"),
             ("Prei (stronk)", "6"),
-            ("Wortelen", "1"),
+            ("Wortelen", "1.6"),
             ("Aardappelen", "1"),
+            ("Look (teen)", "6"),
             ("Witte bonen (bokaal)", "3"),
             ("Soepdiertjes", "1"),
-            ("Groentenbouillon", "5.5"),
         ],
         "steps": [
+            (
+                "Verse bouillon: wortelen, ajuin, selder en look grof snijden, "
+                "aanstoven en met 5,5 l water 30 min zachtjes laten trekken.",
+                40,
+            ),
             ("Prei in grote stukken snijden en goed wassen.", 15),
-            ("Ajuin schillen, grote stukken snijden en aanstoven.", 15),
-            ("Prei en aardappel toevoegen.", 5),
-            ("Bouillon smelten, soep koken en mixen.", 30),
+            ("Prei en aardappel toevoegen en gaar koken.", 20),
+            ("Soep mixen; bonen en diertjes kort meekoken.", 15),
             ("Brood in blokjes snijden en bakken in boter (croutons).", 15),
         ],
-        "notes": "11 liter soep voor 71 personen.",
+        "notes": "11 liter soep voor 71 personen. Verse groentebouillon "
+        "(per liter: 100 g wortel, 100 g ajuin, 1/10 struik selder, 1 teen "
+        "look) vervangt 5,5 l groentenbouillon en wordt meegemixt.",
         "source": "2025 dag 6",
     },
     {
@@ -294,54 +370,78 @@ RECIPES: list[dict[str, Any]] = [
         "name": "Groentesoep met diertjes",
         "dish_type": DishType.SOUP,
         "ingredients": [
-            ("Ajuin", "1"),
-            ("Selder (struik)", "2"),
+            ("Ajuin", "1.8"),
+            ("Selder (struik)", "2.8"),
             ("Prei (stronk)", "3"),
-            ("Wortelen", "2"),
+            ("Wortelen", "2.8"),
             ("Aardappelen", "1"),
+            ("Look (teen)", "8"),
             ("Witte bonen (bokaal)", "3"),
             ("Soepdiertjes", "1"),
-            ("Groentenbouillon", "8"),
         ],
         "steps": [
+            (
+                "Verse bouillon: wortelen, ajuin, selder en look grof snijden, "
+                "aanstoven en met 8 l water 30 min zachtjes laten trekken.",
+                40,
+            ),
             (
                 "Soepgroenten in kleine stukjes snijden; selderblaadjes en enkel "
                 "heel dunne steeltjes.",
                 30,
             ),
-            ("Bonen pas aan het einde toevoegen, niet mee laten doorkoken.", 5),
+            ("Groenten gaar koken in de bouillon en mixen.", 25),
+            (
+                "Diertjes ~10 min meekoken; bonen pas aan het einde toevoegen, "
+                "niet mee laten doorkoken.",
+                15,
+            ),
         ],
-        "notes": "16 liter soep voor 71 personen.",
+        "notes": "16 liter soep voor 71 personen. Verse groentebouillon "
+        "(per liter: 100 g wortel, 100 g ajuin, 1/10 struik selder, 1 teen "
+        "look) vervangt 8 l groentenbouillon en wordt meegemixt.",
         "source": "2025 dag 3",
     },
     {
         "name": "Tomatensoep met balletjes",
         "dish_type": DishType.SOUP,
         "ingredients": [
-            ("Melk", "4"),
-            ("Vloeiende bloem", "0.5"),
-            ("Tomatenpuree (blik/potje)", "8"),
-            ("Kippenbouillon", "8"),
-            ("Tuinkruidenbouillon (blokje)", "5"),
+            ("Rijpe tomaten", "14"),
             ("Ajuin", "1.5"),
+            ("Look (teen)", "8"),
+            ("Wortelen", "0.5"),
+            ("Boter", "0.2"),
+            ("Kippenbouillon", "4"),
+            ("Room (culinair)", "2"),
+            ("Suiker", "0.1"),
         ],
         "steps": [
             (
-                "Bloem met volle melk oproeren zodat de bloem weg is "
-                "(nog niet op het vuur).",
+                "Tomaten wassen en in kwarten snijden (ontvellen hoeft niet, "
+                "alles wordt gemixt).",
+                25,
+            ),
+            ("Ajuin, look en wortel fijnsnijden en aanstoven in de boter.", 15),
+            ("Tomaten toevoegen en ~10 min mee stoven tot ze loslaten.", 15),
+            ("Kippenbouillon toevoegen en 25 min zachtjes laten koken.", 25),
+            (
+                "Soep glad mixen; op smaak brengen met een snuf suiker, peper "
+                "en zout.",
                 10,
             ),
-            ("Vuur opzetten; tomatenpuree en passata toevoegen.", 10),
-            ("Water bijvoegen (12 l).", 5),
-            ("Balletjes als laatste toevoegen.", 10),
+            ("Balletjes toevoegen en laten garen.", 10),
+            ("Room erdoor roeren en niet meer laten koken.", 5),
             (
-                "Indien te lopend: soep in aparte kom met extra bloem oproeren en "
-                "terug toevoegen.",
+                "Proeven: te weinig tomatensmaak? Lepel per lepel "
+                "tomatenpuree uit de voorraad toevoegen — vers heeft "
+                "voorrang.",
                 None,
             ),
         ],
-        "notes": "16 liter soep voor 71 personen. Soepballetjes: "
-        "hoeveelheid nog aan te vullen.",
+        "notes": "16 liter soep voor 71 personen, op verse rijpe tomaten en "
+        "room (geen bloem/melk meer). Tomatenpuree staat bewust niet op de "
+        "boodschappenlijst: enkel bijsturen met voorraadpuree als de smaak "
+        "te vlak is. Soepballetjes: hoeveelheid nog aan te vullen.",
         "source": "2025 dag 5",
     },
     {
@@ -349,22 +449,199 @@ RECIPES: list[dict[str, Any]] = [
         "dish_type": DishType.SOUP,
         "ingredients": [
             ("Paprika", "4"),
-            ("Ajuin", "1.5"),
+            ("Ajuin", "2.3"),
+            ("Wortelen", "0.8"),
+            ("Selder (struik)", "0.8"),
+            ("Look (teen)", "8"),
             ("Kruidenkaas (potje)", "3"),
-            ("Tuinkruidenbouillon (blokje)", "36"),
-            ("Groentenbouillon", "8"),
             ("Tomatenpuree (blik/potje)", "4"),
         ],
+        "steps": [
+            (
+                "Verse bouillon: wortelen, ajuin, selder en look grof snijden, "
+                "aanstoven en met 8 l water 30 min zachtjes laten trekken.",
+                40,
+            ),
+            (
+                "Paprika's snijden en aanstoven; tomatenpuree kort meebakken.",
+                20,
+            ),
+            ("Alles gaar koken in de bouillon, kruidenkaas toevoegen en mixen.", 25),
+            ("Afwerken met paprikapoeder, peper en zout.", 5),
+        ],
         "notes": "16 liter soep voor 71 personen. 20 rode paprika's ≈ 4 kg. "
-        "Extra: paprikapoeder (potje).",
+        "Verse groentebouillon (per liter: 100 g wortel, 100 g ajuin, 1/10 "
+        "struik selder, 1 teen look) vervangt 8 l groentenbouillon én de 36 "
+        "tuinkruidenblokjes. Extra: paprikapoeder (potje).",
         "source": "2025 dag 8",
+    },
+    {
+        "name": "Heldere zomergroentesoep",
+        "dish_type": DishType.SOUP,
+        "ingredients": [
+            ("Wortelen", "3.1"),
+            ("Ajuin", "1.6"),
+            ("Selder (struik)", "1.6"),
+            ("Look (teen)", "16"),
+            ("Courgette", "3"),
+            ("Prei (stronk)", "2"),
+            ("Kersttomaten", "1.5"),
+            ("Erwtjes (potje)", "2"),
+            ("Verse peterselie (bussel)", "1"),
+        ],
+        "steps": [
+            (
+                "Verse bouillon: wortelen (1,6 kg), ajuin, selder en look grof "
+                "snijden, aanstoven en met 16 l water 45 min zachtjes laten "
+                "trekken.",
+                55,
+            ),
+            ("Bouillon zeven zodat hij helder blijft.", 10),
+            (
+                "Courgette, resterende wortelen (1,5 kg) en prei in fijne "
+                "brunoise snijden.",
+                30,
+            ),
+            (
+                "Brunoise beetgaar koken in de heldere bouillon; erwtjes en "
+                "gehalveerde kerstomaten de laatste minuten toevoegen.",
+                15,
+            ),
+            ("Afwerken met verse peterselie, peper en zout.", 5),
+        ],
+        "notes": "Heldere (niet-gemixte) frisse zomersoep op verse "
+        "groentebouillon. 16 liter voor 71 personen.",
     },
     {
         "name": "Komkommersoep (koud)",
         "dish_type": DishType.SOUP,
-        "ingredients": [("Komkommer", "24")],
-        "notes": "Koud serveren; verdere ingrediënten nog aan te vullen.",
+        "ingredients": [
+            ("Komkommer", "24"),
+            ("Yoghurt", "3"),
+            ("Look (teen)", "4"),
+        ],
+        "steps": [
+            ("Komkommers wassen, schillen en zaadlijsten verwijderen.", 20),
+            (
+                "Komkommers grof snijden en glad mixen met de yoghurt en de " "look.",
+                15,
+            ),
+            (
+                "Op smaak brengen met peper, zout en (optioneel) verse munt "
+                "of dille.",
+                5,
+            ),
+            ("Minstens 2 uur goed koud zetten en koud serveren.", None),
+        ],
+        "notes": "Koude gemixte zomersoep. Yoghurt en look zijn een "
+        "schatting — nazicht gewenst; verse munt of dille apart voorzien.",
         "source": "2025 dag 10",
+    },
+    {
+        "name": "Minestrone op vleesbouillon",
+        "dish_type": DishType.SOUP,
+        "ingredients": [
+            ("Vleesbouillon", "6"),
+            ("Ajuin", "1"),
+            ("Look (teen)", "8"),
+            ("Wortelen", "1.5"),
+            ("Courgette", "3"),
+            ("Selder (struik)", "1"),
+            ("Kersttomaten", "1.5"),
+            ("Tomatenpuree (blik/potje)", "2"),
+            ("Witte bonen (bokaal)", "3"),
+            ("Soepdiertjes", "1"),
+            ("Verse peterselie (bussel)", "1"),
+        ],
+        "steps": [
+            (
+                "Bewaard kookvocht van de balletjes opkoken en aanvullen met "
+                "vleesbouillon/water tot 12 l.",
+                15,
+            ),
+            (
+                "Ajuin, look, selder en wortelen fijnsnijden en aanstoven; "
+                "tomatenpuree kort meebakken.",
+                25,
+            ),
+            (
+                "Groenten zacht laten koken in de bouillon; courgette in "
+                "blokjes en gehalveerde kerstomaten toevoegen.",
+                20,
+            ),
+            ("Soepdiertjes ~10 min meekoken; bonen op het einde toevoegen.", 15),
+            ("Niet mixen; afwerken met peterselie, peper en zout.", 5),
+        ],
+        "notes": "16 liter voor 71 personen. Basis: het gezeefde kookvocht van "
+        "'Balletjes in tomatensaus met puree' (plan die de dag ervoor); "
+        "aanvullen met vleesbouillon. Niet mixen — dit is naast de "
+        "kippensoep een tweede heldere soep.",
+    },
+    {
+        "name": "Zomerse erwtensoep met spek",
+        "dish_type": DishType.SOUP,
+        "ingredients": [
+            ("Erwten (diepvries)", "4"),
+            ("Spek", "1.5"),
+            ("Ajuin", "1"),
+            ("Look (teen)", "6"),
+            ("Prei (stronk)", "2"),
+            ("Aardappelen", "1"),
+            ("Vleesbouillon", "5.5"),
+        ],
+        "steps": [
+            ("Spek uitbakken; ajuin, look en prei toevoegen en aanstoven.", 20),
+            (
+                "Aardappelen in blokjes en de bouillon (of balletjes-kookvocht) "
+                "toevoegen; gaar koken.",
+                25,
+            ),
+            (
+                "Erwten toevoegen en maar 5 min meekoken, zo blijft de soep "
+                "frisgroen.",
+                10,
+            ),
+            (
+                "Mixen; proeven en bijkruiden; een deel krokante spekjes als "
+                "garnituur bovenop.",
+                10,
+            ),
+        ],
+        "notes": "11 liter voor 71 personen. Frisgroene gemixte zomersoep op "
+        "varkens-/vleesbouillon; het balletjes-kookvocht mag de bouillon "
+        "(deels) vervangen.",
+    },
+    {
+        "name": "Ajuinsoep op rundsbouillon",
+        "dish_type": DishType.SOUP,
+        "ingredients": [
+            ("Ajuin", "5"),
+            ("Boter", "0.3"),
+            ("Look (teen)", "6"),
+            ("Vleesbouillon", "8"),
+            ("Wit brood", "2"),
+            ("Geraspte kaas", "1"),
+        ],
+        "steps": [
+            (
+                "Ajuin in halve ringen snijden en heel traag goudbruin stoven "
+                "in de boter (niet laten aanbranden).",
+                45,
+            ),
+            (
+                "Look toevoegen; bouillon (of balletjes-kookvocht) toevoegen "
+                "en 20 min zacht laten koken.",
+                25,
+            ),
+            ("Brood in blokjes bakken tot croutons.", 15),
+            (
+                "Serveren met croutons en geraspte kaas; desgewenst mixen "
+                "voor de kleinsten.",
+                10,
+            ),
+        ],
+        "notes": "11 liter voor 71 personen. Rundsbouillon of het kookvocht "
+        "van de balletjes als basis.",
     },
     # ---------- Middag (hoofdgerechten) ----------
     {
@@ -380,7 +657,18 @@ RECIPES: list[dict[str, Any]] = [
             ("Aardappelen schillen met dunschiller.", 45),
             ("Aardappelen opzetten en gaar laten koken.", 30),
             ("Ajuin snijden en aanstoven.", 15),
-            ("Gehaktballen langzaam opwarmen, bijkruiden met peper en zout.", 30),
+            (
+                "Balletjes rollen van het gehakt en gaar koken in licht "
+                "gezouten water; daarna in de tomatensaus opwarmen met een "
+                "paar blaadjes laurier en wat oregano; bijkruiden met peper "
+                "en zout.",
+                45,
+            ),
+            (
+                "Kookvocht van de balletjes zeven en in de koelkast bewaren "
+                "als verse vleesbouillon voor de soep (cf. kippensoep).",
+                10,
+            ),
             (
                 "Melk en boter opwarmen met nootmuskaat/peper/zout; eieren "
                 "loskloppen; aardappelen stoempen met het mengsel.",
@@ -388,7 +676,9 @@ RECIPES: list[dict[str, Any]] = [
             ),
         ],
         "notes": "Puree-extra's (melk, ei, boter, nootmuskaat): hoeveelheden "
-        "nog aan te vullen. 5 uien ≈ 0.8 kg.",
+        "nog aan te vullen. 5 uien ≈ 0.8 kg. Het gezeefde kookvocht van de "
+        "balletjes is de basis voor de vleesbouillonsoepen (minestrone, "
+        "erwtensoep, ajuinsoep) — plan die er de dag na.",
         "source": "2025 dag 2",
     },
     {
@@ -403,6 +693,26 @@ RECIPES: list[dict[str, Any]] = [
             ("Mayonaise", "1"),
             ("Sjalot", "2"),
             ("Verse peterselie (bussel)", "1"),
+        ],
+        "steps": [
+            ("Aardappelen schillen en gaar koken.", 45),
+            (
+                "Tartaarsaus: sjalot, peterselie en bieslook fijnsnijden en "
+                "onder de mayonaise mengen met een scheut citroensap; koud "
+                "zetten.",
+                15,
+            ),
+            ("Spinazie laten ontdooien en het vocht goed laten uitdampen.", 20),
+            (
+                "Aardappelen stoempen met de boter en wat melk; kruiden met "
+                "nootmuskaat, peper en zout; spinazie eronder mengen.",
+                25,
+            ),
+            (
+                "Visburgers in porties bakken en warmhouden in de oven; "
+                "serveren met citroen en tartaar.",
+                30,
+            ),
         ],
         "notes": "Tartaarsaus = mayonaise + sjalot + peterselie + bieslook. "
         "Puree-extra's (melk, ei, nootmuskaat) nog aan te vullen. "
@@ -421,7 +731,26 @@ RECIPES: list[dict[str, Any]] = [
             ("Wortelen", "1.5"),
             ("Witte kool", "0.5"),
         ],
-        "notes": "Paprika's grillen. Looksaus nog aan te vullen.",
+        "steps": [
+            ("Paprika's in reepjes snijden en grillen.", 20),
+            (
+                "IJsbergsla in reepjes, wortelen raspen, witte kool "
+                "fijnschaven, kerstomaten halveren.",
+                30,
+            ),
+            (
+                "Kipschnitzels bakken en in reepjes snijden; kruiden met "
+                "paprikapoeder en kippenkruiden.",
+                30,
+            ),
+            (
+                "Wraps kort opwarmen; alles in schalen op tafel zetten en "
+                "zelf laten vullen met looksaus.",
+                15,
+            ),
+        ],
+        "notes": "Paprika's grillen. Looksaus nog aan te vullen. Kruiden uit "
+        "de voorraad.",
         "source": "2026 dag 3",
     },
     {
@@ -438,6 +767,27 @@ RECIPES: list[dict[str, Any]] = [
             ("Look (teen)", "9"),
             ("Tomatenpuree (blik/potje)", "1"),
             ("Mexicaanse kruiden", "0.2"),
+        ],
+        "steps": [
+            (
+                "Ajuin en look snipperen en aanstoven; gehakt toevoegen en "
+                "rul bakken.",
+                20,
+            ),
+            (
+                "Paprika in blokjes meebakken; tomatenpuree kort meebakken.",
+                10,
+            ),
+            (
+                "Passata, rode bonen, mais en Mexicaanse kruiden toevoegen; "
+                "15 min laten sudderen en bijkruiden met peper en zout.",
+                20,
+            ),
+            (
+                "Wraps kort opwarmen en vullen; eventueel oprollen in "
+                "aluminiumfolie om warm te houden.",
+                15,
+            ),
         ],
         "notes": "Tomatenpuree: 500 g. Look: 8 à 10 teentjes naar smaak.",
         "source": "2026 dag 3",
@@ -459,18 +809,25 @@ RECIPES: list[dict[str, Any]] = [
             ("Champignons", "5"),
         ],
         "steps": [
-            ("Kipfilets koken, kookwater bijhouden; kip in blokjes snijden.", 30),
-            ("Soepballetjes even koken; groenten snijden.", 30),
+            (
+                "Kipfilets koken met laurier en tijm; kookwater bijhouden en "
+                "kip in blokjes snijden.",
+                30,
+            ),
+            ("Soepballetjes even koken; champignons in schijfjes bakken.", 25),
+            ("Sla, komkommer en tomaat snijden voor de salade erbij.", 20),
             ("Videe in 2 keer maken: boter smelten, vloeiende bloem toevoegen.", 15),
             (
-                "Melk en vocht al roerend toevoegen; op smaak brengen met " "bouillon.",
+                "Melk en kipkookvocht al roerend toevoegen; op smaak brengen "
+                "met bouillon en een scheut citroensap.",
                 20,
             ),
-            ("Kip en balletjes als laatste toevoegen.", 10),
+            ("Kip, balletjes en champignons als laatste toevoegen.", 10),
             ("Kroketten bakken en warmhouden in de oven.", 45),
         ],
         "notes": "Extra: 12 kippenbouillonblokjes om de kipfilet in te koken; "
-        "1,5 l kipkookwater voor de smaak.",
+        "1,5 l kipkookwater voor de smaak. Laurier en tijm uit de "
+        "kruidenvoorraad.",
         "source": "2025 dag 5",
     },
     {
@@ -479,6 +836,18 @@ RECIPES: list[dict[str, Any]] = [
         "ingredients": [
             ("Calamaris (pak)", "4"),
             ("Mini-loempia's", "30"),
+        ],
+        "steps": [
+            ("Frituur voorverwarmen op 180 °C.", 10),
+            (
+                "Calamaris en mini-loempia's in porties frituren en "
+                "warmhouden in de oven.",
+                40,
+            ),
+            (
+                "Serveren met citroen en zoetzure of cocktailsaus uit de " "voorraad.",
+                5,
+            ),
         ],
         "source": "2025 dag 4",
     },
@@ -491,6 +860,23 @@ RECIPES: list[dict[str, Any]] = [
             ("Wokgroenten (diepvries)", "10"),
             ("Sojasaus", "2.5"),
         ],
+        "steps": [
+            (
+                "Kipfilet in reepjes snijden, kruiden met kippenkruiden en "
+                "in porties roerbakken.",
+                25,
+            ),
+            ("Woknoedels koken volgens de verpakking en laten uitlekken.", 15),
+            (
+                "Wokgroenten in de grote wok roerbakken; kip en noedels " "toevoegen.",
+                20,
+            ),
+            (
+                "Afblussen met de sojasaus; op smaak brengen met look- en "
+                "gemberpoeder uit de voorraad.",
+                10,
+            ),
+        ],
         "source": "2025 dag 4",
     },
     {
@@ -501,12 +887,32 @@ RECIPES: list[dict[str, Any]] = [
             ("Stoofvlees", "15"),
             ("Ajuin", "1.1"),
             ("Look (teen)", "3"),
-            ("Groentenbouillon", "5"),
+            ("Vleesbouillon", "5"),
             ("Sla (krop)", "4"),
             ("Komkommer", "10"),
             ("Tomaat", "25"),
         ],
-        "notes": "7 ajuinen ≈ 1,1 kg. Bouillon mag ook vleesbouillon zijn.",
+        "steps": [
+            (
+                "Stoofvlees (liefst daags op voorhand) in porties aanbraden.",
+                30,
+            ),
+            ("Ajuin en look snijden en aanstoven; vlees terug toevoegen.", 15),
+            (
+                "Vleesbouillon toevoegen met laurier, tijm en een scheut "
+                "azijn of bruin bier; 2 à 3 uur zachtjes laten stoven tot "
+                "het vlees uit elkaar valt.",
+                150,
+            ),
+            ("Sla, komkommer en tomaat snijden voor de salade.", 20),
+            (
+                "Friet in porties frituren; stoofvlees opwarmen en indien "
+                "te dun licht binden.",
+                60,
+            ),
+        ],
+        "notes": "7 ajuinen ≈ 1,1 kg. Vleesbouillon i.p.v. groentenbouillon "
+        "(stoofpot); laurier en tijm uit de kruidenvoorraad.",
         "source": "2025 dag 9",
     },
     {
@@ -520,13 +926,59 @@ RECIPES: list[dict[str, Any]] = [
             ("Geraspte kaas", "2"),
             ("Hespenblokjes", "4"),
         ],
+        "steps": [
+            (
+                "Macaroni koken, afgieten en mengen met een klont boter "
+                "zodat hij niet plakt.",
+                25,
+            ),
+            (
+                "Kaassaus: boter smelten, vloeiende bloem toevoegen en al "
+                "roerend de melk toevoegen.",
+                20,
+            ),
+            (
+                "Geraspte kaas onder de saus roeren; kruiden met "
+                "nootmuskaat, peper en zout.",
+                10,
+            ),
+            (
+                "Hespenblokjes en macaroni door de saus mengen; eventueel "
+                "afwerken onder de grill met extra kaas.",
+                15,
+            ),
+        ],
         "notes": "Hoeveelheid macaroni controleren (opmerking draaiboek).",
         "source": "2025 dag 10",
     },
     {
         "name": "Wortelpuree met worst",
         "dish_type": DishType.HOT_MEAL,
-        "notes": "Uit menu 2026 dag 7; hoeveelheden nog aan te vullen.",
+        "ingredients": [
+            ("Wortelen", "8"),
+            ("Aardappelen", "8"),
+            ("Boter", "0.5"),
+            ("Melk", "1"),
+            ("Chipolata", "80"),
+        ],
+        "steps": [
+            (
+                "Aardappelen en wortelen schillen, in stukken snijden en "
+                "samen gaar koken.",
+                40,
+            ),
+            (
+                "Stoempen met de boter en melk; kruiden met nootmuskaat, "
+                "peper en zout.",
+                20,
+            ),
+            (
+                "Worsten in porties bakken; het braadvocht als jus over de " "puree.",
+                30,
+            ),
+        ],
+        "notes": "Uit menu 2026 dag 7. Hoeveelheden zijn een schatting — "
+        "nazicht gewenst.",
     },
     # ---------- Avond (warme maaltijden) ----------
     {
@@ -598,7 +1050,11 @@ RECIPES: list[dict[str, Any]] = [
         "steps": [
             ("Gehakt bakken voor de saus.", 20),
             ("Ajuin en look aanstoven; wortelen, paprika en courgette toevoegen.", 20),
-            ("Bouillon in water smelten en toevoegen; 10 minuten laten stoven.", 15),
+            (
+                "Bouillon in water smelten en toevoegen met 2 blaadjes "
+                "laurier; 10 minuten laten stoven.",
+                15,
+            ),
             ("Passata en tomatenpuree toevoegen.", 10),
             (
                 "Vlees toevoegen; afwerken met oregano, basilicum, peper en zout.",
@@ -625,6 +1081,21 @@ RECIPES: list[dict[str, Any]] = [
             ("Erwtjes (potje)", "2"),
             ("Pitasaus (bus)", "4"),
         ],
+        "steps": [
+            (
+                "Groenten snijden: sla in reepjes, komkommer in schijfjes, "
+                "tomaten in partjes, wortelen raspen; mais en erwtjes laten "
+                "uitlekken.",
+                40,
+            ),
+            ("Pitavlees in porties bakken in bakboter.", 40),
+            ("Turkse broden opwarmen in de oven.", 15),
+            (
+                "Alles in schalen op tafel zetten; zelf laten vullen met "
+                "pitasaus, mayo of ketchup.",
+                10,
+            ),
+        ],
         "notes": "Extra: mayo, ketchup, bakboter. 2 potjes mais ≈ 0,6 kg.",
         "source": "2025 dag 8",
     },
@@ -636,6 +1107,18 @@ RECIPES: list[dict[str, Any]] = [
             ("Pistolets", "115"),
             ("Ajuin", "5"),
         ],
+        "steps": [
+            ("Ajuin in ringen snijden en goudbruin stoven.", 25),
+            (
+                "Hamburgers in porties bakken op het kampvuur of de " "bakplaat.",
+                45,
+            ),
+            (
+                "Pistolets opensnijden; serveren met gebakken ajuin, mayo "
+                "en ketchup.",
+                15,
+            ),
+        ],
         "notes": "Extra: mayo en ketchup. 2026 rekende 70 stuks voor 58 man.",
         "source": "2025 dag 10",
     },
@@ -643,17 +1126,28 @@ RECIPES: list[dict[str, Any]] = [
     {
         "name": "Broodmaaltijd",
         "dish_type": DishType.BREAD_MEAL,
+        "steps": [
+            ("Brood snijden en in manden verdelen.", 15),
+            ("Chocomelk aanmaken en koffie zetten.", 20),
+            (
+                "Afdelingsbakken klaarzetten: boter en al het beleg per bak.",
+                15,
+            ),
+        ],
         "notes": "Brood van de bakker + choco, confituur, smeerkaas, boter, "
         "cacaopoeder, suiker, melk, koffie. Hoeveelheden nog aan te vullen.",
     },
     {
-        "name": "Broodmaaltijd + baksaucis",
-        "dish_type": DishType.BREAD_MEAL,
-        "notes": "Broodmaaltijd + baksaucis; hoeveelheden nog aan te vullen.",
+        "name": "Baksaucis",
+        "dish_type": DishType.BREAD_MEAL_EXTRA,
+        "ingredients": [("Baksaucis", "85")],
+        "steps": [("Baksaucissen in porties bakken.", 40)],
+        "notes": "Extra bij een broodmaaltijd. ~1,2 per persoon (zoals de 70 "
+        "hamburgers voor 58 man in 2026).",
     },
     {
-        "name": "Broodmaaltijd + pannenkoeken",
-        "dish_type": DishType.BREAD_MEAL,
+        "name": "Pannenkoeken",
+        "dish_type": DishType.BREAD_MEAL_EXTRA,
         "ingredients": [
             ("Bloem", "4"),
             ("Bakpoeder (zakje)", "8"),
@@ -683,6 +1177,19 @@ RECIPES: list[dict[str, Any]] = [
             ("Gele pudding (zakje)", "12"),
             ("Melk", "9"),
         ],
+        "steps": [
+            ("Melk aan de kook brengen.", 15),
+            (
+                "Puddingzakjes aanmaken volgens de verpakking en al roerend "
+                "laten binden.",
+                15,
+            ),
+            (
+                "In kommen/trays gieten en laten opstijven in de koeling; "
+                "afwerken met fijne suiker en hagelslag.",
+                15,
+            ),
+        ],
         "notes": "Afwerken met fijne witte suiker en hagelslag.",
         "source": "2025 dag 2",
     },
@@ -696,12 +1203,29 @@ RECIPES: list[dict[str, Any]] = [
             ("Vanillesuiker (pakje)", "17"),
             ("Ananas (groot blik)", "4"),
         ],
+        "steps": [
+            ("Eieren splitsen; eiwitten stijfkloppen.", 20),
+            (
+                "Platte kaas mengen met de dooiers, suiker en vanillesuiker.",
+                15,
+            ),
+            (
+                "Ananas laten uitlekken, in stukjes snijden en eronder "
+                "mengen; eiwit voorzichtig eronder spatelen.",
+                15,
+            ),
+            ("Minstens 2 uur koud zetten.", None),
+        ],
         "source": "2025 dag 3",
     },
     {
         "name": "Chocomousse",
         "dish_type": DishType.DESSERT,
         "ingredients": [("Chocomousse (zak)", "4")],
+        "steps": [
+            ("Chocomousse aanmaken volgens de verpakking en opkloppen.", 20),
+            ("In kommen verdelen en koud zetten.", 10),
+        ],
         "source": "2025 dag 7",
     },
     {
@@ -714,6 +1238,19 @@ RECIPES: list[dict[str, Any]] = [
             ("Vanillesuiker (pakje)", "12"),
             ("Kinnekessuiker (pak)", "1"),
             ("Bastaardsuiker (pak)", "1"),
+        ],
+        "steps": [
+            (
+                "Melk met een snuifje zout aan de kook brengen; rijst "
+                "toevoegen en op zacht vuur gaar laten koken, regelmatig "
+                "roeren.",
+                60,
+            ),
+            ("Suiker en vanillesuiker toevoegen.", 10),
+            (
+                "In kommen gieten; serveren met kinnekes- en " "bastaardsuiker.",
+                15,
+            ),
         ],
         "notes": "Bosto-rijst; klein beetje zout in de melk.",
         "source": "2025 dag 8",
@@ -743,6 +1280,9 @@ RECIPES: list[dict[str, Any]] = [
         "name": "Waterijsjes (Calippo)",
         "dish_type": DishType.DESSERT,
         "ingredients": [("Calippo", "72")],
+        "steps": [
+            ("Diepvries pas openen bij het uitdelen.", 5),
+        ],
         "source": "2025 dag 4",
     },
     # ---------- Vieruurtjes ----------
@@ -754,23 +1294,44 @@ RECIPES: list[dict[str, Any]] = [
             ("Peer", "40"),
             ("Watermeloen", "3"),
         ],
+        "steps": [
+            (
+                "Fruit wassen; appels en peren in partjes, watermeloen in "
+                "schijven snijden.",
+                30,
+            ),
+            ("Verdelen over schalen per afdeling.", 10),
+        ],
         "source": "2025 dag 2",
     },
     {
         "name": "Nectarines",
         "dish_type": DishType.SNACK_FRUITVEG,
         "ingredients": [("Nectarine", "60")],
+        "steps": [
+            ("Nectarines wassen en uitdelen.", 10),
+        ],
         "source": "2025 dag 9",
     },
     {
         "name": "Koude groenten",
         "dish_type": DishType.SNACK_FRUITVEG,
+        "steps": [
+            (
+                "Groenten wassen en in dipstukjes snijden; goed koud "
+                "zetten tot het vieruurtje.",
+                30,
+            ),
+        ],
         "notes": "Uit menu 2026; invulling nog te kiezen.",
     },
     {
         "name": "Prinskoeken",
         "dish_type": DishType.SNACK_SWEET,
         "ingredients": [("Prinskoeken (pak)", "4")],
+        "steps": [
+            ("Koeken uitdelen per afdeling.", 5),
+        ],
         "notes": "2 pakken wit / 2 pakken bruin.",
         "source": "2025 dag 1",
     },
@@ -783,6 +1344,14 @@ RECIPES: list[dict[str, Any]] = [
             ("Vanillesuiker (pakje)", "8"),
             ("Vanille-ijs", "5.5"),
         ],
+        "steps": [
+            (
+                "Bananen pellen en in porties mixen met melk, "
+                "vanillesuiker en vanille-ijs.",
+                30,
+            ),
+            ("Direct koud serveren in bekers.", 10),
+        ],
         "source": "2025 dag 8",
     },
     {
@@ -791,6 +1360,10 @@ RECIPES: list[dict[str, Any]] = [
         "ingredients": [
             ("Yoghurt", "7.5"),
             ("Diepvriesfruit", "7.5"),
+        ],
+        "steps": [
+            ("Yoghurt en diepvriesfruit in porties glad mixen.", 25),
+            ("Direct serveren in bekers.", 10),
         ],
         "source": "2025 dag 5",
     },
@@ -819,11 +1392,23 @@ RECIPES: list[dict[str, Any]] = [
     {
         "name": "Ice tea met biscuit",
         "dish_type": DishType.SNACK_SWEET,
+        "steps": [
+            ("Ice tea op voorhand goed koud zetten.", 5),
+            ("Uitschenken en uitdelen met een biscuit.", 15),
+        ],
         "notes": "Uit menu 2026; hoeveelheden nog aan te vullen.",
     },
     {
         "name": "Bruschetta's",
         "dish_type": DishType.SNACK_SAVORY,
+        "steps": [
+            (
+                "Tomaten in blokjes snijden en mengen met look, olijfolie, "
+                "peper, zout en gedroogde basilicum.",
+                20,
+            ),
+            ("Brood in sneetjes roosteren en beleggen.", 30),
+        ],
         "notes": "Uit menu 2026; hoeveelheden nog aan te vullen.",
     },
 ]

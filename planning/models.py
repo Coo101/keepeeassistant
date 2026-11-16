@@ -1,7 +1,8 @@
-"""Menu planning models (SPEC §6, §9.3)."""
+"""Menu planning models (docs/spec/planning.md)."""
 
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from camps.models import Camp
 from core.constants import Course, MealType, allowed_dish_types
@@ -19,7 +20,7 @@ class MenuEntry(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.PROTECT)
 
     class Meta:
-        verbose_name_plural = "menu entries"
+        verbose_name_plural = _("menu entries")
         ordering = ["date", "meal_type", "course"]
         constraints = [
             models.UniqueConstraint(

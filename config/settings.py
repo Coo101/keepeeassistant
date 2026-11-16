@@ -13,22 +13,51 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 
+from django.contrib.messages import constants as message_constants
+from django.core.exceptions import ImproperlyConfigured
+from django.utils.translation import gettext_lazy as _
+from dotenv import load_dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Secrets/config from .env (git-ignored); real env vars take precedence.
+load_dotenv(BASE_DIR / ".env")
 
 # Where the SQLite database lives; a Docker volume mounts over this.
 DATA_DIR = Path(os.environ.get("DJANGO_DATA_DIR", BASE_DIR))
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-)i^kz^3!87hi8jbv%d5esv+)v$t+b&-)+rn&5b$%ng3w7b^z&j",
-)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"
+def _env_flag(name: str, default: str = "0") -> bool:
+    return os.environ.get(name, default).strip().lower() in {"1", "true", "yes", "on"}
 
-ALLOWED_HOSTS = [h for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if h]
+
+# SECURITY WARNING: don't run with debug turned on in production! Defaults to
+# off so a deployment is safe without configuration; dev opts in via .env.
+DEBUG = _env_flag("DJANGO_DEBUG")
+
+# SECURITY WARNING: keep the secret key used in production secret! Without an
+# explicit key we only start in DEBUG, so a missing .env fails loudly instead
+# of silently signing cookies with a key that is public in the repo history.
+# The .env.example placeholder counts as missing: it is public too.
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
+if SECRET_KEY == "change-me":
+    SECRET_KEY = ""
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ImproperlyConfigured(
+            "DJANGO_SECRET_KEY is not set. Copy .env.example to .env and "
+            'generate one: python -c "import secrets; '
+            'print(secrets.token_urlsafe(50))"'
+        )
+    SECRET_KEY = "django-insecure-dev-only-never-use-in-production"
+
+# Loopback is always allowed: the container healthcheck calls 127.0.0.1.
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+    *(h for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if h),
+]
 
 CSRF_TRUSTED_ORIGINS = [
     o for o in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if o
@@ -44,21 +73,31 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_htmx",
+    "crispy_forms",
+    "crispy_bootstrap5",
+    "accounts",
     "recipes",
     "camps",
     "planning",
     "shopping",
+    "bills",
+    "kitchen",
+    "pages",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.auth.middleware.LoginRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_htmx.middleware.HtmxMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -71,6 +110,7 @@ TEMPLATES = [
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
+                "django.template.context_processors.i18n",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
@@ -80,6 +120,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
+# Forms render through crispy-forms on Bootstrap 5 (docs/ui-guidelines.md).
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+# Bootstrap calls the error colour "danger"; messages render as alerts in base.html.
+MESSAGE_TAGS = {message_constants.ERROR: "danger"}
+
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -88,6 +135,12 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": DATA_DIR / "db.sqlite3",
+        # Several gunicorn workers and the bill reader write at the same time.
+        "OPTIONS": {
+            "timeout": 20,
+            "transaction_mode": "IMMEDIATE",
+            "init_command": "PRAGMA journal_mode=WAL;",
+        },
     }
 }
 
@@ -114,9 +167,12 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+# Dutch unless the browser asks for English or the visitor picks it in the header.
+LANGUAGE_CODE = "nl"
+LANGUAGES = [("nl", _("Dutch")), ("en", _("English"))]
+LOCALE_PATHS = [BASE_DIR / "locale"]
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Europe/Brussels"
 
 USE_I18N = True
 
@@ -138,12 +194,61 @@ if not DEBUG:
         },
     }
 
+# Email: printed to the console until EMAIL_HOST is set.
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "")
+EMAIL_BACKEND = (
+    "django.core.mail.backends.smtp.EmailBackend"
+    if EMAIL_HOST
+    else "django.core.mail.backends.console.EmailBackend"
+)
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = _env_flag("EMAIL_USE_TLS", "1")
+# Mails are sent during the request, so a dead mail server must fail quickly.
+EMAIL_TIMEOUT = 10
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL") or "noreply@localhost"
+
+# Uploaded bills. No MEDIA_URL on purpose: files are only served by a view that
+# checks access (bills.views.bill_file).
+MEDIA_ROOT = DATA_DIR / "media"
+
+# The AI model that reads scans and photos of bills. Empty switches it off.
+OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
+OLLAMA_VISION_MODEL = os.environ.get("OLLAMA_VISION_MODEL", "llama3.2-vision")
+OLLAMA_TIMEOUT = int(os.environ.get("OLLAMA_TIMEOUT", "300"))
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Logging (SPEC §10: Python logging, no print)
+# Authentication: every page needs a login unless its view is marked
+# login_not_required, so a new page is private by default. Sessions last a
+# month and refresh on use, so the kookploeg logs in once per device per camp.
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "camp_list"
+LOGOUT_REDIRECT_URL = "home"
+AUTHENTICATION_BACKENDS = ["accounts.backends.EmailOrUsernameBackend"]
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 30
+SESSION_SAVE_EVERY_REQUEST = True
+
+# Send cookies over HTTPS only when serving over TLS (set in .env).
+SESSION_COOKIE_SECURE = _env_flag("DJANGO_SECURE_COOKIES")
+CSRF_COOKIE_SECURE = SESSION_COOKIE_SECURE
+
+# The header holding the visitor's address behind a proxy, for login rate limits:
+# HTTP_X_FORWARDED_FOR behind Caddy, HTTP_CF_CONNECTING_IP directly behind Cloudflare.
+# Without it all visitors share the proxy's address, and share one limit. Only set
+# it when the app can't be reached except through that proxy.
+CLIENT_IP_HEADER = os.environ.get("DJANGO_CLIENT_IP_HEADER", "")
+
+# Behind a proxy that ends TLS (Cloudflare tunnel, Caddy), so emailed links use
+# https. Only switch this on when the proxy always sets this header itself.
+if _env_flag("DJANGO_BEHIND_TLS_PROXY"):
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Logging (docs/SPEC.md: Python logging, no print)
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

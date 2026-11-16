@@ -1,0 +1,17 @@
+{% comment %}
+{% include "components/camp_nav.html" with camp=camp active="plan" %}
+active: plan, shopping, runbook, bills, report, diets, utilities or edit.
+{% endcomment %}
+{% load i18n %}
+<nav class="mb-4" aria-label="{% translate 'Camp' %}">
+  <ul class="nav nav-pills flex-nowrap overflow-x-auto text-nowrap gap-1 pb-1">
+    <li class="nav-item"><a class="nav-link{% if active == 'plan' %} active{% endif %}" href="{% url 'planner' camp.pk %}"{% if active == 'plan' %} aria-current="page"{% endif %}><i class="bi bi-calendar3" aria-hidden="true"></i> {% translate "Menu plan" %}</a></li>
+    <li class="nav-item"><a class="nav-link{% if active == 'shopping' %} active{% endif %}" href="{% url 'shopping' camp.pk %}"{% if active == 'shopping' %} aria-current="page"{% endif %}><i class="bi bi-cart" aria-hidden="true"></i> {% translate "Shopping" %}</a></li>
+    <li class="nav-item"><a class="nav-link{% if active == 'runbook' %} active{% endif %}" href="{% url 'runbook' camp.pk %}"{% if active == 'runbook' %} aria-current="page"{% endif %}><i class="bi bi-journal-text" aria-hidden="true"></i> {% translate "Runbook" %}</a></li>
+    <li class="nav-item"><a class="nav-link{% if active == 'bills' %} active{% endif %}" href="{% url 'bill_list' camp.pk %}"{% if active == 'bills' %} aria-current="page"{% endif %}><i class="bi bi-receipt" aria-hidden="true"></i> {% translate "Bills" %}</a></li>
+    <li class="nav-item"><a class="nav-link{% if active == 'report' %} active{% endif %}" href="{% url 'financial_report' camp.pk %}"{% if active == 'report' %} aria-current="page"{% endif %}><i class="bi bi-graph-up" aria-hidden="true"></i> {% translate "Financial report" %}</a></li>
+    <li class="nav-item"><a class="nav-link{% if active == 'diets' %} active{% endif %}" href="{% url 'camp_diets' camp.pk %}"{% if active == 'diets' %} aria-current="page"{% endif %}><i class="bi bi-exclamation-diamond" aria-hidden="true"></i> {% translate "Diets and allergies" %}</a></li>
+    <li class="nav-item"><a class="nav-link{% if active == 'utilities' %} active{% endif %}" href="{% url 'camp_utensils' camp.pk %}"{% if active == 'utilities' %} aria-current="page"{% endif %}><i class="bi bi-tools" aria-hidden="true"></i> {% translate "Kitchen utilities" %}</a></li>
+    <li class="nav-item"><a class="nav-link{% if active == 'edit' %} active{% endif %}" href="{% url 'camp_edit' camp.pk %}"{% if active == 'edit' %} aria-current="page"{% endif %}><i class="bi bi-pencil" aria-hidden="true"></i> {% translate "Edit camp" %}</a></li>
+  </ul>
+</nav>

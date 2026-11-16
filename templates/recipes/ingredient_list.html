@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Ingredients" %} — {% translate "Camp Meal Planner" %}{% endblock %}
+{% block content %}
+<h1>{% translate "Ingredients" %}</h1>
+<p class="page-meta">{% translate "Shared between all Chiros. A new price goes into the history and is used for estimates in any camp without its own price for that ingredient." %}</p>
+<form method="get" class="actions">
+  <input type="search" name="q" value="{{ query }}" placeholder="{% translate 'Search ingredients…' %}" aria-label="{% translate 'Search ingredients' %}">
+  <button class="btn" type="submit">{% translate "Search" %}</button>
+  {% if query %}<a class="btn btn-outline" href="{% url 'ingredient_list' %}">{% translate "Clear" %}</a>{% endif %}
+  <a class="btn btn-outline" href="{% url 'ingredient_create' %}">{% translate "New ingredient" %}</a>
+</form>
+{% if ingredients %}
+<div class="table-scroll">
+<table>
+  <thead>
+    <tr><th>{% translate "Ingredient" %}</th><th>{% translate "Unit" %}</th><th>{% translate "Category" %}</th><th>{% translate "Shop" %}</th><th>{% translate "Price" %}</th><th>{% translate "Product" %}</th><th>{% translate "Price date" %}</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for ingredient in ingredients %}
+    <tr>
+      <td><strong>{{ ingredient.name }}</strong></td>
+      <td>{{ ingredient.get_unit_display }}</td>
+      <td>{{ ingredient.get_category_display }}</td>
+      <td>{{ ingredient.get_shop_display }}</td>
+      <td>{% if ingredient.latest_price is None %}<span class="empty-slot">{% translate "no price" %}</span>{% else %}€ {{ ingredient.latest_price|floatformat:2 }}{% endif %}</td>
+      <td>{{ ingredient.product_details }}</td>
+      <td>{{ ingredient.latest_price_date|date:"d M Y"|default:"—" }}</td>
+      <td><a href="{% url 'ingredient_edit' ingredient.pk %}">{% translate "Edit" %}</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% elif query %}
+<p class="empty-slot">{% blocktranslate %}No ingredients match "{{ query }}".{% endblocktranslate %}</p>
+{% else %}
+<p>{% url 'ingredient_create' as create_url %}{% blocktranslate %}No ingredients yet. <a href="{{ create_url }}">Add the first one</a>.{% endblocktranslate %}</p>
+{% endif %}
+{% endblock %}

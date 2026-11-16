@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ bill }} — {{ camp.name }}{% endblock %}
+{% block content %}
+<p><a class="back-link" href="{% url 'bill_list' camp.pk %}">← {% translate "all bills" %}</a></p>
+<h1>{{ bill }}</h1>
+{% include "camps/_example_note.html" %}
+<p class="page-meta">
+  {{ bill.get_status_display }} · {% translate "lines total" %} <strong>€ {{ total|floatformat:2 }}</strong>
+  {% if bill.printed_total is not None %}· {% translate "printed total" %} € {{ bill.printed_total|floatformat:2 }}{% endif %}
+</p>
+
+{% if bill.status == "waiting" %}
+<div class="warning">
+  ⏳ <strong>{% translate "Waiting to be read." %}</strong> {% translate "This file has no readable text, so it goes to the AI model when that computer is on." %}
+  {% translate "You don't have to wait: you can add the lines below by hand." %}
+</div>
+{% elif bill.status == "failed" %}
+<div class="warning">
+  ⚠️ <strong>{% translate "This bill couldn't be read." %}</strong> {{ bill.error }}
+  {% if bill.file %}
+  <form method="post" action="{% url 'bill_retry' camp.pk bill.pk %}">
+    {% csrf_token %}
+    <button class="btn btn-outline btn-small" type="submit">{% translate "Try again" %}</button>
+  </form>
+  {% endif %}
+</div>
+{% endif %}
+{% if total_differs %}
+<div class="warning">⚠️ {% translate "The lines don't add up to the printed total: check for missing or misread lines." %}</div>
+{% endif %}
+
+<p class="muted">
+  {% blocktranslate trimmed %}
+  Check every line. <strong>Amount per item</strong> is in the ingredient's unit: a bottle of 1.5 L is 1.5, a bag of 500 g priced per kg is 0.5.
+  A camp-food line with an ingredient sets this camp's price for it when you save. Use the category for anything else, and "skipped" for text that isn't a purchase. Kitchen utilities can go into your Chiro's stock.
+  {% endblocktranslate %}
+</p>
+<form method="post" class="bill-review">
+  {% csrf_token %}
+  {{ formset.management_form }}
+  {{ formset.non_form_errors }}
+  <div class="bill-lines-box">
+  <table class="bill-lines">
+    <thead>
+      {% with f=formset.empty_form %}
+      <tr>
+        <th class="col-description">{{ f.description.label }}</th>
+        <th class="col-ingredient">{{ f.ingredient.label }}</th>
+        <th class="col-category">{{ f.category.label }}</th>
+        <th class="col-number">{{ f.quantity.label }}</th>
+        <th class="col-number">{{ f.pack_amount.label }}</th>
+        <th class="col-number">{{ f.line_total.label }}</th>
+        <th class="col-check">{{ f.skipped.label }}</th>
+        <th class="col-stock">{{ f.stock.label }}</th>
+        <th class="col-check">{{ f.DELETE.label }}</th>
+      </tr>
+      {% endwith %}
+    </thead>
+    <tbody>
+      {% for form in formset %}
+      <tr>
+        <td>{% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}{{ form.non_field_errors }}{{ form.description }}{{ form.description.errors }}</td>
+        <td>
+          <div class="with-button">
+            {{ form.ingredient }}
+            <button class="btn btn-outline btn-small" type="button" data-new-ingredient data-select="{{ form.ingredient.html_name }}" data-name-from="{{ form.description.html_name }}" title="{% translate 'New ingredient' %}" aria-label="{% translate 'New ingredient' %}">+</button>
+          </div>
+          {{ form.ingredient.errors }}
+        </td>
+        <td>{{ form.category }}{{ form.category.errors }}</td>
+        <td>{{ form.quantity }}{{ form.quantity.errors }}</td>
+        <td>{{ form.pack_amount }}{{ form.pack_amount.errors }}</td>
+        <td>{{ form.line_total }}{{ form.line_total.errors }}</td>
+        <td class="col-check">{{ form.skipped }}</td>
+        <td>{% if form.instance.utensil %}<span class="muted">{% blocktranslate with name=form.instance.utensil.name %}In stock as {{ name }}{% endblocktranslate %}</span>{% else %}{{ form.stock }}{{ form.stock.errors }}{% endif %}</td>
+        <td class="col-check">{% if form.instance.pk %}{{ form.DELETE }}{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  <div class="actions"><button class="btn" type="submit">{% translate "Save review" %}</button></div>
+</form>
+{% include "recipes/_new_ingredient_dialog.html" with selects="select[name^=form-][name$=-ingredient]" %}
+
+<div class="actions">
+  {% if bill.file %}
+  <a class="btn btn-outline" href="{% url 'bill_file' camp.pk bill.pk %}">{% translate "Download file" %}</a>
+  <form method="post" action="{% url 'bill_remove_file' camp.pk bill.pk %}">
+    {% csrf_token %}
+    <button class="btn btn-outline" type="submit">{% translate "Remove file, keep amounts" %}</button>
+  </form>
+  {% else %}
+  <span class="muted">{% translate "The file was removed." %}</span>
+  {% endif %}
+  <a class="btn btn-danger-outline" href="{% url 'bill_delete' camp.pk bill.pk %}">{% translate "Delete bill" %}</a>
+</div>
+{% endblock %}

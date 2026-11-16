@@ -1,6 +1,6 @@
 # CI/CD for KeePeeAssistant on the homelab (Gitea Actions).
-#   test   — every push/PR, normal runner (no Docker socket): ruff, Django checks, pytest
-#   deploy — pushes to main only, repo-scoped runner `docker-deploy` (has the host's
+#   test   — every push/PR, normal runner (no Docker socket): ruff, black, Django checks, pytest
+#   deploy — pushes to main only, user-scoped runner `docker-deploy` (has the host's
 #            Docker socket): build image -> push to Gitea's registry -> compose pull/up
 #            of the homelab stack /home/claude/stacks/keepeeassistant (homelab repo:
 #            stacks/keepeeassistant). Rollback = pin an older :<sha> tag in that stack.
@@ -20,29 +20,31 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      # No secrets in CI: debug mode is the only way settings start without a key.
+      DJANGO_DEBUG: "1"
+      DJANGO_DATA_DIR: /tmp/data
     steps:
       - uses: actions/checkout@v4
 
       - name: Python env
         run: |
           python3 -m venv /tmp/venv
-          /tmp/venv/bin/pip install --quiet -r requirements.txt pytest pytest-django ruff
+          /tmp/venv/bin/pip install --quiet -r requirements.txt -r requirements-dev.txt
           echo "/tmp/venv/bin" >> "$GITHUB_PATH"
 
       - name: ruff
-        run: ruff check .
+        run: |
+          ruff check .
+          black --check .
 
       - name: Django checks
-        env:
-          DJANGO_DATA_DIR: /tmp/data
         run: |
           mkdir -p /tmp/data
           python manage.py check
           python manage.py makemigrations --check --dry-run
 
       - name: pytest
-        env:
-          DJANGO_DATA_DIR: /tmp/data
         run: python -m pytest -q
 
   deploy:
@@ -61,6 +63,11 @@ jobs:
             --label org.opencontainers.image.revision=${{ github.sha }} \
             --label org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }} \
             -t "$IMAGE:${{ github.sha }}" -t "$IMAGE:latest" .
+
+      - name: Check the image renders PDFs
+        run: |
+          docker run --rm --entrypoint python "$IMAGE:${{ github.sha }}" -c \
+            "from weasyprint import HTML; assert HTML(string='<p>test</p>').write_pdf()[:4] == b'%PDF'"
 
       - name: Push
         run: |

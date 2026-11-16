@@ -1,0 +1,94 @@
+{% load i18n %}{# The report itself, on the page and in the PDF. #}
+<h2>{% translate "Check" %}</h2>
+{% if report.is_complete %}
+<p class="ok">✓ {% translate "Every planned ingredient is on this camp's bills, and every bill is reviewed." %}</p>
+{% else %}
+<div class="warning">
+  {% if report.spending.open_bills %}
+  <p>⚠️ {% blocktranslate count counter=report.spending.open_bills %}{{ counter }} bill isn't reviewed yet, so the totals can still change.{% plural %}{{ counter }} bills aren't reviewed yet, so the totals can still change.{% endblocktranslate %}</p>
+  {% endif %}
+  {% if report.not_in_bills %}
+  <p>⚠️ <strong>{% translate "Not found in the bills:" %}</strong>
+    {% for ingredient in report.not_in_bills %}{{ ingredient.name }}{% if not forloop.last %}, {% endif %}{% endfor %}.
+    {% translate "Meals with these use the latest known price, and are marked with *. Maybe they came from the pantry, or a bill line isn't linked to them yet." %}</p>
+  {% endif %}
+  {% if report.unpriced %}
+  <p>⚠️ <strong>{% translate "No price at all:" %}</strong>
+    {% for ingredient in report.unpriced %}{{ ingredient.name }}{% if not forloop.last %}, {% endif %}{% endfor %}.
+    {% translate "These are left out of the meal costs." %}</p>
+  {% endif %}
+</div>
+{% endif %}
+
+<h2>{% translate "Summary" %}</h2>
+<table class="report-summary">
+  <tbody>
+    <tr><td>{% translate "Paid for food" %}</td><td>€ {{ report.spending.food|floatformat:2 }}</td></tr>
+    <tr><td>{% translate "Cost of the planned meals" %}</td><td>€ {{ report.planned_total|floatformat:2 }}</td></tr>
+    <tr><td>{% translate "Food not in a planned meal (leftovers, extras, waste)" %}</td><td>€ {{ report.not_explained|floatformat:2 }}</td></tr>
+    {% if report.food_per_portion_day is not None %}
+    <tr><td>{% translate "Food per portion per day" %}</td><td>€ {{ report.food_per_portion_day|floatformat:2 }}</td></tr>
+    {% endif %}
+  </tbody>
+</table>
+
+<h3>{% translate "Paid per category" %}</h3>
+<table class="report-summary">
+  <tbody>
+    {% for label, amount in report.spending.by_category %}
+    <tr><td>{{ label }}</td><td>€ {{ amount|floatformat:2 }}</td></tr>
+    {% endfor %}
+    <tr><td><strong>{% translate "Total" %}</strong></td><td><strong>€ {{ report.spending.total|floatformat:2 }}</strong></td></tr>
+  </tbody>
+</table>
+
+{% if report.meal_types %}
+<h3>{% translate "Per meal" %}</h3>
+<table class="report-summary">
+  <thead><tr><th>{% translate "Meal" %}</th><th>{% translate "Times" %}</th><th>{% translate "Total" %}</th><th>{% translate "Per portion" %}</th></tr></thead>
+  <tbody>
+    {% for row in report.meal_types %}
+    <tr><td>{{ row.label }}</td><td>{{ row.count }}</td><td>€ {{ row.total|floatformat:2 }}</td><td>{% if row.per_portion is not None %}€ {{ row.per_portion|floatformat:2 }}{% endif %}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+<h2>{% translate "Cost per planned meal" %}</h2>
+<p class="muted">{% blocktranslate with portions=report.camp.demand_portions %}Scaled to {{ portions }} portions, at this camp's prices from the bills.{% endblocktranslate %}</p>
+{% for day in report.days %}
+<div class="report-day">
+  <h3>{{ day.date|date:"l d F" }} <span class="badge">€ {{ day.total|floatformat:2 }}</span></h3>
+  <table class="report-meals">
+    <thead><tr><th>{% translate "Meal" %}</th><th>{% translate "Recipe" %}</th><th>{% translate "Cost" %}</th><th>{% translate "Per portion" %}</th></tr></thead>
+    <tbody>
+      {% for meal in day.meals %}
+      <tr>
+        <td>{{ meal.meal }} <span class="muted">· {{ meal.slot }}</span></td>
+        <td>{{ meal.recipe.name }}{% if not meal.has_ingredients %} <span class="muted">({% translate "no ingredients entered" %})</span>{% endif %}{% if meal.unpriced %} <span class="muted">({% blocktranslate with names=meal.unpriced|join:", " %}without {{ names }}{% endblocktranslate %})</span>{% endif %}</td>
+        <td>€ {{ meal.cost|floatformat:2 }}{% if meal.estimated %} *{% endif %}</td>
+        <td>{% if meal.per_portion is not None %}€ {{ meal.per_portion|floatformat:2 }}{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% empty %}
+<p class="empty-slot">{% translate "No meals planned yet." %}</p>
+{% endfor %}
+
+<h2>{% translate "Personal costs" %}</h2>
+<p class="muted">{% translate "Bought for someone personally, so not part of the camp's costs." %}</p>
+{% if report.personal_lines %}
+<table class="report-meals">
+  <thead><tr><th>{% translate "Date" %}</th><th>{% translate "Shop" %}</th><th>{% translate "Description" %}</th><th>{% translate "Amount" %}</th></tr></thead>
+  <tbody>
+    {% for line in report.personal_lines %}
+    <tr><td>{{ line.bill.date|date:"d M" }}</td><td>{{ line.bill.get_shop_display }}</td><td>{{ line.description }}</td><td>€ {{ line.line_total|floatformat:2 }}</td></tr>
+    {% endfor %}
+    <tr><td colspan="3"><strong>{% translate "Total" %}</strong></td><td><strong>€ {{ report.personal_total|floatformat:2 }}</strong></td></tr>
+  </tbody>
+</table>
+{% else %}
+<p class="empty-slot">{% translate "No personal costs on the bills." %}</p>
+{% endif %}

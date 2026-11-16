@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Not allowed" %} — {% translate "Camp Meal Planner" %}{% endblock %}
+{% block content %}
+<h1>{% translate "Not allowed" %}</h1>
+<p>{% if exception %}{{ exception }}{% else %}{% translate "You can't do this here." %}{% endif %}</p>
+<p><a class="btn btn-outline" href="javascript:history.back()">{% translate "Back" %}</a></p>
+{% endblock %}

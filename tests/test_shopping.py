@@ -1,18 +1,35 @@
-"""Shopping list coverage and aggregation (SPEC §8)."""
+"""Shopping list coverage and aggregation (docs/spec/shopping.md)."""
 
 import datetime
 from decimal import Decimal
 
 import pytest
 
-from core.constants import DishType, MealType
+from core.constants import DishType, MealType, Shop
+from recipes.models import Ingredient
 from shopping.models import ShoppingTrip
-from shopping.services import build_shopping_plan
-from tests.factories import KG, PIECE, PRODUCE, assign, make_camp, make_recipe
+from shopping.services import TripShoppingList, build_shopping_plan
+from tests.factories import (
+    BAKERY,
+    KG,
+    PIECE,
+    PRODUCE,
+    assign,
+    make_camp,
+    make_recipe,
+)
 
 pytestmark = pytest.mark.django_db
 
 AUG = lambda d: datetime.date(2026, 8, d)  # noqa: E731
+
+
+def produce_items(trip_list: TripShoppingList) -> list:
+    """Produce items of the (default) Colruyt section."""
+    for section in trip_list.shop_sections:
+        if section.shop == Shop.COLRUYT:
+            return section.items_by_category["Produce"]
+    return []
 
 
 def test_trip_covers_next_days_not_its_own() -> None:
@@ -66,7 +83,7 @@ def test_aggregation_sums_across_meals_and_scales() -> None:
 
     ShoppingTrip.objects.create(camp=camp, date=AUG(1))
     plan = build_shopping_plan(camp)
-    items = plan.trip_lists[0].items_by_category["Produce"]
+    items = produce_items(plan.trip_lists[0])
     by_name = {i.ingredient.name: i for i in items}
     # Potatoes: (2 + 1.5) * 4 = 14 kg; Onions: 4 * 4 = 16 pieces
     assert by_name["Potatoes"].quantity == Decimal("14.0")
@@ -87,6 +104,35 @@ def test_meals_outside_coverage_excluded() -> None:
 
     ShoppingTrip.objects.create(camp=camp, date=AUG(1))
     plan = build_shopping_plan(camp)
-    items = plan.trip_lists[0].items_by_category["Produce"]
+    items = produce_items(plan.trip_lists[0])
     # Only Aug 2's stew counts (scale 1): 2 kg, not 4.
     assert items[0].quantity == Decimal("2.0")
+
+
+def test_items_are_grouped_per_shop() -> None:
+    camp = make_camp(children=0, teens=13, staff=0)
+    recipe = make_recipe(
+        "Broodmaaltijd",
+        dish_type=DishType.BREAD_MEAL,
+        teens=13,
+        ingredients=[
+            ("Potatoes", "2", KG, PRODUCE),
+            ("Wit brood", "6", PIECE, BAKERY),
+        ],
+    )
+    assign(camp, AUG(2), MealType.DINNER, recipe)
+    Ingredient.objects.filter(name="Wit brood").update(shop=Shop.BAKKER)
+    ShoppingTrip.objects.create(camp=camp, date=AUG(1))
+
+    sections = build_shopping_plan(camp).trip_lists[0].shop_sections
+    by_shop = {s.shop: s for s in sections}
+    assert set(by_shop) == {Shop.COLRUYT, Shop.BAKKER}
+    assert by_shop[Shop.BAKKER].items_by_category["Bakery"][0].ingredient.name == (
+        "Wit brood"
+    )
+    assert by_shop[Shop.COLRUYT].items_by_category["Produce"][0].ingredient.name == (
+        "Potatoes"
+    )
+    # sections follow the Shop.CHOICES order, not insertion order
+    assert [s.shop for s in sections] == [Shop.COLRUYT, Shop.BAKKER]
+    assert by_shop[Shop.BAKKER].item_count == 1

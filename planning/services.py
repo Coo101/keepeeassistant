@@ -1,4 +1,4 @@
-"""Scaled quantities for menu entries (SPEC §7, §9.3)."""
+"""Scaled quantities for menu entries (docs/spec/planning.md)."""
 
 import logging
 from dataclasses import dataclass
@@ -29,12 +29,14 @@ class ScaledEntry:
 def scale_entry(entry: MenuEntry, camp: Camp) -> ScaledEntry:
     """Scale one menu entry's recipe quantities to the camp's demand."""
     scale = scale_factor(camp.demand_portions, entry.recipe.base_portions)
+    # .all() (not .select_related()) so a prefetched cache is reused; callers
+    # that render many entries prefetch recipe__ingredients__ingredient.
     scaled = [
         ScaledIngredient(
             ingredient=ri.ingredient,
             quantity=round_quantity(ri.quantity * scale, ri.unit),
             unit=ri.unit,
         )
-        for ri in entry.recipe.ingredients.select_related("ingredient")
+        for ri in entry.recipe.ingredients.all()
     ]
     return ScaledEntry(entry=entry, scale=scale, ingredients=scaled)

@@ -1,0 +1,19 @@
+{% load i18n ui %}<div class="alert alert-warning d-flex gap-2" role="alert">
+  <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+  <div>
+    <strong>{% translate "Planned outside the camp dates" %}</strong> ({% translate "not shown in the menu plan and not on any shopping list" %}).
+    {% url 'camp_edit' camp.pk as edit_url %}{% blocktranslate %}<a href="{{ edit_url }}">Change the camp dates</a> to bring them back, or remove them:{% endblocktranslate %}
+    <ul class="list-unstyled mt-2 mb-0">
+      {% for entry in outside_entries %}
+      <li class="d-flex flex-wrap align-items-center gap-2 mb-1">
+        <span>{{ entry.date|short_date:"year" }} {{ entry.recipe.name }}</span>
+        <form method="post" action="{% url 'remove_outside_entry' camp.pk entry.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="back" value="{{ back }}">
+          <button class="btn btn-sm btn-outline-danger" type="submit"><i class="bi bi-trash" aria-hidden="true"></i> {% translate "Remove" %}</button>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>

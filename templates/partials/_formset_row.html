@@ -1,0 +1,9 @@
+{% load ui %}<tr>
+  {% for field in row.visible_fields %}
+  <td>
+    {% if forloop.first %}{% for hidden in row.hidden_fields %}{{ hidden }}{% endfor %}{% if row.non_field_errors %}<div class="text-danger small">{{ row.non_field_errors|join:" " }}</div>{% endif %}{% endif %}
+    {{ field|table_input }}{% if field.errors %}<div class="invalid-feedback d-block">{{ field.errors|join:" " }}</div>{% endif %}
+  </td>
+  {% endfor %}
+</tr>
+{% if total_forms %}<input type="hidden" name="{{ formset.prefix }}-TOTAL_FORMS" value="{{ total_forms }}" id="id_{{ formset.prefix }}-TOTAL_FORMS" hx-swap-oob="true">{% endif %}

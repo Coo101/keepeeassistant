@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Kitchen utilities" %} — {{ camp.name }}{% endblock %}
+{% block content %}
+<p><a class="back-link" href="{% url 'planner' camp.pk %}">← {% translate "back to menu plan" %}</a></p>
+<h1>{{ camp.name }} — {% translate "kitchen utilities" %}</h1>
+{% include "camps/_example_note.html" %}
+<p class="page-meta">{% url 'chiro_stock' camp.chiro.pk as stock_url %}{% blocktranslate trimmed with chiro=camp.chiro.name %}
+  What this camp needs. It's compared with the <a href="{{ stock_url }}">stock of {{ chiro }}</a>; what's missing goes on the shopping page.
+  A name that isn't in the stock yet is added to it, with none in stock.
+{% endblocktranslate %}</p>
+
+{% if to_buy %}
+<h2>{% translate "To buy" %}</h2>
+<table class="compact">
+  <thead><tr><th>{% translate "Kitchen utility" %}</th><th>{% translate "Needed" %}</th><th>{% translate "In stock" %}</th><th>{% translate "To buy" %}</th></tr></thead>
+  <tbody>
+    {% for need in to_buy %}
+    <tr><td>{{ need.utensil.name }}</td><td>{{ need.needed }}</td><td>{{ need.utensil.in_stock }}</td><td><strong>{{ need.to_buy }}</strong></td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% elif needs %}
+<p class="badge">{% translate "Everything is in stock." %}</p>
+{% endif %}
+
+<h2>{% translate "Needed for this camp" %}</h2>
+<form method="post">
+  {% csrf_token %}
+  {% include "recipes/_formset.html" with formset=formset %}
+  <datalist id="{{ names_list_id }}">{% for name in names %}<option value="{{ name }}">{% endfor %}</datalist>
+  <div class="actions"><button class="btn" type="submit">{% translate "Save" %}</button></div>
+</form>
+{% endblock %}

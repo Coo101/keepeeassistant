@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% load i18n ui %}
+{% block title %}{{ camp.name }} — {% translate "Runbook" %}{% endblock %}
+{% block content %}
+{% url 'runbook_pdf' camp.pk as pdf_url %}{% translate "Runbook PDF" as pdf_label %}
+{% blocktranslate trimmed asvar title with name=camp.name %}Cook team runbook — {{ name }}{% endblocktranslate %}
+{% blocktranslate trimmed asvar headcount with children=camp.num_children teens=camp.num_teens staff=camp.num_staff portions=camp.demand_portions %}
+{{ children }} children + {{ teens }} teens + {{ staff }} staff = <strong>{{ portions }} portions</strong>
+{% endblocktranslate %}
+{% blocktranslate trimmed asvar meta_line with start=camp.start_date|short_date end=camp.end_date|short_date:"year" %}{{ start }} – {{ end }} · {{ headcount }}{% endblocktranslate %}
+{% include "components/page_header.html" with title=title meta=meta_line action_url=pdf_url action_label=pdf_label action_icon="file-earmark-pdf" action_style="outline" %}
+{% include "components/camp_nav.html" with camp=camp active="runbook" %}
+{% include "camps/_example_note.html" %}
+
+<nav class="nav nav-pills flex-nowrap overflow-x-auto sticky-top bg-body py-2 mb-3 d-print-none" aria-label="{% translate 'Days' %}">
+  <a class="nav-link text-nowrap" href="#info">{% translate "Info" %}</a>
+  {% for day in days %}
+  <a class="nav-link text-nowrap" href="#day-{{ day.date|date:'Y-m-d' }}">{% blocktranslate with number=day.number %}Day {{ number }}{% endblocktranslate %}</a>
+  {% endfor %}
+</nav>
+
+<section id="info">
+  <h2 class="h4">{% translate "Info" %}</h2>
+  <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3 mb-3">
+    <div class="col">
+      <div class="card h-100 shadow-sm"><div class="card-body">
+        <h3 class="h6">{% translate "Cook team" %}</h3>
+        {% if camp.cook_team %}<p class="prewrap">{{ camp.cook_team }}</p>
+        {% else %}<span class="text-body-secondary">{% url 'camp_edit' camp.pk as edit_url %}{% blocktranslate %}Fill it in under the <a href="{{ edit_url }}">camp settings</a>.{% endblocktranslate %}</span>{% endif %}
+      </div></div>
+    </div>
+    <div class="col">
+      <div class="card h-100 shadow-sm"><div class="card-body">
+        <h3 class="h6">{% translate "Location" %}</h3>
+        {% if camp.location %}<p class="prewrap">{{ camp.location }}</p>
+        {% else %}<span class="text-body-secondary">—</span>{% endif %}
+      </div></div>
+    </div>
+    <div class="col">
+      <div class="card h-100 shadow-sm"><div class="card-body">
+        <h3 class="h6">{% translate "Contact for the leaders" %}</h3>
+        {% if camp.contact_leader %}<p class="prewrap">{{ camp.contact_leader }}</p>
+        {% else %}<span class="text-body-secondary">—</span>{% endif %}
+      </div></div>
+    </div>
+    <div class="col">
+      <div class="card h-100 shadow-sm"><div class="card-body">
+        <h3 class="h6">{% translate "Contact for the rental" %}</h3>
+        {% if camp.contact_rental %}<p class="prewrap">{{ camp.contact_rental }}</p>
+        {% else %}<span class="text-body-secondary">—</span>{% endif %}
+      </div></div>
+    </div>
+    <div class="col">
+      <div class="card h-100 shadow-sm"><div class="card-body">
+        <h3 class="h6">{% translate "Bakery" %}</h3>
+        {% if camp.bakery %}<p class="prewrap">{{ camp.bakery }}</p>
+        {% else %}<span class="text-body-secondary">—</span>{% endif %}
+      </div></div>
+    </div>
+    <div class="col">
+      <div class="card h-100 shadow-sm"><div class="card-body">
+        <h3 class="h6">{% translate "Meal times" %}</h3>
+        <table class="table table-sm mb-0">
+          <tbody>
+            <tr><td>{% translate "Breakfast" %}</td><td>{{ camp.breakfast_time|time:"H:i" }}</td></tr>
+            <tr><td>{% translate "Lunch" %}</td><td>{{ camp.lunch_time|time:"H:i" }}</td></tr>
+            <tr><td>{% translate "Tea time" %}</td><td>{{ camp.teatime_time|time:"H:i" }}</td></tr>
+            <tr><td>{% translate "Dinner" %}</td><td>{{ camp.dinner_time|time:"H:i" }}</td></tr>
+          </tbody>
+        </table>
+      </div></div>
+    </div>
+    {% with groups=camp.groups.all %}{% if groups %}
+    <div class="col">
+      <div class="card h-100 shadow-sm"><div class="card-body">
+        <h3 class="h6">{% translate "Headcount per group" %}</h3>
+        <table class="table table-sm mb-0">
+          <tbody>
+            {% for group in groups %}<tr><td>{{ group.name }}</td><td>{{ group.count }}</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div></div>
+    </div>
+    {% endif %}{% endwith %}
+    {% if camp.general_notes %}
+    <div class="col">
+      <div class="card h-100 shadow-sm"><div class="card-body">
+        <h3 class="h6">{% translate "General info" %}</h3>
+        <p class="prewrap">{{ camp.general_notes }}</p>
+      </div></div>
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+{% for day in days %}
+<section class="runbook-day border-top border-3 border-primary pt-3 mt-5" id="day-{{ day.date|date:'Y-m-d' }}">
+  <h2 class="h4">{% blocktranslate with number=day.number %}Day {{ number }}{% endblocktranslate %} — {{ day.date|date:"l d F Y" }}</h2>
+
+  <div class="table-responsive">
+    <table class="table table-sm align-top">
+      <thead>
+        <tr><th scope="col">{% translate "Meal" %}</th><th scope="col" class="w-25">{% translate "Menu" %}</th><th scope="col">{% blocktranslate with portions=camp.demand_portions %}Ingredients ({{ portions }} portions){% endblocktranslate %}</th></tr>
+      </thead>
+      <tbody>
+        {% for meal in day.meals %}
+          {% for cell in meal.cells %}
+          <tr>
+            <td>{% if forloop.first %}<strong>{{ meal.label }}</strong>{% endif %}
+                <div class="small text-body-secondary">{{ cell.slot.label }}</div></td>
+            <td>{% if cell.entry %}<a href="{% url 'recipe_detail' cell.entry.recipe.pk %}">{{ cell.entry.recipe.name }}</a>{% else %}<span class="text-body-secondary">—</span>{% endif %}</td>
+            <td>{% if cell.scaled %}{% for item in cell.scaled.ingredients %}<span class="text-nowrap">{{ item.ingredient.name }} {{ item.quantity }}&nbsp;{% translate item.unit %}</span>{% if not forloop.last %} · {% endif %}{% endfor %}{% endif %}</td>
+          </tr>
+          {% endfor %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if day.step_blocks %}
+  <h3 class="h5">{% translate "Step by step" %}</h3>
+  {% for block in day.step_blocks %}
+  <div class="mb-3">
+    <h4 class="h6">{{ block.recipe.name }} <span class="text-body-secondary fw-normal">({{ block.meal_label }}{% if block.recipe.total_duration_minutes %} · {{ block.recipe.total_duration_minutes }} min{% endif %})</span></h4>
+    <ol class="mb-0">
+      {% for step in block.steps %}
+      <li>{{ step.instruction }}{% if step.duration_minutes %} <span class="text-body-secondary">({{ step.duration_minutes }} min)</span>{% endif %}</li>
+      {% endfor %}
+    </ol>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <form method="post" class="d-print-none">
+    {% csrf_token %}
+    <input type="hidden" name="date" value="{{ day.date|date:'Y-m-d' }}">
+    <label class="form-label" for="note-{{ day.date|date:'Y-m-d' }}">{% blocktranslate with number=day.number %}Notes for day {{ number }}{% endblocktranslate %}</label>
+    <textarea class="form-control mb-2" id="note-{{ day.date|date:'Y-m-d' }}" name="text" rows="3" placeholder="{% translate 'Notes for this day…' %}">{{ day.note_text }}</textarea>
+    <div class="text-end"><button class="btn btn-primary btn-sm" type="submit">{% translate "Save notes" %}</button></div>
+  </form>
+</section>
+{% endfor %}
+{% endblock %}

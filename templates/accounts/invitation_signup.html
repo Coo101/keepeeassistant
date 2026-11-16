@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Invitation" %} — {% translate "Camp Meal Planner" %}{% endblock %}
+{% block content %}
+{% with chiro=invitation.chiro %}
+<h1>{% blocktranslate %}Join {{ chiro }}{% endblocktranslate %}</h1>
+{% endwith %}
+<p class="page-meta">{% blocktranslate with email=invitation.email %}Choose a username and password. You'll log in with this or with {{ email }}.{% endblocktranslate %}</p>
+<form method="post" class="stacked-form">
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  <div class="card">
+    {% for field in form %}<div class="form-row">{{ field.as_field_group }}</div>{% endfor %}
+  </div>
+  <button class="btn" type="submit">{% translate "Create account" %}</button>
+</form>
+{% endblock %}

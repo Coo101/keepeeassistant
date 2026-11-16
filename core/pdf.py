@@ -1,4 +1,4 @@
-"""PDF rendering via WeasyPrint, with graceful HTML fallback (SPEC §9.5).
+"""PDF rendering via WeasyPrint, with graceful HTML fallback (docs/spec/planning.md).
 
 WeasyPrint needs the GTK/Pango native libraries; on machines without them we
 serve the same template as a print-friendly HTML page instead of a PDF.
@@ -9,6 +9,7 @@ import logging
 
 from django.http import HttpRequest, HttpResponse
 from django.template.loader import render_to_string
+from django.utils.http import content_disposition_header
 
 logger = logging.getLogger(__name__)
 
@@ -36,5 +37,8 @@ def render_pdf(
     html = render_to_string(template, context, request)
     pdf = HTML(string=html, base_url=request.build_absolute_uri("/")).write_pdf()
     response = HttpResponse(pdf, content_type="application/pdf")
-    response["Content-Disposition"] = f'inline; filename="{filename}"'
+    # The name comes from users: escape it, and a line break can't be in a header.
+    response["Content-Disposition"] = content_disposition_header(
+        False, " ".join(filename.split())
+    )
     return response

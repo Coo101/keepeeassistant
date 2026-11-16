@@ -1,250 +1,158 @@
-# Summer Camp Meal Planner — Project Specification
+# Camp Meal Planner (keepeeassistant)
 
-**Status:** v1.0 — Ready for build (via Claude Code)
-**Author:** Yonick
-**Last updated:** 2026-07-17
+**Status:** v3.0, split per area on 2026-11-16. Built on `dev` except what an area
+file lists under **Planned**. **Author:** Yonick.
 
-> This document is the source of truth for the build. Keep it in the repo (e.g.
-> `docs/SPEC.md`) and reference it from `../CLAUDE.md` so the coding agent always
-> has the full picture.
+> The entry point to what the app does. Each area has its own file in `docs/spec/`;
+> read this file plus the one area file a task is about. How changes are made
+> (brainstorm, design, plan, build, review) is in `.claude/CLAUDE.md`; designs and
+> plans live in `docs/superpowers/`.
 
----
+## What it is
 
-## 1. Overview
+A web app for a Chiro's kitchen team (kookploeg) to cater summer camps. It keeps a
+shared library of recipes and ingredients, plans a camp's meals day by day, scales
+every recipe to the camp's headcount, makes shopping lists per shopping trip, and
+follows the money from budget to bills to a financial report. It's called **Camp
+Meal Planner** in English and **Kamp Maaltijd Planner** in Dutch.
 
-A tool to plan catering for summer camps. It lets you maintain a library of
-recipes, define camps with their attendees and meal schedule, assign recipes to
-each meal across the camp's days, automatically scale recipe quantities to the
-number of people, and generate shopping lists grouped by shopping trip.
+The deliverables for a camp: a **day-by-day meal plan**, **shopping lists** (one per
+trip and shop, summed), a **runbook** (draaiboek: practical info, then per day the
+menu, quantities, steps and notes, on screen and printed), a **budget** before the
+camp and a **financial report** after it.
 
-The end deliverables for a camp are:
-1. A **day-by-day meal plan** (which recipes at which meal, each day).
-2. **Shopping lists** — one per shopping trip, with aggregated quantities.
+**Users:** members of one or more Chiros. Within a Chiro, a member is an **admin**
+(invites and removes members, changes roles, deletes camps) or a **member** (plans
+and changes camps). Django **staff** run the site in the admin. Camps are always
+**50+ people**. Planning happens on a **laptop**; cooking with a **phone in the
+kitchen** (`docs/ui-guidelines.md`).
 
-## 2. Users & Goals
+**Goals:** reuse recipes across camps and Chiros, no manual portion maths, a clean
+shopping list per shop run, and knowing what a camp really cost. **Success:** for a
+camp, the app produces correct scaled shopping lists per trip, flags every day no
+trip covers, and compares what was paid with what was planned, with no manual
+recalculation.
 
-- **Primary user:** camp organiser / cook planning meals for a multi-day camp.
-- **Scale:** camps are always **50+ people**.
-- **Goals:** reuse recipes across camps, avoid manual portion maths, get a
-  clean shopping list per shop run.
+**Out of scope:** a CMS, unit conversions, a single-page app or build step, online
+payments, automatic price fetching.
 
-**Success criteria:** For a given camp, the tool produces a correct scaled
-shopping list per selected shopping day with no manual recalculation.
+## The three stages
 
-## 3. Tech Stack
-
-**Framework: Django** (confirmed). CRUD-heavy relational app that needs
-data-entry screens — Django admin, ORM, migrations, and server-rendered
-templates fit it well.
-
-| Layer | Choice |
-|---|---|
-| Language | Python 3.12 |
-| Framework | Django 5.x |
-| Database | SQLite (dev) -> Postgres if ever multi-user |
-| Templating | Django templates (+ HTMX optional for snappier UI) |
-| PDF export | WeasyPrint (HTML template -> PDF) |
-| Testing | pytest + pytest-django |
-| Lint/format | ruff + black |
-| Type hints | Yes, throughout |
-
-## 4. Core Concepts
-
-- **Portion** — the unit of demand. One portion = one 12+/adult serving. An
-  under-12 = **0.7** portion. Staff = a full portion. Both recipes and camps
-  express their size in portions, so scaling is a single division.
-- **Recipe** — a reusable dish with ingredients and timed steps, defined for a
-  base number of under-12s + 12+ (which converts to base portions).
-- **Ingredient** — a master item with a canonical unit (piece / kg / liter) and
-  a category, used to organise shopping lists.
-- **Camp** — a multi-day event with a headcount and a daily meal schedule.
-- **Menu entry** — a recipe assigned to a specific (camp, date, meal, course).
-- **Shopping trip** — a date on which you shop; it covers the meals of the days
-  **after** it, up to and including the next trip day (never its own day).
-
-## 5. Meal Structure
-
-Meals are not uniform — each meal type has its own shape:
-
-| Meal | Structure | Slots |
+| Stage | What happens | Area files |
 |---|---|---|
-| **Breakfast** | Bread meal (standaardontbijt), plus optional extra (beleg, cornflakes, ...) | main + extra |
-| **Lunch** (midday, large) | Soup, hot or bread meal, optional extra, dessert | soup + main + extra + dessert |
-| **Tea time** | Afternoon snack — fruit/veg, savory **or** sweet | snack |
-| **Dinner** (evening) | Hot meal **or** bread meal, optional extra and dessert | main + extra + dessert |
+| Before the camp | Recipes and ingredients, the camp and its headcount, the menu per day, shopping lists per trip, the budget, the runbook, the kitchen stock | [recipes](spec/recipes.md), [planning](spec/planning.md), [shopping](spec/shopping.md), [kitchen](spec/kitchen.md) |
+| During the camp | Kitchen mode (day view, ingredient check, extra shopping, cooking, evaluation), bills of extra trips uploaded | [kitchen](spec/kitchen.md), [finance](spec/finance.md) |
+| After the camp | Bill review, the financial report, the menu evaluation, the pantry count | [finance](spec/finance.md), [kitchen](spec/kitchen.md) |
 
-Every slot is labelled in the planner grid; the **main** slot of each meal
-(and the tea snack) is required and flagged red while empty.
+Across stages: [accounts](spec/accounts.md) (who sees what) and
+[operations](spec/operations.md) (deployment, security).
 
-A recipe carries a `dish_type` so the planner only offers appropriate recipes
-for each slot (e.g. only `soup` recipes for the lunch soup slot; only
-`snack_fruitveg` / `snack_savory` for tea; only `hot_meal` / `bread_meal` for
-dinner).
+## Glossary
 
-## 6. Data Model
+| Term | Meaning |
+|---|---|
+| Chiro | A youth movement group. Camps, members, stock and pantry belong to one. |
+| Kookploeg | The camp's kitchen team. |
+| Draaiboek | The runbook: the camp's printed kitchen plan. |
+| Standaardontbijt | The fixed bread breakfast, with optional extras (beleg, cornflakes). |
+| Afdelingsbakken | Crates per age group, packed with what that group needs for a bread meal. |
+| Klein Kamp | A shorter camp for the youngest groups. |
+| Portion | One 12+ serving; see Core concepts. |
 
-### Ingredient
-- `name` (unique)
-- `unit` — one of **{piece, kg, liter}** (fixed set; no conversions)
-- `category` — produce / dairy / meat / bakery / dry goods / other (for grouping)
+## Core concepts
 
-### Recipe
-- `name`
-- `dish_type` — soup / hot_meal / bread_meal / bread_meal_extra / dessert /
-  snack_fruitveg / snack_savory / snack_sweet / other. Breakfast slots take
-  `bread_meal` (+ optional `bread_meal_extra`); the lunch main course and the
-  dinner main slot both take `hot_meal` (dinner also accepts `bread_meal`).
-- `base_children` — under-12 count the entered quantities feed
-- `base_teens` — 12+ count the entered quantities feed
-- `base_portions` (derived) = `base_teens + 0.7 * base_children`
-- `notes`
-- has many **RecipeIngredient**, many **RecipeStep**
+- **Portion**: the unit of demand. One portion = one 12+/adult serving. An under-12
+  is **0.7** portion. Staff count as a full portion. Recipes and camps both express
+  their size in portions, so scaling is one division ([planning](spec/planning.md)).
+- **Recipe**: a reusable dish with ingredients and timed steps, written for a base
+  number of under-12s and 12+, which gives its base portions.
+- **Ingredient**: a shared master item with one unit (piece / kg / liter), a
+  category, a shop, a price history and tags for what it contains.
+- **Camp**: a multi-day event of one Chiro, with a headcount and four meal times.
+- **Menu entry**: a recipe in one slot of a camp's day.
+- **Shopping trip**: a date on which you shop. It covers the meals of the days
+  **after** it, up to and including the next trip day, never its own day.
+- **Price**: a price per unit of an ingredient, either general or what one camp paid.
 
-### RecipeIngredient
-- `recipe`, `ingredient`, `quantity`, `unit`
+## Tech stack
 
-### RecipeStep
-- `recipe`, `order`, `instruction`, `duration_minutes` (optional)
+Python 3.12+ (the Docker image uses 3.13), Django 5.2, SQLite in WAL mode, Django
+templates (server-rendered, no build step), Bootstrap 5.3, Bootstrap Icons and HTMX
+vendored in `static/vendor/` with `django-htmx` and crispy-forms
+(`crispy-bootstrap5`), WeasyPrint for PDFs (print-friendly HTML when its libraries
+are missing), `pdfplumber` and an Ollama vision model for bills, `markdown` for news
+and help pages, gunicorn + whitenoise in Docker, pytest + pytest-django, ruff +
+black. Dependencies are pinned in `pyproject.toml`; `requirements*.txt` are
+generated with `uv export` and a test checks they match.
 
-### Camp
-- `name`, `start_date`, `end_date`
-- `num_children` (under 12), `num_teens` (12+), `num_staff`
-- meal times: `breakfast_time`, `lunch_time`, `teatime_time`, `dinner_time`
-- `demand_portions` (derived) = `num_teens + num_staff + 0.7 * num_children`
+## Rules for every area
 
-### MenuEntry
-- `camp`, `date`, `meal_type` (breakfast/lunch/tea/dinner)
-- `course` (nullable; used for lunch: soup/main/dessert)
-- `recipe`
-- One meal can hold several entries (lunch = 3 courses); breakfast/tea/dinner
-  normally one each.
-
-### ShoppingTrip
-- `camp`, `date`
-- Coverage is derived (see §8).
-
-### ShoppingListItem (computed)
-- `ingredient`, `total_quantity`, `unit`, `category`
-
-## 7. Scaling Logic
-
-Both sides are in portions, so:
-
-```
-recipe.base_portions = base_teens + 0.7 * base_children
-camp.demand_portions = num_teens + num_staff + 0.7 * num_children
-scale = camp.demand_portions / recipe.base_portions
-```
-
-Each ingredient quantity is multiplied by `scale`. Because units are only
-piece / kg / liter, totals add up directly with no conversion.
-
-**Rounding:** round quantities to **1 decimal** for kg/liter; whole numbers for
-piece. Camps are always 50+ people, so fine-grained precision isn't needed.
-
-## 8. Shopping List Logic
-
-A shopping trip buys for the days **after** it, up to and including the next
-trip day — never its own day.
-
-```
-trips = sorted(selected shopping dates)
-for i, trip_date in enumerate(trips):
-    cover_start = trip_date + 1 day
-    cover_end   = trips[i+1] if i+1 < len(trips) else camp.end_date   # inclusive
-    covered_days = [d for d in camp_days if cover_start <= d <= cover_end]
-
-    totals = {}   # keyed by (ingredient, unit)
-    for entry in MenuEntry where camp=camp and date in covered_days:
-        scale = camp.demand_portions / entry.recipe.base_portions
-        for ri in entry.recipe.ingredients:
-            totals[(ri.ingredient, ri.unit)] += ri.quantity * scale
-
-    list = group totals by ingredient.category, rounded per §7
-```
-
-**Coverage warning (important):** because a trip never covers its own day, the
-camp's **opening days up to and including the first shopping day are not covered
-by any trip.** To cover them, add a shopping trip dated *before* those days
-(e.g. an arrival-eve shop). The planner must **flag any camp day that no trip
-covers** so nothing silently falls through the cracks.
-
-## 9. Features (MVP)
-
-### 9.1 Recipe management
-- List / add / edit / delete recipes.
-- Fields: name, dish_type, base children + teens, ingredients (ingredient + qty
-  + unit from the fixed set), ordered steps with optional per-step time.
-- Show total estimated time (sum of step durations).
-
-### 9.2 Camp management
-- Create / edit multiple camps.
-- Fields: name, start/end date, headcount (children / teens / staff), the four
-  meal times.
-- Derive the day list from start/end date.
-
-### 9.3 Menu planning
-- For a chosen camp, show a grid of days x meals.
-- Fill each slot with the appropriate recipe(s): breakfast (1), lunch (soup +
-  main + dessert), tea (1), dinner (1: hot or bread).
-- Only offer recipes whose `dish_type` fits the slot.
-- Show scaled quantities per meal for the camp's demand.
-
-### 9.4 Shopping lists
-- For a chosen camp, select which dates are shopping days.
-- Generate one aggregated, category-grouped list per shopping day using §8.
-- Warn about any uncovered camp days.
-
-### 9.5 Output / print
-- **Camp / day overview** -> **PDF** (WeasyPrint) for printing.
-- **Shopping lists** -> printable, PDF export as well.
-
-## 10. Non-functional Requirements
-
+- **Access:** every page needs a login, except the public pages. Camps, stock,
+  pantry and bills belong to one Chiro: only its members see them, others get a 404.
+  Recipes and ingredients are shared. Example Chiros: everyone looks, only staff
+  changes. Deleting always asks for confirmation. Details:
+  [accounts](spec/accounts.md), [recipes](spec/recipes.md).
+- **Errors:** validate at the model and form layer; fail loudly in dev. A request for
+  something outside a camp's dates is a 404, never a 500.
 - **Logging:** Python `logging`, no `print`.
-- **Errors:** validate at model/form layer; fail loudly in dev.
-- **Testing:** pytest; cover the scaling and shopping-list aggregation logic
-  especially (highest-risk code).
+- **Testing:** pytest. Cover scaling, shopping-list aggregation, coverage, budget and
+  bill reading especially (the highest-risk code). Tests use `config/test_settings.py`
+  and don't depend on the local `.env`. The real PDF test runs where WeasyPrint's
+  libraries exist (the Docker image).
 - **Style:** ruff + black, type hints throughout, small focused modules.
+- **Performance:** pages with lists (planner, shopping, budget, report) use a fixed
+  number of queries, whatever the size of the camp.
+- **Privacy:** bills can show names, addresses and loyalty numbers. Uploading shows a
+  warning, files are only served to the camp's Chiro as downloads, and photos are
+  only sent to the Ollama server set in `OLLAMA_URL` (your own machine), never a
+  cloud service.
+- **Languages:** Dutch (default) and English. Text is written in English and marked
+  for translation; the Dutch lives in `locale/nl/` (the compiled `.mo` is committed),
+  help pages as `<slug>.nl.md`. The browser's language decides until someone picks NL
+  or EN in the header. Numbers and dates follow the language (2,5 kg in Dutch); form
+  fields and URLs keep a decimal point. Stored data (ingredient names, bill lines,
+  error notes on a bill) stays as it was written.
+- **Time zone:** `Europe/Brussels`.
+- **Security:** see [operations](spec/operations.md).
 
-## 11. Proposed Project Structure
+## UI
 
-```
-campmealplanner/
-├── manage.py
-├── config/                 # settings, urls, wsgi
-├── recipes/                # Recipe, Ingredient, RecipeIngredient, RecipeStep
-├── camps/                  # Camp, meal schedule
-├── planning/               # MenuEntry, the day x meal grid
-├── shopping/               # ShoppingTrip + list generation
-├── core/                   # shared: portion/scaling helpers, constants
-├── templates/
-└── tests/
-```
+`docs/ui-guidelines.md` (behaviour) and `docs/DESIGN.md` (look) are the reference for
+every screen. Server-rendered templates on Bootstrap 5.3 with HTMX for small in-place
+actions; every HTMX action also works as a normal link or form post. Planning
+screens are designed for a PC and checked on a phone; kitchen screens for a phone or
+tablet (D19). Kitchen screens optimise for reading and tapping, planning screens for
+overview and data entry. Light mode only, labelled inputs, WCAG AA contrast. The Chiro movement
+colours, no Chiro logo. Status: `base.html` and the theme are on Bootstrap; the pages
+move over one area at a time (roadmap in `docs/TODO.md`).
 
-Suggested shared constant: `CHILD_PORTION_FACTOR = 0.7` in `core/`.
+## Decisions for every area
 
-## 12. Resolved Decisions
+Numbered decisions keep their number wherever they live; area decisions are in the
+area files. New ones continue from D20.
 
-1. Under-12 portion factor = **0.7**. Staff eat and count as a full portion.
-2. Recipes entered as "serves X under-12 + Y 12+", converted to base portions.
-3. **Canonical units only: piece / kg / liter.** No conversions.
-4. A shopping day **does not** cover its own day; it buys for the following
-   days up to and including the next shopping day. Uncovered opening days are
-   flagged.
-5. Lunch has three distinct courses (soup / main / dessert); breakfast = one
-   variant; dinner = hot meal or bread meal; tea = snack (fruit/veg or savory).
-6. Spec stays as `.md`; camp/day overview and shopping lists export to **PDF**.
-7. Quantities rounded to **1 decimal** (kg/liter); camps are always 50+ people.
-8. Framework is **Django**.
+- **D6**: The spec stays Markdown; overviews, runbook, recipes, shopping lists and
+  the financial report export to **PDF**.
+- **D8**: Framework is **Django**.
+- **D9**: **SQLite stays**, in WAL mode so the web workers and the bill reader can
+  share it. Revisit if it ever gets slow or needs several servers.
+- **D11**: **Recipes and ingredients are shared** between all Chiros; camps, stock,
+  pantry and bills belong to one Chiro.
+- **D15** (2026-11-05): **UI on Bootstrap and HTMX**, per `docs/ui-guidelines.md`.
+- **D17** (2026-11-09): **Chiro colours, not the Chiro logo**, per `docs/DESIGN.md`:
+  navy primary, red for the brand only, so it never competes with `danger`.
+- **D18** (2026-11-09): **The app's name is translated:** Camp Meal Planner in
+  English, Kamp Maaltijd Planner in Dutch. Wide tables scroll inside their box on a
+  phone; only tables used on a phone get a card layout.
+- **D19** (2026-11-16): **Planning on a PC, the kitchen on a phone or tablet.**
+  Planning views (stages 1 and 3) are designed at 1366px and checked at 375px; kitchen
+  views (stage 2) at 375px and 768px; public pages work at both.
 
-## 13. Out of Scope for v1 (future)
+## Index
 
-- **Nutrition / balance tracker.** Flag whether a meal and a day are balanced —
-  e.g. enough vegetables, not too much sugar. Likely approach: per-ingredient
-  nutrition tags (is-vegetable, sugar level, food group, etc.) rolled up per
-  meal and per day, with simple threshold warnings in the planner.
-- Dietary restrictions / allergies handling.
-- "Pantry on hand" subtraction (exclude what you already have).
-- Cost estimation / budgeting.
-- Multi-user accounts / permissions.
+- `docs/spec/planning.md`, `shopping.md`, `recipes.md`, `kitchen.md`, `finance.md`,
+  `accounts.md`, `operations.md`: what each area does now.
+- `docs/TODO.md`: the roadmap.
+- `docs/ui-guidelines.md`, `docs/DESIGN.md`: how screens behave and look.
+- `docs/superpowers/specs/`, `docs/superpowers/plans/`: dated designs and plans.
+- `README.md`: setup and running the app.

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ camp.name }} — {% translate "Financial report" %}{% endblock %}
+{% block content %}
+<p><a class="back-link" href="{% url 'bill_list' camp.pk %}">← {% translate "all bills" %}</a></p>
+<h1>{{ camp.name }} — {% translate "financial report" %}</h1>
+{% include "camps/_example_note.html" %}
+<p class="page-meta">{{ camp.start_date }} – {{ camp.end_date }} · {% include "planning/_headcount.html" %}</p>
+<div class="actions"><a class="btn" href="{% url 'report_pdf' camp.pk %}">{% translate "Report PDF" %}</a></div>
+<div class="report">
+{% include "bills/_report_body.html" %}
+</div>
+{% endblock %}

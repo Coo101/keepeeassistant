@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Log in" %} — {% translate "Camp Meal Planner" %}{% endblock %}
+{% block content %}
+<h1>{% translate "Log in" %}</h1>
+<p class="page-meta">{% url 'join_request' as join_url %}{% blocktranslate trimmed %}
+  Camp Meal Planner is by invitation. Your camps are only visible to members of your Chiro. No account? <a href="{{ join_url }}">Request access.</a>
+{% endblocktranslate %}</p>
+
+<div class="card login-card">
+  {% if form.errors %}
+  <div class="warning">{% for error in form.non_field_errors %}{{ error }}{% empty %}{% translate "Check the fields below." %}{% endfor %}</div>
+  {% endif %}
+  <form method="post">
+    {% csrf_token %}
+    <p>
+      <label for="{{ form.username.id_for_label }}">{% translate "Username or email" %}</label><br>
+      {{ form.username }}
+    </p>
+    <p>
+      <label for="{{ form.password.id_for_label }}">{% translate "Password" %}</label><br>
+      {{ form.password }}
+    </p>
+    <input type="hidden" name="next" value="{{ next }}">
+    <button class="btn" type="submit">{% translate "Log in" %}</button>
+  </form>
+  <p><a href="{% url 'password_reset' %}">{% translate "Forgot your password?" %}</a></p>
+</div>
+{% endblock %}

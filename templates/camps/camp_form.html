@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load i18n static crispy_forms_tags %}
+{% block title %}{% if camp.pk %}{{ camp.name }}{% else %}{% translate "New camp" %}{% endif %} — {% translate "Camps" %}{% endblock %}
+{% block content %}
+{% if camp.pk %}
+{% url 'planner' camp.pk as back_url %}{% translate "Back to the menu plan" as back_label %}
+{% include "components/back_link.html" with url=back_url label=back_label %}
+{% blocktranslate with name=camp.name asvar page_title %}Edit {{ name }}{% endblocktranslate %}
+{% include "components/page_header.html" with title=page_title %}
+{% include "components/camp_nav.html" with camp=camp active="edit" %}
+{% include "camps/_example_note.html" %}
+{% else %}
+{% url 'camp_list' as back_url %}{% translate "All camps" as back_label %}
+{% include "components/back_link.html" with url=back_url label=back_label %}
+{% translate "New camp" as page_title %}
+{% include "components/page_header.html" with title=page_title %}
+{% endif %}
+
+{% include "components/form_errors.html" with form=form formset=groups %}
+<form method="post">
+  {% csrf_token %}
+  {% for title, fields in form.sections %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-header"><h2 class="h5 mb-0">{{ title }}</h2></div>
+    <div class="card-body">
+      <div class="row g-3">
+        {% for field in fields %}
+          {% if field.is_hidden %}{{ field }}{% else %}<div class="{% if field.field.widget.input_type == 'time' %}col-6 col-lg-3{% elif field.name == 'general_notes' %}col-12{% else %}col-lg-6{% endif %}">{{ field|as_crispy_field }}</div>{% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% if forloop.first %}{% include "camps/_groups.html" %}{% endif %}
+  {% endfor %}
+  <div class="d-flex flex-wrap gap-2 mt-4">
+    {% if can_delete %}<a class="btn btn-outline-danger" href="{% url 'camp_delete' camp.pk %}"><i class="bi bi-trash" aria-hidden="true"></i> {% translate "Delete camp" %}</a>{% endif %}
+    <button class="btn btn-primary ms-auto" type="submit"><i class="bi bi-check-lg" aria-hidden="true"></i> {% translate "Save camp" %}</button>
+  </div>
+</form>
+{% if camp.pk %}
+<div class="row g-3 mt-4">
+  <div class="col-lg-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header"><h2 class="h5 mb-0">{% translate "Kitchen utilities" %}</h2></div>
+      <div class="card-body">
+        <p>{% blocktranslate trimmed with chiro=camp.chiro.name %}
+          Pots, fire pits and other utilities this camp needs. They're compared with the stock of {{ chiro }}, and what's missing goes on the shopping page.
+        {% endblocktranslate %}</p>
+        <a class="btn btn-outline-primary" href="{% url 'camp_utensils' camp.pk %}"><i class="bi bi-tools" aria-hidden="true"></i> {% translate "Kitchen utilities for this camp" %}</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-header"><h2 class="h5 mb-0">{% translate "Archive" %}</h2></div>
+      <div class="card-body">
+        <p>{% translate "Archived camps stay available, under the camp list." %}</p>
+        <form method="post" action="{% url 'camp_archive' camp.pk %}">
+          {% csrf_token %}
+          <button class="btn btn-outline-primary" type="submit">{% if camp.is_archived %}<i class="bi bi-box-arrow-up" aria-hidden="true"></i> {% translate "Bring back from the archive" %}{% else %}<i class="bi bi-archive" aria-hidden="true"></i> {% translate "Archive camp" %}{% endif %}</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/headcount.js' %}"></script>{% endblock %}

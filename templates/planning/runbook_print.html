@@ -1,0 +1,122 @@
+{% load i18n %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+  <meta charset="utf-8">
+  <title>{% translate "Runbook" %} — {{ camp.name }}</title>
+  <style>
+    @page { size: A4; margin: 1.6cm; }
+    body { font-family: system-ui, sans-serif; color: #111; font-size: 10.5pt; }
+    h1 { font-size: 15pt; border-bottom: 2px solid #2c6e49; padding-bottom: 3px; page-break-after: avoid; }
+    h2 { font-size: 12pt; color: #1e4d33; page-break-after: avoid; }
+    h3 { font-size: 11pt; margin-bottom: 0.2em; page-break-after: avoid; }
+    .meta { color: #555; }
+    .prewrap { white-space: pre-line; margin-top: 0.2em; }
+    table { border-collapse: collapse; width: 100%; margin: 0.4em 0; }
+    th, td { border: 1px solid #bbb; padding: 3pt 6pt; text-align: left; vertical-align: top; }
+    th { background: #eee; }
+    .cover { text-align: center; page-break-after: always; padding-top: 5cm; }
+    .cover h1 { font-size: 26pt; border: none; }
+    .cover p { font-size: 13pt; color: #444; }
+    .info-page { page-break-after: always; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10pt 18pt; }
+    .day { page-break-before: always; }
+    .slot-label { color: #555; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.04em; }
+    .qty { white-space: nowrap; }
+    .empty { color: #999; font-style: italic; }
+    ol { padding-left: 14pt; margin: 0.3em 0; }
+    ol li { margin-bottom: 4pt; }
+    .duration { color: #555; }
+    .step-block { page-break-inside: avoid; margin-bottom: 0.6em; }
+    .notes-box { border: 1px solid #999; border-radius: 4pt; min-height: 3.2cm; padding: 6pt; white-space: pre-line; }
+    {% if pdf_fallback %}@media screen { body::before { content: "{% translate "PDF engine unavailable — use your browser's Print to save as PDF." %}"; display:block; background:#fef3c7; padding:8px; margin-bottom:12px; } }{% endif %}
+  </style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>{% translate "Cook team runbook" %}</h1>
+  <p>{{ camp.name }}</p>
+  <p>{{ camp.start_date|date:"d F Y" }} – {{ camp.end_date|date:"d F Y" }}</p>
+  <p class="meta">{% blocktranslate trimmed with children=camp.num_children teens=camp.num_teens staff=camp.num_staff portions=camp.demand_portions %}
+    {{ children }} members (-12) · {{ teens }} members (12+) · {{ staff }} leaders &amp; crew — {{ portions }} portions
+  {% endblocktranslate %}</p>
+</div>
+
+<div class="info-page">
+  <h1>{% translate "Practical info" %}</h1>
+  <div class="info-grid">
+    <div><h3>{% translate "Cook team" %}</h3><p class="prewrap">{% if camp.cook_team %}{{ camp.cook_team }}{% else %}—{% endif %}</p></div>
+    <div><h3>{% translate "Location" %}</h3><p class="prewrap">{% if camp.location %}{{ camp.location }}{% else %}—{% endif %}</p></div>
+    <div><h3>{% translate "Contact for the leaders" %}</h3><p class="prewrap">{% if camp.contact_leader %}{{ camp.contact_leader }}{% else %}—{% endif %}</p></div>
+    <div><h3>{% translate "Contact for the rental" %}</h3><p class="prewrap">{% if camp.contact_rental %}{{ camp.contact_rental }}{% else %}—{% endif %}</p></div>
+    <div><h3>{% translate "Bakery" %}</h3><p class="prewrap">{% if camp.bakery %}{{ camp.bakery }}{% else %}—{% endif %}</p></div>
+    <div>
+      <h3>{% translate "Meal times" %}</h3>
+      <table>
+        <tbody>
+          <tr><td>{% translate "Breakfast" %}</td><td>{{ camp.breakfast_time|time:"H:i" }}</td></tr>
+          <tr><td>{% translate "Lunch" %}</td><td>{{ camp.lunch_time|time:"H:i" }}</td></tr>
+          <tr><td>{% translate "Tea time" %}</td><td>{{ camp.teatime_time|time:"H:i" }}</td></tr>
+          <tr><td>{% translate "Dinner" %}</td><td>{{ camp.dinner_time|time:"H:i" }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    {% with groups=camp.groups.all %}{% if groups %}
+    <div>
+      <h3>{% translate "Headcount per group" %}</h3>
+      <table>
+        <tbody>
+          {% for group in groups %}<tr><td>{{ group.name }}</td><td>{{ group.count }}</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}{% endwith %}
+  </div>
+  {% if camp.general_notes %}
+  <h3>{% translate "General info" %}</h3>
+  <p class="prewrap">{{ camp.general_notes }}</p>
+  {% endif %}
+</div>
+
+{% for day in days %}
+<div class="day">
+  <h1>{% blocktranslate with number=day.number %}Day {{ number }}{% endblocktranslate %} — {{ day.date|date:"l d F Y" }}</h1>
+
+  <table>
+    <thead>
+      <tr><th style="width:16%">{% translate "Meal" %}</th><th style="width:28%">{% translate "Menu" %}</th><th>{% blocktranslate with portions=camp.demand_portions %}Ingredients ({{ portions }} portions){% endblocktranslate %}</th></tr>
+    </thead>
+    <tbody>
+      {% for meal in day.meals %}
+        {% for cell in meal.cells %}
+        <tr>
+          <td>{% if forloop.first %}<strong>{{ meal.label }}</strong>{% endif %}
+              <div class="slot-label">{{ cell.slot.label }}</div></td>
+          <td>{% if cell.entry %}{{ cell.entry.recipe.name }}{% else %}<span class="empty">—</span>{% endif %}</td>
+          <td>{% if cell.scaled %}{% for item in cell.scaled.ingredients %}<span class="qty">{{ item.ingredient.name }} {{ item.quantity }}&nbsp;{% translate item.unit %}</span>{% if not forloop.last %} · {% endif %}{% endfor %}{% endif %}</td>
+        </tr>
+        {% endfor %}
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if day.step_blocks %}
+  <h2>{% translate "Step by step" %}</h2>
+  {% for block in day.step_blocks %}
+  <div class="step-block">
+    <h3>{{ block.recipe.name }} <span class="meta">({{ block.meal_label }}{% if block.recipe.total_duration_minutes %} · {{ block.recipe.total_duration_minutes }} min{% endif %})</span></h3>
+    <ol>
+      {% for step in block.steps %}
+      <li>{{ step.instruction }}{% if step.duration_minutes %} <span class="duration">({{ step.duration_minutes }} min)</span>{% endif %}</li>
+      {% endfor %}
+    </ol>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <h2>{% translate "Notes" context "runbook" %}</h2>
+  <div class="notes-box">{{ day.note_text }}</div>
+</div>
+{% endfor %}
+</body>
+</html>

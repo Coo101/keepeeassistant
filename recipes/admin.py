@@ -1,13 +1,55 @@
 from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
 
-from recipes.models import Ingredient, Recipe, RecipeIngredient, RecipeStep
+from recipes.models import (
+    Ingredient,
+    IngredientPrice,
+    Recipe,
+    RecipeIngredient,
+    RecipeStep,
+)
+
+
+class IngredientPriceInline(admin.TabularInline):
+    model = IngredientPrice
+    extra = 1
+    autocomplete_fields = ["camp"]
+    readonly_fields = ["unit", "created_by"]
 
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
-    list_display = ["name", "unit", "category"]
-    list_filter = ["category", "unit"]
-    search_fields = ["name"]
+    list_display = [
+        "name",
+        "unit",
+        "category",
+        "shop",
+        "latest_price",
+        "latest_price_date",
+        "product_details",
+    ]
+    list_filter = ["shop", "category", "unit"]
+    search_fields = ["name", "product_details"]
+    list_editable = ["shop"]
+    inlines = [IngredientPriceInline]
+
+    def save_formset(self, request, form, formset, change) -> None:
+        for price in formset.save(commit=False):
+            price.created_by = price.created_by or request.user
+            price.save()
+        for deleted in formset.deleted_objects:
+            deleted.delete()
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).with_latest_price()
+
+    @admin.display(description=_("Latest price"))
+    def latest_price(self, obj: Ingredient):
+        return obj.latest_price
+
+    @admin.display(description=_("Price date"))
+    def latest_price_date(self, obj: Ingredient):
+        return obj.latest_price_date
 
 
 class RecipeIngredientInline(admin.TabularInline):
@@ -25,6 +67,8 @@ class RecipeStepInline(admin.TabularInline):
 class RecipeAdmin(admin.ModelAdmin):
     list_display = [
         "name",
+        "author",
+        "others_can_edit",
         "dish_type",
         "base_children",
         "base_teens",
@@ -33,12 +77,13 @@ class RecipeAdmin(admin.ModelAdmin):
     ]
     list_filter = ["dish_type"]
     search_fields = ["name"]
+    autocomplete_fields = ["author"]
     inlines = [RecipeIngredientInline, RecipeStepInline]
 
-    @admin.display(description="Base portions")
+    @admin.display(description=_("Base portions"))
     def base_portions(self, obj: Recipe) -> str:
         return str(obj.base_portions)
 
-    @admin.display(description="Total time (min)")
+    @admin.display(description=_("Total time (min)"))
     def total_duration_minutes(self, obj: Recipe) -> int:
         return obj.total_duration_minutes

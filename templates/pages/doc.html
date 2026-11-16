@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{{ title }} — {% translate "Camp Meal Planner" %}{% endblock %}
+{% block content %}
+<nav class="toc">
+  {% for slug, label in docs %}<a href="{% url 'doc' slug %}"{% if slug == current %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
+</nav>
+<div class="prose">{{ body }}</div>
+{% endblock %}
