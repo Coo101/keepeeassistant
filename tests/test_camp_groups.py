@@ -188,3 +188,11 @@ def test_existing_camps_get_groups_that_keep_their_totals() -> None:
     camp.update_headcount()
     camp.refresh_from_db()
     assert (camp.num_children, camp.num_teens, camp.num_staff) == (20, 30, 0)
+
+
+def test_group_rows_use_bootstrap_inputs(chiro: Chiro) -> None:
+    html = _client_in(chiro).get(reverse("camp_create")).content.decode()
+    assert "form-control form-control-sm" in html
+    assert "form-select form-select-sm" in html
+    assert 'aria-label="' in html
+    assert 'class="table table-sm align-middle mb-0"' in html

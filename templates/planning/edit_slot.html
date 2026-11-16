@@ -1,49 +1,63 @@
 {% extends "base.html" %}
-{% load i18n %}
-{% block title %}{{ camp.name }} — {{ day }} {{ meal_label }}{% endblock %}
+{% load i18n ui crispy_forms_tags %}
+{% block title %}{{ camp.name }} — {{ day|short_date }} {{ meal_label }}{% if course %} · {{ course|lower }}{% endif %}{% endblock %}
 {% block content %}
-<p><a class="back-link" href="{% url 'planner' camp.pk %}">← {% translate "back to menu plan" %}</a></p>
-<h1>{{ day|date:"l d M" }} — {{ meal_label }}{% if course %} · {{ course|lower }}{% endif %}</h1>
-<p class="page-meta">{{ camp.name }} · <strong>{% blocktranslate with portions=camp.demand_portions %}{{ portions }} portions{% endblocktranslate %}</strong></p>
+{% url 'planner' camp.pk as planner_url %}{% translate "Back to the menu plan" as back_label %}
+{% include "components/back_link.html" with url=planner_url label=back_label %}
+{% if course %}{% blocktranslate asvar slot_title with day=day|short_date meal=meal_label course=course|lower %}{{ day }} — {{ meal }} · {{ course }}{% endblocktranslate %}{% else %}{% blocktranslate asvar slot_title with day=day|short_date meal=meal_label %}{{ day }} — {{ meal }}{% endblocktranslate %}{% endif %}
+{% blocktranslate asvar slot_meta with name=camp.name portions=camp.demand_portions %}{{ name }} · {{ portions }} portions{% endblocktranslate %}
+{% include "components/page_header.html" with title=slot_title meta=slot_meta %}
 {% include "camps/_example_note.html" %}
-
-<div class="card">
-  <form method="post">
-    {% csrf_token %}
-    {{ form.recipe.errors }}
-    <div class="actions">
-      {{ form.recipe }}
-      <button class="btn" type="submit">{% translate "Save" %}</button>
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          {{ form.recipe|as_crispy_field }}
+          <div class="d-flex justify-content-end">
+            <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg" aria-hidden="true"></i> {% translate "Save" %}</button>
+          </div>
+        </form>
+      </div>
     </div>
-  </form>
+  </div>
+  <div class="col-lg-7">
+    {% if scaled %}
+    {% with recipe=entry.recipe %}
+    <h2 class="h5">{% blocktranslate with portions=camp.demand_portions %}Scaled for {{ portions }} portions{% endblocktranslate %}
+      <span class="text-body-secondary fw-normal">× {{ scaled.scale|floatformat:2 }}</span></h2>
+    <p class="text-body-secondary mb-2">{{ recipe.name }} — {% blocktranslate with children=recipe.base_children teens=recipe.base_teens portions=recipe.base_portions %}base: {{ children }} children + {{ teens }} teens = {{ portions }} portions{% endblocktranslate %}
+      · <a class="icon-link" href="{% url 'recipe_detail' recipe.pk %}">{% translate "recipe page" %} <i class="bi bi-arrow-right" aria-hidden="true"></i></a></p>
+    <div class="card shadow-sm mb-4">
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead><tr><th scope="col">{% translate "Ingredient" %}</th><th scope="col" class="text-end">{% translate "Quantity" %}</th></tr></thead>
+          <tbody>
+            {% for item in scaled.ingredients %}
+            <tr>
+              <td>{{ item.ingredient.name }}</td>
+              <td class="text-end text-nowrap">{{ item.quantity }} {% translate item.unit %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% if recipe.steps.all %}
+    <h2 class="h5">{% translate "Steps" %} <span class="text-body-secondary fw-normal">{% blocktranslate with minutes=recipe.total_duration_minutes %}{{ minutes }} min total{% endblocktranslate %}</span></h2>
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <ol class="mb-0">
+          {% for step in recipe.steps.all %}
+          <li>{{ step.instruction }}{% if step.duration_minutes %} <span class="text-body-secondary">({{ step.duration_minutes }} min)</span>{% endif %}</li>
+          {% endfor %}
+        </ol>
+      </div>
+    </div>
+    {% endif %}
+    {% endwith %}
+    {% endif %}
+  </div>
 </div>
-
-{% if scaled %}
-{% with recipe=entry.recipe %}
-<h2>{% blocktranslate with portions=camp.demand_portions %}Scaled for {{ portions }} portions{% endblocktranslate %} <span class="badge">× {{ scaled.scale|floatformat:2 }}</span>
-  <a class="muted" href="{% url 'recipe_detail' recipe.pk %}">{% translate "recipe page" %} →</a></h2>
-<p class="muted">{{ recipe.name }} — {% blocktranslate with children=recipe.base_children teens=recipe.base_teens portions=recipe.base_portions %}base: {{ children }} children + {{ teens }} teens = {{ portions }} portions{% endblocktranslate %}</p>
-<table class="compact">
-  <thead><tr><th>{% translate "Ingredient" %}</th><th>{% translate "Quantity" %}</th></tr></thead>
-  <tbody>
-    {% for item in scaled.ingredients %}
-    <tr>
-      <td>{{ item.ingredient.name }}</td>
-      <td>{{ item.quantity }} {% translate item.unit %}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-{% if recipe.steps.all %}
-<h2>{% translate "Steps" %} <span class="badge">{% blocktranslate with minutes=recipe.total_duration_minutes %}{{ minutes }} min total{% endblocktranslate %}</span></h2>
-<div class="card">
-  <ol>
-    {% for step in recipe.steps.all %}
-    <li>{{ step.instruction }}{% if step.duration_minutes %} <span class="muted">({{ step.duration_minutes }} min)</span>{% endif %}</li>
-    {% endfor %}
-  </ol>
-</div>
-{% endif %}
-{% endwith %}
-{% endif %}
 {% endblock %}

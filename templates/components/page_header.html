@@ -1,1 +1,14 @@
-<div class="page-header mb-4"><h1 class="mb-0">{{ title }}</h1>{% if meta %}<p class="text-body-secondary mb-0">{{ meta }}</p>{% endif %}<hr class="page-rule mt-2 mb-0"></div>
+{% comment %}
+{% include "components/page_header.html" with title=... meta=... action_url=... action_label=... action_icon="plus-lg" action_style="outline" %}
+The action sits next to the title from lg, under it on a phone.
+{% endcomment %}
+<div class="page-header mb-4">
+  <div class="d-lg-flex justify-content-between align-items-center gap-3">
+    <div>
+      <h1 class="mb-0">{{ title }}</h1>
+      {% if meta %}<p class="text-body-secondary mb-0">{{ meta }}</p>{% endif %}
+    </div>
+    {% if action_url %}<a {% if action_style == 'outline' %}class="btn btn-outline-primary mt-2 mt-lg-0 text-nowrap"{% else %}class="btn btn-primary mt-2 mt-lg-0 text-nowrap"{% endif %} href="{{ action_url }}">{% if action_icon %}<i class="bi bi-{{ action_icon }}" aria-hidden="true"></i> {% endif %}{{ action_label }}</a>{% endif %}
+  </div>
+  <hr class="page-rule mt-2 mb-0">
+</div>

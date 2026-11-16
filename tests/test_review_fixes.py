@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.core.management import CommandError, call_command
 from django.urls import reverse
 
+from accounts.models import Membership, Role
 from core.constants import DishType, MealType
 from planning.models import MenuEntry
 from recipes.models import Ingredient, RecipeIngredient
@@ -112,3 +113,17 @@ def test_saving_shopping_days_keeps_trips_outside_the_form() -> None:
     dates = set(camp.shopping_trips.values_list("date", flat=True))
     assert dates == {early, AUG(3)}
     assert "Shopping days outside the dates" in logged_in.get(url).content.decode()
+
+
+def test_seed_demo_creates_a_plain_member(settings) -> None:
+    settings.DEBUG = True
+    call_command("seed_demo")
+    call_command("seed_demo")
+    member = User.objects.get(username="member")
+    assert not member.is_staff
+    assert not member.is_superuser
+    assert member.check_password("member")
+    memberships = Membership.objects.filter(user=member)
+    assert memberships.count() == 1
+    assert memberships.get().chiro.name == "Demo Chiro"
+    assert memberships.get().role == Role.MEMBER

@@ -12,6 +12,7 @@ class SlotForm(forms.Form):
 
     recipe = forms.ModelChoiceField(
         queryset=Recipe.objects.none(),
+        label=_("Recipe"),
         required=False,
         empty_label=_("— no recipe (clear slot) —"),
     )

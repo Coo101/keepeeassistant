@@ -94,7 +94,9 @@ class Camp(models.Model):
 
     def clean(self) -> None:
         if self.start_date and self.end_date and self.end_date < self.start_date:
-            raise ValidationError(_("End date must be on or after start date."))
+            raise ValidationError(
+                {"end_date": _("End date must be on or after start date.")}
+            )
 
     @property
     def demand_portions(self) -> Decimal:

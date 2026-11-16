@@ -1,85 +1,87 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n ui %}
 {% block title %}{{ camp.name }} — {% translate "Menu plan" %}{% endblock %}
 {% block content %}
-<h1>{{ camp.name }} — {% translate "menu plan" %}</h1>
+{% url 'overview_pdf' camp.pk as pdf_url %}{% translate "Overview PDF" as pdf_label %}
+{% blocktranslate trimmed asvar headcount with children=camp.num_children teens=camp.num_teens staff=camp.num_staff portions=camp.demand_portions %}
+{{ children }} children + {{ teens }} teens + {{ staff }} staff = <strong>{{ portions }} portions</strong>
+{% endblocktranslate %}
+{% blocktranslate trimmed asvar meta_line with start=camp.start_date|short_date end=camp.end_date|short_date:"year" %}{{ start }} – {{ end }} · {{ headcount }}{% endblocktranslate %}
+{% include "components/page_header.html" with title=camp.name meta=meta_line action_url=pdf_url action_label=pdf_label action_icon="file-earmark-pdf" action_style="outline" %}
+{% include "components/camp_nav.html" with camp=camp active="plan" %}
 {% include "camps/_example_note.html" %}
-<p class="page-meta">
-  {{ camp.start_date }} – {{ camp.end_date }} ·
-  {% include "planning/_headcount.html" %}
-</p>
-<div class="actions">
-  <a class="btn btn-outline" href="{% url 'shopping' camp.pk %}">{% translate "Shopping lists" %}</a>
-  <a class="btn btn-outline" href="{% url 'runbook' camp.pk %}">{% translate "Runbook" %}</a>
-  <a class="btn btn-outline" href="{% url 'bill_list' camp.pk %}">{% translate "Bills" %}</a>
-  <a class="btn btn-outline" href="{% url 'financial_report' camp.pk %}">{% translate "Financial report" %}</a>
-  <a class="btn btn-outline" href="{% url 'camp_diets' camp.pk %}">{% translate "Diets and allergies" %}</a>
-  <a class="btn btn-outline" href="{% url 'camp_utensils' camp.pk %}">{% translate "Kitchen utilities" %}</a>
-  <a class="btn btn-outline" href="{% url 'camp_edit' camp.pk %}">{% translate "Edit camp" %}</a>
-  <a class="btn" href="{% url 'overview_pdf' camp.pk %}">{% translate "Overview PDF" %}</a>
-</div>
 {% if camp.is_archived %}
-<div class="warning">🗄️ {% url 'camp_edit' camp.pk as edit_url %}{% blocktranslate %}This camp is archived. You can bring it back under <a href="{{ edit_url }}">Edit camp</a>.{% endblocktranslate %}</div>
+<div class="alert alert-secondary d-flex gap-2" role="alert">
+  <i class="bi bi-archive" aria-hidden="true"></i>
+  <div>{% url 'camp_edit' camp.pk as edit_url %}{% blocktranslate %}This camp is archived. You can bring it back under <a href="{{ edit_url }}">Edit camp</a>.{% endblocktranslate %}</div>
+</div>
 {% endif %}
 {% if outside_entries %}
 {% include "planning/_outside_entries.html" with back="planner" %}
 {% endif %}
-<div class="table-scroll">
-<table class="planner-table">
-  <thead>
-    <tr>
-      <th>{% translate "Day" %}</th>
-      <th>{% translate "Breakfast" %} <span class="muted">{{ camp.breakfast_time|time:"H:i" }}</span></th>
-      <th>{% translate "Lunch" %} <span class="muted">{{ camp.lunch_time|time:"H:i" }}</span></th>
-      <th>{% translate "Tea" %} <span class="muted">{{ camp.teatime_time|time:"H:i" }}</span></th>
-      <th>{% translate "Dinner" %} <span class="muted">{{ camp.dinner_time|time:"H:i" }}</span></th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for row in grid %}
-    <tr>
-      <th>{{ row.day|date:"D d M" }}</th>
-      {% for meal in row.meals %}
-      <td>
-        {% for cell in meal.cells %}
-          <div class="slot">
-            <span class="slot-course">{{ cell.slot.label }}</span>
-            <a class="slot-chip{% if not cell.entry %} empty-slot{% if cell.slot.required %} missing{% endif %}{% endif %}"
-               href="{% url 'edit_slot' camp.pk row.day|date:'Y-m-d' meal.meal_type %}{% if cell.slot.course %}?course={{ cell.slot.course }}{% endif %}">
-              {% if cell.entry %}{{ cell.entry.recipe.name }}{% else %}{% translate "pick…" %}{% endif %}
-            </a>
-          </div>
-        {% endfor %}
-      </td>
-      {% endfor %}
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-</div>
-
 {% if checks.conflicts %}
-<h2>{% translate "Diets and allergies" %}</h2>
-<div class="warning">
-  ⚠️ <strong>{% translate "These meals need an alternative:" %}</strong>
-  <ul>
-    {% for conflict in checks.conflicts %}
-    <li>{{ conflict.date|date:"D d M" }}, {% blocktranslate with meal=conflict.meal recipe=conflict.recipe contains=conflict.contains people=conflict.people diet=conflict.diet %}{{ meal }}: {{ recipe }} contains {{ contains }} ({{ people }} × {{ diet }}){% endblocktranslate %}</li>
-    {% endfor %}
-  </ul>
+<div class="alert alert-warning d-flex gap-2" role="alert">
+  <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+  <div>
+    <h2 class="h6">{% translate "Diets and allergies" %}</h2>
+    <strong>{% translate "These meals need an alternative:" %}</strong>
+    <ul class="mb-0">
+      {% for conflict in checks.conflicts %}
+      <li>{{ conflict.date|short_date }}, {% blocktranslate with meal=conflict.meal recipe=conflict.recipe contains=conflict.contains people=conflict.people diet=conflict.diet %}{{ meal }}: {{ recipe }} contains {{ contains }} ({{ people }} × {{ diet }}){% endblocktranslate %}</li>
+      {% endfor %}
+    </ul>
+  </div>
 </div>
 {% endif %}
+<div class="card shadow-sm mb-4">
+  <div class="table-responsive">
+    <table class="table table-bordered align-top mb-0">
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Day" %}</th>
+          <th scope="col">{% translate "Breakfast" %} <span class="fw-normal text-body-secondary small">{{ camp.breakfast_time|time:"H:i" }}</span></th>
+          <th scope="col">{% translate "Lunch" %} <span class="fw-normal text-body-secondary small">{{ camp.lunch_time|time:"H:i" }}</span></th>
+          <th scope="col">{% translate "Tea" %} <span class="fw-normal text-body-secondary small">{{ camp.teatime_time|time:"H:i" }}</span></th>
+          <th scope="col">{% translate "Dinner" %} <span class="fw-normal text-body-secondary small">{{ camp.dinner_time|time:"H:i" }}</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in grid %}
+        <tr>
+          <th scope="row" class="text-nowrap">{{ row.day|short_date }}</th>
+          {% for meal in row.meals %}
+          <td>
+            {% for cell in meal.cells %}
+            <div class="mb-1">
+              <div class="small text-uppercase text-body-secondary">{{ cell.slot.label }}</div>
+              <a class="slot-chip{% if not cell.entry %} slot-chip-empty{% if cell.slot.required %} slot-chip-missing{% endif %}{% endif %}"
+                 href="{% url 'edit_slot' camp.pk row.day|date:'Y-m-d' meal.meal_type %}{% if cell.slot.course %}?course={{ cell.slot.course }}{% endif %}">
+                {% if cell.entry %}{{ cell.entry.recipe.name }}{% else %}{% if cell.slot.required %}<i class="bi bi-exclamation-circle" aria-hidden="true"></i> {% endif %}{% translate "pick…" %}{% endif %}
+              </a>
+            </div>
+            {% endfor %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
 {% if checks.balance %}
-<h2>{% translate "Balance" %}</h2>
-<div class="card">
-  <ul>
-    {% for day, warnings in checks.balance.items %}
-    <li><strong>{{ day|date:"D d M" }}:</strong> {{ warnings|join:"; " }}</li>
-    {% endfor %}
-  </ul>
+<div class="card shadow-sm mb-4">
+  <div class="card-header"><h2 class="h5 mb-0">{% translate "Balance" %}</h2></div>
+  <div class="card-body">
+    <ul class="mb-0">
+      {% for day, warnings in checks.balance.items %}
+      <li><strong>{{ day|short_date }}:</strong> {{ warnings|join:"; " }}</li>
+      {% endfor %}
+    </ul>
+  </div>
 </div>
 {% endif %}
 {% if checks.unchecked %}
-<p class="muted">{% blocktranslate count counter=checks.unchecked|length with names=checks.unchecked|join:", " %}{{ counter }} planned ingredient not checked yet, so these warnings can miss things: {{ names }}.{% plural %}{{ counter }} planned ingredients not checked yet, so these warnings can miss things: {{ names }}.{% endblocktranslate %} <a href="{% url 'ingredient_list' %}">{% translate "Check them on the ingredients page." %}</a></p>
+<p class="small text-body-secondary mt-3">{% blocktranslate count counter=checks.unchecked|length with names=checks.unchecked|join:", " %}{{ counter }} planned ingredient not checked yet, so these warnings can miss things: {{ names }}.{% plural %}{{ counter }} planned ingredients not checked yet, so these warnings can miss things: {{ names }}.{% endblocktranslate %} <a href="{% url 'ingredient_list' %}">{% translate "Check them on the ingredients page." %}</a></p>
 {% endif %}
 {% endblock %}

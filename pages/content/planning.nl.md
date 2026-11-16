@@ -1,6 +1,8 @@
 # Een kamp plannen
 
-Het menuplan is een raster van dagen en maaltijden. Rood gemarkeerde vakjes hebben nog een recept nodig.
+Het menuplan is een raster van dagen en maaltijden. Rood gemarkeerde vakjes, met een waarschuwingsteken, hebben nog een recept nodig.
+
+Elke pagina van een kamp heeft onder de titel dezelfde rij tabbladen: *Menuplan*, *Boodschappen*, *Draaiboek*, *Rekeningen*, *Financieel verslag*, *Diëten en allergieën*, *Keukengerei* en *Kamp bewerken*.
 
 | Maaltijd | Vakjes |
 |---|---|

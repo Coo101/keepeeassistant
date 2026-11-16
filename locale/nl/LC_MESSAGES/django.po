@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Camp Meal Planner\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 16:25+0100\n"
+"POT-Creation-Date: 2026-11-16 17:14+0100\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -250,8 +250,8 @@ msgid "Camp food"
 msgstr "Kampeten"
 
 #: bills/models.py templates/camps/camp_form.html
-#: templates/kitchen/camp_utensils.html templates/kitchen/stock.html
-#: templates/planning/planner.html
+#: templates/components/camp_nav.html templates/kitchen/camp_utensils.html
+#: templates/kitchen/stock.html
 msgid "Kitchen utilities"
 msgstr "Keukengerei"
 
@@ -332,7 +332,7 @@ msgstr "%(camp)s-financieel-verslag.pdf"
 msgid "This is an example: you can look around, but not change it."
 msgstr "Dit is een voorbeeld: je kunt rondkijken, maar niets aanpassen."
 
-#: camps/admin.py camps/forms.py
+#: camps/admin.py
 msgid "Headcount"
 msgstr "Aantallen"
 
@@ -350,6 +350,7 @@ msgid "Demand portions"
 msgstr "Nodige porties"
 
 #: camps/forms.py templates/camps/camp_list.html
+#: templates/components/camp_nav.html
 msgid "Camp"
 msgstr "Kamp"
 
@@ -373,7 +374,7 @@ msgstr "kinderen (-12)"
 msgid "teens (12+)"
 msgstr "jongeren (12+)"
 
-#: camps/models.py
+#: camps/models.py templates/camps/_groups.html
 msgid "staff"
 msgstr "leiding"
 
@@ -461,20 +462,41 @@ msgstr "personen"
 msgid "note"
 msgstr "opmerking"
 
+#: camps/models.py templates/camps/_groups.html
+msgid "under 12"
+msgstr "-12"
+
+#: camps/models.py templates/camps/_groups.html
+msgid "12+"
+msgstr "12+"
+
+#: camps/models.py
+msgid "group"
+msgstr "afdeling"
+
+#: camps/models.py
+msgid "counts as"
+msgstr "telt als"
+
+#: camps/models.py
+msgid "number"
+msgstr "aantal"
+
 #: camps/views.py
 msgid "A camp belongs to a Chiro; you aren't linked to one."
 msgstr ""
 "Een kamp hoort bij een Chiro, en jij bent aan geen enkele Chiro gekoppeld."
 
-#: camps/views.py templates/planning/planner.html
+#: camps/views.py templates/components/camp_nav.html
+#: templates/planning/planner.html
 msgid "Diets and allergies"
 msgstr "Diëten en allergieën"
 
 #: camps/views.py
 msgid ""
-"The planner warns when a planned recipe contains something these people can't"
-" eat. That relies on what ingredients are marked as containing, so always "
-"check labels yourself for allergies."
+"The planner warns when a planned recipe contains something these people "
+"can't eat. That relies on what ingredients are marked as containing, so "
+"always check labels yourself for allergies."
 msgstr ""
 "De planner waarschuwt als een ingepland recept iets bevat wat deze mensen "
 "niet mogen eten. Dat hangt af van wat er bij de ingrediënten is aangeduid, "
@@ -831,6 +853,11 @@ msgstr "Geen fruit deze dag"
 msgid "A lot of sugar: %(recipes)s"
 msgstr "Veel suiker: %(recipes)s"
 
+#: planning/forms.py templates/bills/_report_body.html
+#: templates/planning/overview_print.html
+msgid "Recipe"
+msgstr "Recept"
+
 #: planning/forms.py
 msgid "— no recipe (clear slot) —"
 msgstr "— geen recept (vakje leegmaken) —"
@@ -1047,6 +1074,27 @@ msgstr "%(camp)s-boodschappenlijsten.pdf"
 msgid "Not allowed"
 msgstr "Niet toegestaan"
 
+#: templates/403.html templates/accounts/account.html
+#: templates/accounts/chiro_detail.html
+#: templates/accounts/invitation_closed.html
+#: templates/accounts/invitation_join.html
+#: templates/accounts/invitation_login.html
+#: templates/accounts/invitation_signup.html
+#: templates/accounts/invitation_wrong_account.html
+#: templates/accounts/join_request.html templates/accounts/join_thanks.html
+#: templates/base.html templates/camps/camp_list.html templates/pages/doc.html
+#: templates/pages/home.html templates/pages/post_detail.html
+#: templates/pages/post_list.html templates/recipes/ingredient_list.html
+#: templates/recipes/recipe_list.html templates/registration/login.html
+#: templates/registration/password_change_done.html
+#: templates/registration/password_change_form.html
+#: templates/registration/password_reset_complete.html
+#: templates/registration/password_reset_confirm.html
+#: templates/registration/password_reset_done.html
+#: templates/registration/password_reset_form.html
+msgid "Camp Meal Planner"
+msgstr "Kamp Maaltijd Planner"
+
 #: templates/403.html
 msgid "You can't do this here."
 msgstr "Dit kun je hier niet doen."
@@ -1172,17 +1220,17 @@ msgid ""
 "You're logged in as <strong>%(username)s</strong>. Add this account to "
 "%(chiro)s?"
 msgstr ""
-"Je bent ingelogd als <strong>%(username)s</strong>. Dit account toevoegen aan"
-" %(chiro)s?"
+"Je bent ingelogd als <strong>%(username)s</strong>. Dit account toevoegen "
+"aan %(chiro)s?"
 
 #: templates/accounts/invitation_login.html
 #, python-format
 msgid ""
-"An account already uses this email address. <a "
-"href=\"%(login_url)s?next=%(next)s\">Log in</a> to join."
+"An account already uses this email address. <a href=\"%(login_url)s?"
+"next=%(next)s\">Log in</a> to join."
 msgstr ""
-"Een account gebruikt dit e-mailadres al. <a "
-"href=\"%(login_url)s?next=%(next)s\">Log in</a> om lid te worden."
+"Een account gebruikt dit e-mailadres al. <a href=\"%(login_url)s?"
+"next=%(next)s\">Log in</a> om lid te worden."
 
 #: templates/accounts/invitation_signup.html
 #, python-format
@@ -1227,9 +1275,9 @@ msgid ""
 "Camp Meal Planner is by invitation for now. Tell us who you are, and if it's "
 "approved you get an invitation by mail. Your details are only used for this."
 msgstr ""
-"Kamp Maaltijd Planner werkt voorlopig op uitnodiging. Vertel ons wie je bent; als"
-" je aanvraag goedgekeurd wordt, krijg je een uitnodiging per mail. Je "
-"gegevens worden alleen hiervoor gebruikt."
+"Kamp Maaltijd Planner werkt voorlopig op uitnodiging. Vertel ons wie je "
+"bent; als je aanvraag goedgekeurd wordt, krijg je een uitnodiging per mail. "
+"Je gegevens worden alleen hiervoor gebruikt."
 
 #: templates/accounts/join_request.html
 msgid "Send request"
@@ -1246,6 +1294,11 @@ msgid ""
 msgstr ""
 "Je aanvraag is ontvangen. Als ze goedgekeurd wordt, krijg je een uitnodiging "
 "per mail."
+
+#: templates/base.html templates/planning/runbook.html
+#: templates/planning/runbook_print.html
+msgid "Menu"
+msgstr "Menu"
 
 #: templates/base.html templates/camps/camp_form.html
 #: templates/camps/camp_list.html
@@ -1317,8 +1370,8 @@ msgid ""
 "they came from the pantry, or a bill line isn't linked to them yet."
 msgstr ""
 "Maaltijden hiermee gebruiken de laatst gekende prijs en zijn gemarkeerd met "
-"*. Misschien kwamen ze uit de voorraad, of is een lijn op een rekening er nog"
-" niet aan gekoppeld."
+"*. Misschien kwamen ze uit de voorraad, of is een lijn op een rekening er "
+"nog niet aan gekoppeld."
 
 #: templates/bills/_report_body.html
 msgid "No price at all:"
@@ -1353,6 +1406,7 @@ msgid "Paid per category"
 msgstr "Betaald per categorie"
 
 #: templates/bills/_report_body.html templates/bills/bill_list.html
+#: templates/camps/_groups.html
 msgid "Total"
 msgstr "Totaal"
 
@@ -1383,10 +1437,6 @@ msgid "Scaled to %(portions)s portions, at this camp's prices from the bills."
 msgstr ""
 "Omgerekend naar %(portions)s porties, aan de prijzen van dit kamp volgens de "
 "rekeningen."
-
-#: templates/bills/_report_body.html templates/planning/overview_print.html
-msgid "Recipe"
-msgstr "Recept"
 
 #: templates/bills/_report_body.html templates/shopping/budget.html
 msgid "Cost"
@@ -1450,8 +1500,8 @@ msgstr "Wacht om ingelezen te worden."
 
 #: templates/bills/bill_detail.html
 msgid ""
-"This file has no readable text, so it goes to the AI model when that computer"
-" is on."
+"This file has no readable text, so it goes to the AI model when that "
+"computer is on."
 msgstr ""
 "Dit bestand heeft geen leesbare tekst, dus het gaat naar het AI-model zodra "
 "die computer aanstaat."
@@ -1480,8 +1530,8 @@ msgstr ""
 msgid ""
 "Check every line. <strong>Amount per item</strong> is in the ingredient's "
 "unit: a bottle of 1.5 L is 1.5, a bag of 500 g priced per kg is 0.5. A camp-"
-"food line with an ingredient sets this camp's price for it when you save. Use"
-" the category for anything else, and \"skipped\" for text that isn't a "
+"food line with an ingredient sets this camp's price for it when you save. "
+"Use the category for anything else, and \"skipped\" for text that isn't a "
 "purchase. Kitchen utilities can go into your Chiro's stock."
 msgstr ""
 "Kijk elke lijn na. <strong>Hoeveelheid per stuk</strong> staat in de eenheid "
@@ -1524,13 +1574,12 @@ msgid "Delete bill"
 msgstr "Rekening verwijderen"
 
 #: templates/bills/bill_list.html templates/camps/camp_list.html
-#: templates/planning/planner.html
+#: templates/components/camp_nav.html
 msgid "Bills"
 msgstr "Rekeningen"
 
-#: templates/bills/bill_list.html templates/camps/camp_form.html
-#: templates/camps/rows_page.html templates/kitchen/camp_utensils.html
-#: templates/planning/edit_slot.html templates/shopping/shopping.html
+#: templates/bills/bill_list.html templates/kitchen/camp_utensils.html
+#: templates/shopping/shopping.html
 msgid "back to menu plan"
 msgstr "terug naar het menuplan"
 
@@ -1539,7 +1588,7 @@ msgid "bills"
 msgstr "rekeningen"
 
 #: templates/bills/bill_list.html templates/bills/report.html
-#: templates/planning/planner.html
+#: templates/components/camp_nav.html
 msgid "Financial report"
 msgstr "Financieel verslag"
 
@@ -1589,18 +1638,18 @@ msgstr "Rekening toevoegen"
 #: templates/bills/bill_list.html
 msgid ""
 "⚠️ <strong>Bills can hold personal data</strong>, such as names, addresses "
-"and loyalty card numbers. Crop those out of photos where you can. The file is"
-" stored on this server and every member of this camp's Chiro can open it. "
-"Scans and photos are read by an AI model on the administrator's own computer,"
-" not by an outside service. You can remove the file after reviewing and keep "
-"the amounts."
+"and loyalty card numbers. Crop those out of photos where you can. The file "
+"is stored on this server and every member of this camp's Chiro can open it. "
+"Scans and photos are read by an AI model on the administrator's own "
+"computer, not by an outside service. You can remove the file after reviewing "
+"and keep the amounts."
 msgstr ""
-"⚠️ <strong>Rekeningen kunnen persoonsgegevens bevatten</strong>, zoals namen,"
-" adressen en klantenkaartnummers. Snij die waar je kunt weg uit foto's. Het "
-"bestand wordt op deze server bewaard en elk lid van de Chiro van dit kamp kan"
-" het openen. Scans en foto's worden ingelezen door een AI-model op de eigen "
-"computer van de beheerder, niet door een externe dienst. Na het nakijken kun "
-"je het bestand verwijderen en de bedragen houden."
+"⚠️ <strong>Rekeningen kunnen persoonsgegevens bevatten</strong>, zoals namen, "
+"adressen en klantenkaartnummers. Snij die waar je kunt weg uit foto's. Het "
+"bestand wordt op deze server bewaard en elk lid van de Chiro van dit kamp "
+"kan het openen. Scans en foto's worden ingelezen door een AI-model op de "
+"eigen computer van de beheerder, niet door een externe dienst. Na het "
+"nakijken kun je het bestand verwijderen en de bedragen houden."
 
 #: templates/bills/bill_list.html
 msgid "Upload bill"
@@ -1627,12 +1676,38 @@ msgid ""
 "This is an example camp: look around as much as you like, but changes aren't "
 "saved here. Copy a recipe you like, or plan your own camp."
 msgstr ""
-"Dit is een voorbeeldkamp: kijk gerust rond, maar wijzigingen worden hier niet"
-" bewaard. Kopieer een recept dat je bevalt, of plan je eigen kamp."
+"Dit is een voorbeeldkamp: kijk gerust rond, maar wijzigingen worden hier "
+"niet bewaard. Kopieer een recept dat je bevalt, of plan je eigen kamp."
+
+#: templates/camps/_groups.html templates/planning/runbook.html
+#: templates/planning/runbook_print.html
+msgid "Headcount per group"
+msgstr "Aantallen per afdeling"
+
+#: templates/camps/_groups.html
+msgid ""
+"Every afdeling and team that comes, with how many. Under-12s eat 0.7 "
+"portion, everyone else a full one. Groups left at 0 aren't saved."
+msgstr ""
+"Elke afdeling en ploeg die meegaat, met hoeveel. Een -12 eet 0,7 portie, de "
+"rest een volle. Afdelingen op 0 worden niet bewaard."
+
+#: templates/camps/_groups.html
+msgid "Add group"
+msgstr "Afdeling toevoegen"
+
+#: templates/camps/_groups.html templates/recipes/recipe_detail.html
+msgid "portions"
+msgstr "porties"
 
 #: templates/camps/camp_form.html templates/camps/camp_list.html
 msgid "New camp"
 msgstr "Nieuw kamp"
+
+#: templates/camps/camp_form.html templates/camps/rows_page.html
+#: templates/planning/edit_slot.html
+msgid "Back to the menu plan"
+msgstr "Terug naar het menuplan"
 
 #: templates/camps/camp_form.html templates/recipes/ingredient_form.html
 #: templates/recipes/recipe_form.html
@@ -1641,16 +1716,16 @@ msgid "Edit %(name)s"
 msgstr "%(name)s bewerken"
 
 #: templates/camps/camp_form.html
-msgid "all camps"
-msgstr "alle kampen"
-
-#: templates/camps/camp_form.html
-msgid "Save camp"
-msgstr "Kamp bewaren"
+msgid "All camps"
+msgstr "Alle kampen"
 
 #: templates/camps/camp_form.html
 msgid "Delete camp"
 msgstr "Kamp verwijderen"
+
+#: templates/camps/camp_form.html
+msgid "Save camp"
+msgstr "Kamp bewaren"
 
 #: templates/camps/camp_form.html
 #, python-format
@@ -1666,6 +1741,14 @@ msgstr ""
 msgid "Kitchen utilities for this camp"
 msgstr "Keukengerei voor dit kamp"
 
+#: templates/camps/camp_form.html templates/camps/camp_list.html
+msgid "Archive"
+msgstr "Archief"
+
+#: templates/camps/camp_form.html
+msgid "Archived camps stay available, under the camp list."
+msgstr "Gearchiveerde kampen blijven beschikbaar, onder de lijst met kampen."
+
 #: templates/camps/camp_form.html
 msgid "Bring back from the archive"
 msgstr "Terughalen uit het archief"
@@ -1673,10 +1756,6 @@ msgstr "Terughalen uit het archief"
 #: templates/camps/camp_form.html
 msgid "Archive camp"
 msgstr "Kamp archiveren"
-
-#: templates/camps/camp_form.html
-msgid "Archived camps stay available, under the camp list."
-msgstr "Gearchiveerde kampen blijven beschikbaar, onder de lijst met kampen."
 
 #: templates/camps/camp_list.html
 msgid "Dates"
@@ -1698,16 +1777,21 @@ msgstr "Leiding"
 msgid "Portions"
 msgstr "Porties"
 
-#: templates/camps/camp_list.html templates/pages/home.html
-#: templates/planning/planner.html
-msgid "Menu plan"
-msgstr "Menuplan"
+#: templates/camps/camp_list.html
+msgid "Actions"
+msgstr "Acties"
 
-#: templates/camps/camp_list.html templates/shopping/shopping.html
+#: templates/camps/camp_list.html
+#, python-format
+msgid "Pages for %(name)s"
+msgstr "Pagina's voor %(name)s"
+
+#: templates/camps/camp_list.html templates/components/camp_nav.html
+#: templates/shopping/shopping.html
 msgid "Shopping"
 msgstr "Boodschappen"
 
-#: templates/camps/camp_list.html templates/planning/planner.html
+#: templates/camps/camp_list.html templates/components/camp_nav.html
 #: templates/planning/runbook.html templates/planning/runbook_print.html
 msgid "Runbook"
 msgstr "Draaiboek"
@@ -1718,13 +1802,8 @@ msgid "Edit"
 msgstr "Bewerken"
 
 #: templates/camps/camp_list.html
-#, python-format
-msgid ""
-"No camps for your Chiro yet. <a href=\"%(create_url)s\">Add the first "
-"one</a>."
-msgstr ""
-"Nog geen kampen voor je Chiro. <a href=\"%(create_url)s\">Voeg het eerste "
-"toe</a>."
+msgid "No camps for your Chiro yet."
+msgstr "Nog geen kampen voor je Chiro."
 
 #: templates/camps/camp_list.html
 msgid ""
@@ -1740,15 +1819,28 @@ msgstr "Voorbeeldkamp"
 
 #: templates/camps/camp_list.html
 msgid ""
-"A whole camp, planned and paid, to see how everything fits together. Everyone"
-" can look at it; nobody can change it."
+"A whole camp, planned and paid, to see how everything fits together. "
+"Everyone can look at it; nobody can change it."
 msgstr ""
 "Een volledig kamp, gepland en betaald, om te zien hoe alles samenhangt. "
 "Iedereen kan het bekijken; niemand kan het aanpassen."
 
-#: templates/camps/camp_list.html
-msgid "Archive"
-msgstr "Archief"
+#: templates/components/camp_nav.html templates/pages/home.html
+#: templates/planning/planner.html
+msgid "Menu plan"
+msgstr "Menuplan"
+
+#: templates/components/camp_nav.html
+msgid "Edit camp"
+msgstr "Kamp bewerken"
+
+#: templates/components/form_errors.html
+msgid "Some fields need your attention; see below."
+msgstr "Enkele velden moeten nog aangepast worden; zie hieronder."
+
+#: templates/components/messages.html
+msgid "Close"
+msgstr "Sluiten"
 
 #: templates/confirm_delete.html
 #, python-format
@@ -1781,8 +1873,8 @@ msgstr "keukengerei"
 #, python-format
 msgid ""
 "What this camp needs. It's compared with the <a href=\"%(stock_url)s\">stock "
-"of %(chiro)s</a>; what's missing goes on the shopping page. A name that isn't"
-" in the stock yet is added to it, with none in stock."
+"of %(chiro)s</a>; what's missing goes on the shopping page. A name that "
+"isn't in the stock yet is added to it, with none in stock."
 msgstr ""
 "Wat dit kamp nodig heeft. Het wordt vergeleken met de <a "
 "href=\"%(stock_url)s\">voorraad van %(chiro)s</a>; wat ontbreekt komt op de "
@@ -1819,10 +1911,10 @@ msgid ""
 "the Chiro compares what it needs with this list, and buys what's missing. "
 "Utilities bought on a bill can be added here when you review it."
 msgstr ""
-"Wat je Chiro bezit: potten, vuurkorven, gasflessen enzovoort. Elk kamp van de"
-" Chiro vergelijkt wat het nodig heeft met deze lijst, en koopt wat ontbreekt."
-" Keukengerei dat op een rekening staat, kun je hier toevoegen bij het "
-"nakijken."
+"Wat je Chiro bezit: potten, vuurkorven, gasflessen enzovoort. Elk kamp van "
+"de Chiro vergelijkt wat het nodig heeft met deze lijst, en koopt wat "
+"ontbreekt. Keukengerei dat op een rekening staat, kun je hier toevoegen bij "
+"het nakijken."
 
 #: templates/kitchen/stock.html
 msgid "Name"
@@ -1846,9 +1938,9 @@ msgid ""
 "Chiro takes it off its shopping lists and budget, starting with the first "
 "trip."
 msgstr ""
-"Eten dat je Chiro al heeft, in de eenheid van het ingrediënt. Elk kamp van de"
-" Chiro haalt het van zijn boodschappenlijsten en budget, te beginnen bij de "
-"eerste ronde."
+"Eten dat je Chiro al heeft, in de eenheid van het ingrediënt. Elk kamp van "
+"de Chiro haalt het van zijn boodschappenlijsten en budget, te beginnen bij "
+"de eerste ronde."
 
 #: templates/pages/home.html
 msgid "meals and shopping lists for Chiro camps"
@@ -1903,7 +1995,7 @@ msgstr ""
 "Vul een raster van dagen en maaltijden. Elk vakje toont alleen recepten die "
 "passen, en je krijgt er een draaiboek voor de kookploeg bij."
 
-#: templates/pages/home.html templates/planning/planner.html
+#: templates/pages/home.html
 msgid "Shopping lists"
 msgstr "Boodschappenlijsten"
 
@@ -1924,8 +2016,8 @@ msgid ""
 "Estimate from the latest prices, then upload your bills to see what you "
 "really paid."
 msgstr ""
-"Schat de kosten met de laatste prijzen, en laad daarna je rekeningen op om te"
-" zien wat je echt betaalde."
+"Schat de kosten met de laatste prijzen, en laad daarna je rekeningen op om "
+"te zien wat je echt betaalde."
 
 #: templates/pages/post_detail.html
 msgid "all news"
@@ -1935,7 +2027,8 @@ msgstr "alle nieuws"
 msgid "No news yet."
 msgstr "Nog geen nieuws."
 
-#: templates/planning/_headcount.html
+#: templates/planning/_headcount.html templates/planning/planner.html
+#: templates/planning/runbook.html
 #, python-format
 msgid ""
 "%(children)s children + %(teens)s teens + %(staff)s staff = "
@@ -1961,11 +2054,20 @@ msgstr ""
 "<a href=\"%(edit_url)s\">Pas de kampdata aan</a> om ze terug te halen, of "
 "verwijder ze:"
 
-#: templates/planning/edit_slot.html templates/recipes/recipe_list.html
-#: templates/shopping/shopping_print.html
+#: templates/planning/edit_slot.html
 #, python-format
-msgid "%(portions)s portions"
-msgstr "%(portions)s porties"
+msgid "%(day)s — %(meal)s · %(course)s"
+msgstr "%(day)s — %(meal)s · %(course)s"
+
+#: templates/planning/edit_slot.html
+#, python-format
+msgid "%(day)s — %(meal)s"
+msgstr "%(day)s — %(meal)s"
+
+#: templates/planning/edit_slot.html
+#, python-format
+msgid "%(name)s · %(portions)s portions"
+msgstr "%(name)s · %(portions)s porties"
 
 #: templates/planning/edit_slot.html
 #, python-format
@@ -1973,14 +2075,14 @@ msgid "Scaled for %(portions)s portions"
 msgstr "Omgerekend naar %(portions)s porties"
 
 #: templates/planning/edit_slot.html
-msgid "recipe page"
-msgstr "receptpagina"
-
-#: templates/planning/edit_slot.html
 #, python-format
 msgid "base: %(children)s children + %(teens)s teens = %(portions)s portions"
 msgstr ""
 "basis: %(children)s kinderen + %(teens)s jongeren = %(portions)s porties"
+
+#: templates/planning/edit_slot.html
+msgid "recipe page"
+msgstr "receptpagina"
 
 #: templates/planning/edit_slot.html templates/recipes/ingredient_list.html
 #: templates/shopping/budget.html
@@ -2014,17 +2116,14 @@ msgstr "maaltijdplan"
 msgid "Scaled ingredients"
 msgstr "Omgerekende ingrediënten"
 
-#: templates/planning/planner.html templates/planning/runbook.html
-msgid "menu plan"
-msgstr "menuplan"
-
-#: templates/planning/planner.html
-msgid "Edit camp"
-msgstr "Kamp bewerken"
-
 #: templates/planning/planner.html
 msgid "Overview PDF"
 msgstr "Overzicht als pdf"
+
+#: templates/planning/planner.html templates/planning/runbook.html
+#, python-format
+msgid "%(start)s – %(end)s · %(headcount)s"
+msgstr "%(start)s – %(end)s · %(headcount)s"
 
 #: templates/planning/planner.html
 #, python-format
@@ -2034,6 +2133,15 @@ msgid ""
 msgstr ""
 "Dit kamp is gearchiveerd. Je kunt het terughalen onder <a "
 "href=\"%(edit_url)s\">Kamp bewerken</a>."
+
+#: templates/planning/planner.html
+msgid "These meals need an alternative:"
+msgstr "Deze maaltijden hebben een alternatief nodig:"
+
+#: templates/planning/planner.html
+#, python-format
+msgid "%(meal)s: %(recipe)s contains %(contains)s (%(people)s × %(diet)s)"
+msgstr "%(meal)s: %(recipe)s bevat %(contains)s (%(people)s × %(diet)s)"
 
 #: templates/planning/planner.html
 msgid "Day"
@@ -2046,15 +2154,6 @@ msgstr "Vieruurtje"
 #: templates/planning/planner.html
 msgid "pick…"
 msgstr "kies…"
-
-#: templates/planning/planner.html
-msgid "These meals need an alternative:"
-msgstr "Deze maaltijden hebben een alternatief nodig:"
-
-#: templates/planning/planner.html
-#, python-format
-msgid "%(meal)s: %(recipe)s contains %(contains)s (%(people)s × %(diet)s)"
-msgstr "%(meal)s: %(recipe)s bevat %(contains)s (%(people)s × %(diet)s)"
 
 #: templates/planning/planner.html
 msgid "Balance"
@@ -2079,13 +2178,18 @@ msgstr[1] ""
 msgid "Check them on the ingredients page."
 msgstr "Kijk ze na op de ingrediëntenpagina."
 
-#: templates/planning/runbook.html templates/planning/runbook_print.html
-msgid "Cook team runbook"
-msgstr "Draaiboek kookploeg"
-
 #: templates/planning/runbook.html
 msgid "Runbook PDF"
 msgstr "Draaiboek als pdf"
+
+#: templates/planning/runbook.html
+#, python-format
+msgid "Cook team runbook — %(name)s"
+msgstr "Draaiboek kookploeg — %(name)s"
+
+#: templates/planning/runbook.html
+msgid "Days"
+msgstr "Dagen"
 
 #: templates/planning/runbook.html
 msgid "Info"
@@ -2122,10 +2226,6 @@ msgid "General info"
 msgstr "Algemene info"
 
 #: templates/planning/runbook.html templates/planning/runbook_print.html
-msgid "Menu"
-msgstr "Menu"
-
-#: templates/planning/runbook.html templates/planning/runbook_print.html
 #, python-format
 msgid "Ingredients (%(portions)s portions)"
 msgstr "Ingrediënten (%(portions)s porties)"
@@ -2134,10 +2234,10 @@ msgstr "Ingrediënten (%(portions)s porties)"
 msgid "Step by step"
 msgstr "Stappenplan"
 
-#: templates/planning/runbook.html templates/planning/runbook_print.html
-msgctxt "runbook"
-msgid "Notes"
-msgstr "No-tities"
+#: templates/planning/runbook.html
+#, python-format
+msgid "Notes for day %(number)s"
+msgstr "Notities voor dag %(number)s"
 
 #: templates/planning/runbook.html
 msgid "Notes for this day…"
@@ -2146,6 +2246,10 @@ msgstr "Notities voor deze dag…"
 #: templates/planning/runbook.html
 msgid "Save notes"
 msgstr "Bewaar notities"
+
+#: templates/planning/runbook_print.html
+msgid "Cook team runbook"
+msgstr "Draaiboek kookploeg"
 
 #: templates/planning/runbook_print.html
 #, python-format
@@ -2159,6 +2263,11 @@ msgstr ""
 #: templates/planning/runbook_print.html
 msgid "Practical info"
 msgstr "Praktische info"
+
+#: templates/planning/runbook_print.html
+msgctxt "runbook"
+msgid "Notes"
+msgstr "No-tities"
 
 #: templates/recipes/_new_ingredient_dialog.html
 msgid "Couldn't save the ingredient. Check that you're still logged in."
@@ -2174,6 +2283,7 @@ msgstr ""
 "veranderen."
 
 #: templates/recipes/_new_ingredient_dialog.html
+#: templates/recipes/recipe_form.html
 msgid "Add ingredient"
 msgstr "Ingrediënt toevoegen"
 
@@ -2261,7 +2371,8 @@ msgstr "Geen ingrediënten gevonden voor “%(query)s”."
 #: templates/recipes/ingredient_list.html
 #, python-format
 msgid "No ingredients yet. <a href=\"%(create_url)s\">Add the first one</a>."
-msgstr "Nog geen ingrediënten. <a href=\"%(create_url)s\">Voeg het eerste toe</a>."
+msgstr ""
+"Nog geen ingrediënten. <a href=\"%(create_url)s\">Voeg het eerste toe</a>."
 
 #: templates/recipes/recipe_detail.html templates/recipes/recipe_form.html
 msgid "all recipes"
@@ -2288,10 +2399,6 @@ msgstr "alleen lezen"
 #: templates/recipes/recipe_detail.html
 msgid "Scale to"
 msgstr "Omrekenen naar"
-
-#: templates/recipes/recipe_detail.html
-msgid "portions"
-msgstr "porties"
 
 #: templates/recipes/recipe_detail.html
 msgid "Reset"
@@ -2364,12 +2471,16 @@ msgid "To leave them as they are, save a copy of this recipe instead."
 msgstr "Wil je ze laten zoals ze zijn? Bewaar dan een kopie van dit recept."
 
 #: templates/recipes/recipe_form.html
+msgid "Save recipe"
+msgstr "Recept bewaren"
+
+#: templates/recipes/recipe_form.html
 msgid "Missing one?"
 msgstr "Ontbreekt er een?"
 
 #: templates/recipes/recipe_form.html
-msgid "Save recipe"
-msgstr "Recept bewaren"
+msgid "Add step"
+msgstr "Stap toevoegen"
 
 #: templates/recipes/recipe_list.html
 #, python-format
@@ -2393,6 +2504,11 @@ msgstr "Zoek recepten"
 msgid "No recipes match \"%(query)s\"."
 msgstr "Geen recepten gevonden voor “%(query)s”."
 
+#: templates/recipes/recipe_list.html templates/shopping/shopping_print.html
+#, python-format
+msgid "%(portions)s portions"
+msgstr "%(portions)s porties"
+
 #: templates/recipes/recipe_list.html
 #, python-format
 msgid "No recipes yet. <a href=\"%(create_url)s\">Add the first one</a>."
@@ -2409,11 +2525,12 @@ msgstr ""
 #: templates/registration/login.html
 #, python-format
 msgid ""
-"Camp Meal Planner is by invitation. Your camps are only visible to members of"
-" your Chiro. No account? <a href=\"%(join_url)s\">Request access.</a>"
+"Camp Meal Planner is by invitation. Your camps are only visible to members "
+"of your Chiro. No account? <a href=\"%(join_url)s\">Request access.</a>"
 msgstr ""
-"Kamp Maaltijd Planner werkt op uitnodiging. Je kampen zijn alleen zichtbaar voor "
-"leden van je Chiro. Geen account? <a href=\"%(join_url)s\">Vraag toegang.</a>"
+"Kamp Maaltijd Planner werkt op uitnodiging. Je kampen zijn alleen zichtbaar "
+"voor leden van je Chiro. Geen account? <a href=\"%(join_url)s\">Vraag "
+"toegang.</a>"
 
 #: templates/registration/login.html
 msgid "Check the fields below."
@@ -2435,8 +2552,8 @@ msgstr "Wachtwoord veranderd"
 #: templates/registration/password_change_done.html
 #, python-format
 msgid ""
-"Your password was changed. <a href=\"%(account_url)s\">Back to your "
-"account</a>."
+"Your password was changed. <a href=\"%(account_url)s\">Back to your account</"
+"a>."
 msgstr ""
 "Je wachtwoord is veranderd. <a href=\"%(account_url)s\">Terug naar je "
 "account</a>."
@@ -2447,7 +2564,8 @@ msgstr "Wachtwoord bewaard"
 
 #: templates/registration/password_reset_complete.html
 #, python-format
-msgid "You can now <a href=\"%(login_url)s\">log in</a> with your new password."
+msgid ""
+"You can now <a href=\"%(login_url)s\">log in</a> with your new password."
 msgstr ""
 "Je kunt nu <a href=\"%(login_url)s\">inloggen</a> met je nieuwe wachtwoord."
 
@@ -2461,8 +2579,10 @@ msgstr "Wachtwoord bewaren"
 
 #: templates/registration/password_reset_confirm.html
 #, python-format
-msgid "This link no longer works. <a href=\"%(reset_url)s\">Ask for a new one</a>."
-msgstr "Deze link werkt niet meer. <a href=\"%(reset_url)s\">Vraag een nieuwe</a>."
+msgid ""
+"This link no longer works. <a href=\"%(reset_url)s\">Ask for a new one</a>."
+msgstr ""
+"Deze link werkt niet meer. <a href=\"%(reset_url)s\">Vraag een nieuwe</a>."
 
 #: templates/registration/password_reset_done.html
 msgid "Check your email"
@@ -2495,8 +2615,8 @@ msgstr "Was jij dit niet? Dan kun je deze mail negeren."
 
 #: templates/registration/password_reset_form.html
 msgid ""
-"Enter the email address of your account and we'll send a link to choose a new"
-" password."
+"Enter the email address of your account and we'll send a link to choose a "
+"new password."
 msgstr ""
 "Vul het e-mailadres van je account in en we sturen een link om een nieuw "
 "wachtwoord te kiezen."
@@ -2627,8 +2747,8 @@ msgstr ""
 #: templates/shopping/shopping.html
 #, python-format
 msgid ""
-"<a href=\"%(stock_url)s#pantry\">Already have something? Add it to the pantry"
-" of %(chiro)s</a> and it comes off these lists."
+"<a href=\"%(stock_url)s#pantry\">Already have something? Add it to the "
+"pantry of %(chiro)s</a> and it comes off these lists."
 msgstr ""
 "<a href=\"%(stock_url)s#pantry\">Heb je al iets? Zet het in de voorraad van "
 "%(chiro)s</a> en het gaat af van deze lijsten."
@@ -2640,8 +2760,8 @@ msgstr "Winkeldagen"
 #: templates/shopping/shopping.html
 msgid ""
 "A trip buys for the days <strong>after</strong> it, up to and including the "
-"next trip day — never its own day. Add a trip before the camp starts to cover"
-" the opening days."
+"next trip day — never its own day. Add a trip before the camp starts to "
+"cover the opening days."
 msgstr ""
 "Een boodschappenronde koopt voor de dagen <strong>erna</strong>, tot en met "
 "de volgende winkeldag — nooit voor haar eigen dag. Voeg een winkeldag toe "
@@ -2708,42 +2828,13 @@ msgstr "Niet gedekte dagen (geen ronde koopt ervoor):"
 msgid "Nothing to buy for this trip."
 msgstr "Niets te kopen voor deze ronde."
 
-#: templates/recipes/recipe_form.html
-msgid "Add step"
-msgstr "Stap toevoegen"
+#, python-format
+#~ msgid ""
+#~ "No camps for your Chiro yet. <a href=\"%(create_url)s\">Add the first "
+#~ "one</a>."
+#~ msgstr ""
+#~ "Nog geen kampen voor je Chiro. <a href=\"%(create_url)s\">Voeg het eerste "
+#~ "toe</a>."
 
-#: templates/base.html
-msgid "Camp Meal Planner"
-msgstr "Kamp Maaltijd Planner"
-
-#: camps/models.py
-msgid "under 12"
-msgstr "-12"
-
-#: camps/models.py
-msgid "group"
-msgstr "afdeling"
-
-#: camps/models.py
-msgid "counts as"
-msgstr "telt als"
-
-#: camps/models.py
-msgid "number"
-msgstr "aantal"
-
-#: templates/camps/_groups.html
-msgid "Headcount per group"
-msgstr "Aantallen per afdeling"
-
-#: templates/camps/_groups.html
-msgid ""
-"Every afdeling and team that comes, with how many. Under-12s eat 0.7 "
-"portion, everyone else a full one. Groups left at 0 aren't saved."
-msgstr ""
-"Elke afdeling en ploeg die meegaat, met hoeveel. Een -12 eet 0,7 portie, "
-"de rest een volle. Afdelingen op 0 worden niet bewaard."
-
-#: templates/camps/_groups.html
-msgid "Add group"
-msgstr "Afdeling toevoegen"
+#~ msgid "menu plan"
+#~ msgstr "menuplan"

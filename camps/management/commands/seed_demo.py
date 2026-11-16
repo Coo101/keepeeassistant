@@ -1,5 +1,5 @@
-"""Seed demo data: a dev admin, ingredients, recipes, a camp with a planned
-menu and shopping trips. Idempotent — safe to run twice."""
+"""Seed demo data: a dev admin and a plain member, ingredients, recipes, a camp
+with a planned menu and shopping trips. Idempotent — safe to run twice."""
 
 import datetime
 import logging
@@ -196,13 +196,15 @@ CAMP_UTENSILS = [("Large pot (50 L)", 5), ("Fire pit", 2), ("Ladle", 4)]
 
 
 class Command(BaseCommand):
-    help = "Seed demo data (dev admin, ingredients, recipes, one planned camp)."
+    help = (
+        "Seed demo data (dev admin and member, ingredients, recipes, one planned camp)."
+    )
 
     def handle(self, *args: Any, **options: Any) -> None:
         if not settings.DEBUG:
             raise CommandError(
-                "seed_demo creates the login admin/admin, so it only runs with "
-                "DJANGO_DEBUG=1."
+                "seed_demo creates the logins admin/admin and member/member, so it "
+                "only runs with DJANGO_DEBUG=1."
             )
         if not User.objects.filter(username="admin").exists():
             User.objects.create_superuser("admin", password="admin")
@@ -212,6 +214,14 @@ class Command(BaseCommand):
             user=User.objects.get(username="admin"),
             chiro=chiro,
             defaults={"role": Role.ADMIN},
+        )
+        if not User.objects.filter(username="member").exists():
+            User.objects.create_user("member", password="member")
+            self.stdout.write("Created dev login member/member (plain member).")
+        Membership.objects.get_or_create(
+            user=User.objects.get(username="member"),
+            chiro=chiro,
+            defaults={"role": Role.MEMBER},
         )
 
         for name, unit, category in INGREDIENTS:

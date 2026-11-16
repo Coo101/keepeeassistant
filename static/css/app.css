@@ -161,28 +161,42 @@ a:hover { color: var(--accent-dark); }
 
 table { border-collapse: collapse; width: 100%; background: var(--surface); }
 
-th, td {
+/* Old tables on pages not moved yet; Bootstrap tables (.table) are themed below. */
+table:not(.table) th, table:not(.table) td {
   border: 1px solid var(--border);
   padding: 0.5rem 0.7rem;
   text-align: left;
   vertical-align: top;
 }
 
-thead th {
+table:not(.table) thead th {
   background: var(--accent-soft);
   color: var(--accent-dark);
   font-weight: 600;
   font-size: 0.9rem;
 }
 
-tbody tr:hover { background: var(--chiro-sand-faint); }
+table:not(.table) tbody tr:hover { background: var(--chiro-sand-faint); }
+
+/* Bootstrap tables (DESIGN §6): sand-soft header row with navy text. */
+.table { --bs-table-hover-bg: var(--chiro-sand-faint); }
+.table > thead > tr > th {
+  --bs-table-bg: var(--chiro-sand-soft);
+  --bs-table-color: var(--chiro-navy);
+  font-weight: 600;
+}
+
+/* Active pill navy, not Bootstrap blue (camp nav, runbook days). */
+.nav-pills { --bs-nav-pills-link-active-bg: var(--chiro-navy); }
 
 table.compact { max-width: 480px; }
 table.compact td:last-child { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
 
 /* ---------- Buttons ---------- */
 
-.btn {
+/* The old hand-written buttons, on pages not moved yet (roadmap step 3). They must
+   not touch Bootstrap's own variants, or btn-outline-* turns solid navy. */
+.btn:not(.btn-primary):not(.btn-secondary):not(.btn-link):not(.btn-sm):not([class*="btn-outline-"]) {
   display: inline-block;
   background: var(--accent);
   color: white;
@@ -194,7 +208,7 @@ table.compact td:last-child { text-align: right; white-space: nowrap; font-varia
   text-decoration: none;
   transition: background 0.12s ease;
 }
-.btn:hover { background: var(--accent-dark); color: white; }
+.btn:not(.btn-primary):not(.btn-secondary):not(.btn-link):not(.btn-sm):not([class*="btn-outline-"]):hover { background: var(--accent-dark); color: white; }
 
 .btn-outline { background: var(--surface); color: var(--accent); }
 .btn-outline:hover { background: var(--accent-soft); color: var(--accent-dark); }
@@ -226,44 +240,34 @@ dialog h2 { margin-top: 0; }
 
 /* ---------- Planner grid ---------- */
 
-.planner-table th:first-child { white-space: nowrap; }
-.planner-table thead th .muted { color: var(--accent); font-weight: 400; }
-.planner-table td { padding: 0.45rem 0.5rem; }
-
-.slot { margin: 0.15rem 0; }
-
-.slot-course {
-  font-size: 0.72rem;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
 .slot-chip {
   display: inline-block;
-  background: var(--accent-soft);
-  color: var(--accent-dark);
+  background: var(--chiro-sand-soft);
+  color: var(--bs-primary);
+  border: 1px solid transparent;
   border-radius: 999px;
   padding: 0.1rem 0.6rem;
   font-size: 0.88rem;
   text-decoration: none;
 }
-.slot-chip:hover { background: var(--chiro-sand); color: var(--accent-dark); }
+.slot-chip:hover { background: var(--chiro-sand); color: var(--bs-primary); }
+.slot-chip:focus-visible { outline: 3px solid var(--bs-primary); outline-offset: 2px; }
 
-.slot-chip.empty-slot {
+.slot-chip-empty {
   background: transparent;
-  border: 1px dashed #c3c8c0;
-  color: var(--muted);
+  border: 1px dashed var(--bs-border-color);
+  color: var(--bs-secondary-color);
   font-style: italic;
 }
-.slot-chip.empty-slot:hover { border-color: var(--accent); color: var(--accent); }
+.slot-chip-empty:hover { background: transparent; border-color: var(--bs-primary); color: var(--bs-primary); }
 
-.slot-chip.missing {
-  border-color: #b91c1c;
-  color: #b91c1c;
-  background: #fef2f2;
+.slot-chip-missing {
+  background: var(--bs-danger-bg-subtle);
+  border: 1px solid var(--bs-danger);
+  /* Darker than --bs-danger: plain danger red drops under 4.5:1 on the pink. */
+  color: var(--bs-danger-text-emphasis);
 }
-.slot-chip.missing:hover { border-color: #991b1b; color: #991b1b; }
+.slot-chip-missing:hover { background: var(--bs-danger-bg-subtle); border-color: var(--bs-danger-text-emphasis); color: var(--bs-danger-text-emphasis); }
 
 /* ---------- Forms ---------- */
 
@@ -466,40 +470,12 @@ ul.recipe-grid {
 }
 .toc a:hover { border-color: var(--accent); background: var(--accent-soft); }
 
-.runbook-info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
-  gap: 0.8rem;
-  margin: 1rem 0;
-}
-.runbook-info-grid .card { margin: 0; }
-.runbook-info-grid h3, .card h3 { margin-top: 0; }
-
 .prewrap { white-space: pre-line; margin: 0.2rem 0 0; }
 
-.runbook-day {
-  border-top: 3px solid var(--accent);
-  margin-top: 2.5rem;
-  padding-top: 0.5rem;
-  scroll-margin-top: 4rem;
-}
-.runbook-day h2 { margin-top: 0.3rem; }
-.runbook-menu .qty { white-space: nowrap; }
+/* Old-style cards on pages not moved yet (roadmap step 3). */
+.card h3 { margin-top: 0; }
 
-.step-block { margin-bottom: 0.8rem; }
-.step-block h4 { margin: 0.4rem 0 0.2rem; }
-.step-block ol { margin: 0.2rem 0; }
-
-.note-form textarea {
-  width: 100%;
-  font: inherit;
-  padding: 0.5rem 0.7rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  margin-bottom: 0.4rem;
-  resize: vertical;
-}
-.note-form textarea:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+.runbook-day { scroll-margin-top: 4rem; }
 
 /* ---------- Print (recipe one-pager) ---------- */
 

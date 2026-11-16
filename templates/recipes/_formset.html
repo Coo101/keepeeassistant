@@ -1,11 +1,11 @@
 {# With `add_url` and `add_label`, a button adds an empty row: in place through HTMX, or by posting the form (name="add_row") without JavaScript. #}
 {{ formset.management_form }}
-{{ formset.non_form_errors }}
-<div class="table-scroll">
-<table class="compact">
+{% if formset.non_form_errors %}<div class="alert alert-danger" role="alert">{{ formset.non_form_errors|join:" " }}</div>{% endif %}
+<div class="table-responsive">
+<table class="table table-sm align-middle mb-0">
   <thead>
     <tr>
-      {% for field in formset.empty_form.visible_fields %}<th>{{ field.label }}</th>{% endfor %}
+      {% for field in formset.empty_form.visible_fields %}<th scope="col">{{ field.label }}</th>{% endfor %}
     </tr>
   </thead>
   <tbody id="{{ formset.prefix }}-rows">

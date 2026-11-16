@@ -45,24 +45,25 @@ admin.
 - [ ] Create or check the admin account:
       `docker exec -it keepeeassistant python manage.py createsuperuser`
 
-### 3. UI on Bootstrap and HTMX: to brainstorm
+### 3. UI move: in progress
 
-Per `docs/ui-guidelines.md` and `docs/DESIGN.md`. Kitchen mode (step 5) builds on
-this. Known work so far:
+Every page on Bootstrap and HTMX, core areas first, one plan and one review round per
+area. Planning screens are designed for a PC (D19). After each area passes review it's
+committed on `dev` and the next starts; issues from testing go on Gitea.
 
-- Check the Chiro theme at phone width: the browser review could only run at laptop
-  width (Edge was maximised). Then clean up the stale parts of `docs/DESIGN.md` §8.
-- Move the pages over one area at a time, shrinking `app.css` as you go: camps and
-  planner, recipes and ingredients, shopping and budget, bills and report, kitchen
-  stock, accounts and public pages. Per page: the page header component, Bootstrap
-  `btn btn-primary` / `btn-outline-*` instead of the old `.btn`, `form-control` on
-  inputs (the recipe search box has no navy focus ring yet), an icon in the empty
-  state (the camp list has none). Also known: the home page skips from `h1` to `h3`,
-  and the camp list shows long dates ("3 augustus 2026") instead of `ma 14 jul`.
-- Forms through crispy: single column on mobile, two from `lg`.
-- HTMX where the guidelines name it (inline add/remove rows, live rescale, filters),
-  each also working as a plain link or form post.
-- Check the PDFs still render: print templates keep their own CSS.
+- Design: `docs/superpowers/specs/2026-11-16-ui-move-design.md`
+- [x] 1. Camps and planner (also: the camp list's empty-state icon and long dates, the
+  theme check at phone width). Plan: `docs/superpowers/plans/2026-11-16-ui-area-1-camps-planner.md`
+- [ ] 2. Recipes and ingredients (also: the recipe search box focus ring)
+- [ ] 3. Shopping, budget and stock
+- [ ] 4. Bills and the financial report
+- [ ] 5. Accounts and public pages (also: the home page skips from `h1` to `h3`)
+- [ ] 6. Print check and `app.css` clean-up (also: `docs/DESIGN.md` §8 clean-up)
+
+Found in area 1's review, for a later round: example camps show edit controls that
+can't save (runbook note forms, slot links, no `read-only` badge next to the title);
+the view should pass a flag and the pages hide them. The runbook shows very small
+scaled amounts as "0,0 kg" (rounding, not UI).
 
 ### 4. Going public: to brainstorm
 
@@ -80,6 +81,8 @@ data, not the LAN.
 Day view with a shared ingredient check, extra shopping list, cooking view with
 timers, evaluation notes, menu evaluation after the camp, day sheet PDF, pantry
 count. Needs step 3; going public (step 4) before it's used at a camp.
+Starts once the user is satisfied with stages 1 and 3. Needs to work; polish comes
+later.
 
 - Design: `docs/superpowers/specs/2026-11-16-kitchen-mode-design.md`
 - Plan: `docs/superpowers/plans/2026-11-16-kitchen-mode.md`

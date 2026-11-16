@@ -1,6 +1,8 @@
 # Planning a camp
 
-The menu plan is a grid of days and meals. Slots marked in red still need a recipe.
+The menu plan is a grid of days and meals. Slots marked in red, with a warning sign, still need a recipe.
+
+Every page of a camp has the same row of tabs under its title: *Menu plan*, *Shopping*, *Runbook*, *Bills*, *Financial report*, *Diets and allergies*, *Kitchen utilities* and *Edit camp*.
 
 | Meal | Slots |
 |---|---|

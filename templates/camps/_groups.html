@@ -1,16 +1,18 @@
 {% load i18n %}
-<h2>{% translate "Headcount per group" %}</h2>
-<div class="card">
-  <p class="muted">{% blocktranslate trimmed %}
-    Every afdeling and team that comes, with how many. Under-12s eat 0.7 portion, everyone else a full one. Groups left at 0 aren't saved.
-  {% endblocktranslate %}</p>
-  {% url "camp_group_row" as add_group_url %}{% translate "Add group" as add_group %}
-  {% include "recipes/_formset.html" with formset=groups add_url=add_group_url add_label=add_group %}
-  <p class="mt-2 mb-0" data-group-totals data-child-factor="{{ totals.child_factor }}" aria-live="polite">
-    {% translate "Total" %}:
-    <strong data-total="children">{{ totals.children }}</strong> {% translate "under 12" %} ·
-    <strong data-total="teens">{{ totals.teens }}</strong> {% translate "12+" %} ·
-    <strong data-total="staff">{{ totals.staff }}</strong> {% translate "staff" %} =
-    <strong data-total="portions">{{ totals.portions }}</strong> {% translate "portions" %}
-  </p>
+<div class="card shadow-sm mb-4">
+  <div class="card-header"><h2 class="h5 mb-0">{% translate "Headcount per group" %}</h2></div>
+  <div class="card-body">
+    <p class="text-body-secondary">{% blocktranslate trimmed %}
+      Every afdeling and team that comes, with how many. Under-12s eat 0.7 portion, everyone else a full one. Groups left at 0 aren't saved.
+    {% endblocktranslate %}</p>
+    {% url "camp_group_row" as add_group_url %}{% translate "Add group" as add_group %}
+    {% include "recipes/_formset.html" with formset=groups add_url=add_group_url add_label=add_group %}
+    <p class="mt-3 mb-0" data-group-totals data-child-factor="{{ totals.child_factor }}" aria-live="polite">
+      {% translate "Total" %}:
+      <strong data-total="children">{{ totals.children }}</strong> {% translate "under 12" %} ·
+      <strong data-total="teens">{{ totals.teens }}</strong> {% translate "12+" %} ·
+      <strong data-total="staff">{{ totals.staff }}</strong> {% translate "staff" %} =
+      <strong data-total="portions">{{ totals.portions }}</strong> {% translate "portions" %}
+    </p>
+  </div>
 </div>

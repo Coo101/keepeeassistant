@@ -119,16 +119,17 @@ generated with `uv export` and a test checks they match.
 
 `docs/ui-guidelines.md` (behaviour) and `docs/DESIGN.md` (look) are the reference for
 every screen. Server-rendered templates on Bootstrap 5.3 with HTMX for small in-place
-actions; every HTMX action also works as a normal link or form post. Mobile first:
-kitchen screens optimise for reading and tapping, planning screens for overview and
-data entry. Light mode only, labelled inputs, WCAG AA contrast. The Chiro movement
+actions; every HTMX action also works as a normal link or form post. Planning
+screens are designed for a PC and checked on a phone; kitchen screens for a phone or
+tablet (D19). Kitchen screens optimise for reading and tapping, planning screens for
+overview and data entry. Light mode only, labelled inputs, WCAG AA contrast. The Chiro movement
 colours, no Chiro logo. Status: `base.html` and the theme are on Bootstrap; the pages
 move over one area at a time (roadmap in `docs/TODO.md`).
 
 ## Decisions for every area
 
 Numbered decisions keep their number wherever they live; area decisions are in the
-area files. New ones continue from D19.
+area files. New ones continue from D20.
 
 - **D6**: The spec stays Markdown; overviews, runbook, recipes, shopping lists and
   the financial report export to **PDF**.
@@ -143,6 +144,9 @@ area files. New ones continue from D19.
 - **D18** (2026-11-09): **The app's name is translated:** Camp Meal Planner in
   English, Kamp Maaltijd Planner in Dutch. Wide tables scroll inside their box on a
   phone; only tables used on a phone get a card layout.
+- **D19** (2026-11-16): **Planning on a PC, the kitchen on a phone or tablet.**
+  Planning views (stages 1 and 3) are designed at 1366px and checked at 375px; kitchen
+  views (stage 2) at 375px and 768px; public pages work at both.
 
 ## Index
 

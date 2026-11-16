@@ -69,7 +69,7 @@ def test_planner_in_dutch() -> None:
     assert "Ontbijt" in html
     assert "Avondmaal" in html
     assert "hoofdgerecht" in html
-    assert "za 01 Aug" in html  # Dutch day names
+    assert "za 1 aug" in html  # Dutch day names
 
 
 def test_choices_and_quantities_follow_the_language() -> None:

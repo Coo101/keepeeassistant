@@ -2,13 +2,21 @@
 {% load i18n %}
 {% block title %}{{ title }} — {{ camp.name }}{% endblock %}
 {% block content %}
-<p><a class="back-link" href="{% url 'planner' camp.pk %}">← {% translate "back to menu plan" %}</a></p>
-<h1>{{ camp.name }} — {{ title|lower }}</h1>
+{% url 'planner' camp.pk as planner_url %}{% translate "Back to the menu plan" as back_label %}
+{% include "components/back_link.html" with url=planner_url label=back_label %}
+{% include "components/page_header.html" with title=title meta=camp.name %}
+{% include "components/camp_nav.html" with camp=camp active="diets" %}
 {% include "camps/_example_note.html" %}
-<p class="page-meta">{{ intro }}</p>
+<p>{{ intro }}</p>
 <form method="post">
   {% csrf_token %}
-  {% include "recipes/_formset.html" with formset=formset %}
-  <div class="actions"><button class="btn" type="submit">{% translate "Save" %}</button></div>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      {% include "recipes/_formset.html" with formset=formset %}
+    </div>
+  </div>
+  <div class="d-flex justify-content-end mt-3">
+    <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg" aria-hidden="true"></i> {% translate "Save" %}</button>
+  </div>
 </form>
 {% endblock %}
