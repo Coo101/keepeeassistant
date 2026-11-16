@@ -131,7 +131,7 @@ docker compose cp db.sqlite3 web:/data/db.sqlite3 && docker compose restart web
 - Every change gets its own branch from `dev` and a pull request into `dev`; run it
   locally from PyCharm. `dev` goes into `main` through a PR `dev` → `main`, merged with
   **Fast-forward only**, so `main` and `dev` never drift apart.
-- Gitea enforces this: no direct pushes to `dev` or `main`, only `yonick_git` merges, the
+- Gitea enforces this: no direct pushes to `dev` or `main`, only `yonick` merges, the
   `test` check must pass, a PR into `main` must come from `dev` (`branch-guard`), and `dev`
   must not be behind `main`.
 - Every push and PR runs the tests in Gitea Actions

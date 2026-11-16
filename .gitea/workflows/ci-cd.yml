@@ -15,7 +15,9 @@ on:
 
 env:
   REGISTRY: gitea.dk-1.home.zx:3000
-  IMAGE: gitea.dk-1.home.zx:3000/yonick_git/keepeeassistant
+  IMAGE: gitea.dk-1.home.zx:3000/myverlinden/keepeeassistant
+  # Owner of the REGISTRY_TOKEN secret (the registry wants the token's own user name).
+  REGISTRY_USER: yonick_git
   STACK: /home/claude/stacks/keepeeassistant/compose.yml
 
 jobs:
@@ -71,7 +73,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Registry login
-        run: echo "${{ secrets.REGISTRY_TOKEN }}" | docker login "$REGISTRY" -u yonick_git --password-stdin
+        run: echo "${{ secrets.REGISTRY_TOKEN }}" | docker login "$REGISTRY" -u "$REGISTRY_USER" --password-stdin
 
       - name: Build
         run: |
