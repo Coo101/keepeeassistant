@@ -128,7 +128,11 @@ docker compose cp db.sqlite3 web:/data/db.sqlite3 && docker compose restart web
 
 ## Branches and deployment
 
-- `dev` is where work happens; run it locally from PyCharm.
+- Each roadmap step or feature gets its own branch from `dev`
+  (`ui/area-2-recipes`, `feature/kitchen-mode`, `fix/...`), pushed to Gitea and
+  merged into `dev` through a pull request.
+- `dev` is the integration branch; run it locally from PyCharm.
+- `main` only changes through a pull request from `dev`.
 - Every push and PR runs the tests in Gitea Actions
   ([.gitea/workflows/ci-cd.yml](.gitea/workflows/ci-cd.yml)).
 - A push to `main` also builds the image, pushes it to the Gitea registry
