@@ -1,5 +1,6 @@
 # CI/CD for KeePeeAssistant on the homelab (Gitea Actions).
 #   test   — every push/PR, normal runner (no Docker socket): ruff, black, Django checks, pytest
+#   branch-guard — PRs only: a PR into main must come from dev (required check on main)
 #   deploy — pushes to main only, user-scoped runner `docker-deploy` (has the host's
 #            Docker socket): build image -> push to Gitea's registry -> compose pull/up
 #            of the homelab stack /home/claude/stacks/keepeeassistant (homelab repo:
@@ -14,7 +15,9 @@ on:
 
 env:
   REGISTRY: gitea.dk-1.home.zx:3000
-  IMAGE: gitea.dk-1.home.zx:3000/yonick_git/keepeeassistant
+  IMAGE: gitea.dk-1.home.zx:3000/myverlinden/keepeeassistant
+  # Owner of the REGISTRY_TOKEN secret (the registry wants the token's own user name).
+  REGISTRY_USER: yonick_git
   STACK: /home/claude/stacks/keepeeassistant/compose.yml
 
 jobs:
@@ -47,6 +50,21 @@ jobs:
       - name: pytest
         run: python -m pytest -q
 
+  branch-guard:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Only dev may be merged into main
+        env:
+          BASE: ${{ github.base_ref }}
+          HEAD: ${{ github.head_ref }}
+        run: |
+          if [ "$BASE" = "main" ] && [ "$HEAD" != "dev" ]; then
+            echo "::error::A PR into main must come from dev, not '$HEAD'. Open it against dev instead."
+            exit 1
+          fi
+          echo "ok: $HEAD -> $BASE"
+
   deploy:
     needs: test
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
@@ -55,7 +73,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Registry login
-        run: echo "${{ secrets.REGISTRY_TOKEN }}" | docker login "$REGISTRY" -u yonick_git --password-stdin
+        run: echo "${{ secrets.REGISTRY_TOKEN }}" | docker login "$REGISTRY" -u "$REGISTRY_USER" --password-stdin
 
       - name: Build
         run: |
