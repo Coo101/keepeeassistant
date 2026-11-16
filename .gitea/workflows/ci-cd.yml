@@ -1,5 +1,6 @@
 # CI/CD for KeePeeAssistant on the homelab (Gitea Actions).
 #   test   — every push/PR, normal runner (no Docker socket): ruff, black, Django checks, pytest
+#   branch-guard — PRs only: a PR into main must come from dev (required check on main)
 #   deploy — pushes to main only, user-scoped runner `docker-deploy` (has the host's
 #            Docker socket): build image -> push to Gitea's registry -> compose pull/up
 #            of the homelab stack /home/claude/stacks/keepeeassistant (homelab repo:
@@ -46,6 +47,21 @@ jobs:
 
       - name: pytest
         run: python -m pytest -q
+
+  branch-guard:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Only dev may be merged into main
+        env:
+          BASE: ${{ github.base_ref }}
+          HEAD: ${{ github.head_ref }}
+        run: |
+          if [ "$BASE" = "main" ] && [ "$HEAD" != "dev" ]; then
+            echo "::error::A PR into main must come from dev, not '$HEAD'. Open it against dev instead."
+            exit 1
+          fi
+          echo "ok: $HEAD -> $BASE"
 
   deploy:
     needs: test
