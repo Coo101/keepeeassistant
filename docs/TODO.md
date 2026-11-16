@@ -32,7 +32,7 @@ admin.
 ### 2. First deploy on the LAN: to do (manual)
 
 - [ ] Check that the repo secret `REGISTRY_TOKEN` is set on keepeeassistant in Gitea
-- [ ] Merge `dev` into `main`: this runs the first build and deploy
+- [x] Merge `dev` into `main`: this runs the first build and deploy (PR #3, 2026-11-16)
 - [ ] Check that the stack's healthcheck accepts `/` redirecting to the login page
 - [ ] Copy the cleaned local database into the `keepeeassistant_data` volume. The
       production volume doesn't exist yet, so the data is only in the local `db.sqlite3`.

@@ -15,8 +15,12 @@ How the app is run, deployed, secured and backed up. Not tied to a camp stage.
 
 ### Branches and releases
 
-- Work happens on `dev`, run locally from PyCharm (port 8100). Merging into `main` is
-  a production release.
+- Each roadmap step or feature is built on its own branch from `dev`
+  (`<kind>/<short-name>`, such as `ui/area-2-recipes`), pushed to Gitea, and merged
+  into `dev` through a pull request after the checks and reviews pass.
+- `dev` is the integration branch, run locally from PyCharm (port 8100).
+- `main` only changes through a pull request from `dev`; merging it is a production
+  release (CI deploys it).
 
 ### CI/CD
 

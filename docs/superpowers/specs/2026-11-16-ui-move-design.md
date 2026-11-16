@@ -111,11 +111,12 @@ updated. The kitchen mode design gets "phone or tablet" where it says phone.
    `seed_demo` (dev only, `DJANGO_DEBUG=1`), next to the existing `admin`.
 6. **Finish:** remove the area's now-unused rules from `app.css`, run the checks and
    the opencode `secret_reviewer`, update the help pages if a screen works
-   differently. Then commit the area on `dev` (files staged by name, never pushed or
-   merged) and start the next area without waiting. The user chose this: they test
-   committed areas when it suits them and open issues on Gitea, which go into the
-   next round or the next area's plan. This standing go-ahead to commit covers the
-   areas of this step only.
+   differently. Then commit the area on its own branch (`ui/area-N-<name>`, from
+   `origin/dev`; files staged by name), push it and open a PR into `dev` (CLAUDE.md
+   "Branches"), and start the next area without waiting. The user chose this: they
+   review and merge the PRs, test when it suits them and open issues on Gitea, which
+   go into the next round or the next area's plan. Area 1 was committed straight on
+   `dev` (6b8e60d), before this branch rule existed.
 
 ### Done per area
 
