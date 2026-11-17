@@ -100,3 +100,32 @@ def test_an_added_row_is_saved_on_edit() -> None:
     url = reverse("recipe_edit", args=[recipe.pk])
     assert account_client().post(url, data).status_code == 302
     assert recipe.steps.get().instruction == "Aardappelen koken."
+
+
+def test_step_errors_show_the_summary() -> None:
+    data = _form_data(
+        **{
+            "steps-0-order": "1",
+            "steps-0-duration_minutes": "5",
+            "steps-0-instruction": "",
+        },
+    )
+    response = account_client().post(reverse("recipe_create"), data)
+    html = response.content.decode()
+    assert response.status_code == 200
+    assert "alert-danger" in html
+    assert "is-invalid" in html
+
+
+def test_dialog_keeps_its_script_hooks() -> None:
+    html = account_client().get(reverse("recipe_create")).content.decode()
+    for hook in (
+        'id="new-ingredient-dialog"',
+        "data-selects=",
+        "data-save-error=",
+        'id="new-ingredient-errors"',
+        'id="new-ingredient-cancel"',
+        'name="new_ingredient-name"',
+        "data-new-ingredient",
+    ):
+        assert hook in html

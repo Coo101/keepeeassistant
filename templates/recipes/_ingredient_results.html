@@ -1,0 +1,42 @@
+{% load i18n ui %}
+{% if ingredients %}
+<div class="card shadow-sm">
+  <div class="table-responsive position-relative">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Ingredient" %}</th>
+          <th scope="col">{% translate "Unit" %}</th>
+          <th scope="col">{% translate "Category" %}</th>
+          <th scope="col">{% translate "Shop" %}</th>
+          <th scope="col" class="text-end">{% translate "Price" %}</th>
+          <th scope="col">{% translate "Product" %}</th>
+          <th scope="col">{% translate "Price date" %}</th>
+          <th scope="col"><span class="visually-hidden">{% translate "Actions" %}</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ingredient in ingredients %}
+        <tr>
+          <td><a class="fw-semibold" href="{% url 'ingredient_edit' ingredient.pk %}">{{ ingredient.name }}</a></td>
+          <td>{{ ingredient.get_unit_display }}</td>
+          <td>{{ ingredient.get_category_display }}</td>
+          <td>{{ ingredient.get_shop_display }}</td>
+          <td class="text-end text-nowrap">{% if ingredient.latest_price is None %}<span class="badge text-bg-warning"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> {% translate "no price" %}</span>{% else %}€ {{ ingredient.latest_price|floatformat:2 }}{% endif %}</td>
+          <td>{{ ingredient.product_details }}</td>
+          <td class="text-nowrap">{{ ingredient.latest_price_date|short_date:"year"|default:"—" }}</td>
+          <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{% url 'ingredient_edit' ingredient.pk %}"><i class="bi bi-pencil" aria-hidden="true"></i> {% translate "Edit" %}</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% elif query %}
+{% blocktranslate asvar empty_text %}No ingredients match "{{ query }}".{% endblocktranslate %}
+{% translate "Show all ingredients" as empty_label %}{% url 'ingredient_list' as list_url %}
+{% include "components/empty_state.html" with icon="search" text=empty_text action_url=list_url action_label=empty_label %}
+{% else %}
+{% translate "No ingredients yet." as empty_text %}{% translate "Add the first one" as empty_label %}{% url 'ingredient_create' as create_url %}
+{% include "components/empty_state.html" with icon="basket" text=empty_text action_url=create_url action_label=empty_label %}
+{% endif %}

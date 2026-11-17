@@ -15,9 +15,13 @@ from django.urls import reverse
 
 from accounts.models import Chiro, Membership
 from camps.models import Camp
+from recipes.models import Recipe
 from tests.factories import (
+    KG,
+    PRODUCE,
     account_client,
     make_camp,
+    make_recipe,
     member_client,
 )
 
@@ -30,6 +34,7 @@ CONVERTED_TEMPLATES: list[str] = [
     "components/back_link.html",
     "components/form_errors.html",
     "components/camp_nav.html",
+    "components/checkbox_chips.html",
     "partials/_formset_row.html",
     "recipes/_formset.html",
     "camps/camp_list.html",
@@ -42,6 +47,16 @@ CONVERTED_TEMPLATES: list[str] = [
     "planning/_headcount.html",
     "planning/edit_slot.html",
     "planning/runbook.html",
+    "recipes/recipe_list.html",
+    "recipes/_recipe_results.html",
+    "recipes/recipe_detail.html",
+    "recipes/_recipe_ingredients.html",
+    "recipes/_recipe_pdf_link.html",
+    "recipes/recipe_form.html",
+    "recipes/_new_ingredient_dialog.html",
+    "recipes/ingredient_list.html",
+    "recipes/_ingredient_results.html",
+    "recipes/ingredient_form.html",
 ]
 
 # (URL name, the URL's args for a camp): full pages with one h1 and the red rule.
@@ -53,6 +68,17 @@ CONVERTED_PAGES: list[tuple[str, Callable[[Camp], list]]] = [
     ("planner", lambda camp: [camp.pk]),
     ("edit_slot", lambda camp: [camp.pk, camp.start_date.isoformat(), "dinner"]),
     ("runbook", lambda camp: [camp.pk]),
+]
+
+# (URL name, the URL's args for a recipe): recipe pages with one h1 and the red rule.
+RECIPE_PAGES: list[tuple[str, Callable[[Recipe], list]]] = [
+    ("recipe_list", lambda recipe: []),
+    ("recipe_detail", lambda recipe: [recipe.pk]),
+    ("recipe_create", lambda recipe: []),
+    ("recipe_edit", lambda recipe: [recipe.pk]),
+    ("ingredient_list", lambda recipe: []),
+    ("ingredient_create", lambda recipe: []),
+    ("ingredient_edit", lambda recipe: [recipe.ingredients.first().ingredient_id]),
 ]
 
 OLD = {
@@ -134,6 +160,23 @@ def test_converted_page_has_one_h1_and_the_red_rule(
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("url_name,args", RECIPE_PAGES)
+def test_recipe_page_has_one_h1_and_the_red_rule(
+    url_name: str, args: Callable[[Recipe], list]
+) -> None:
+    client = account_client()
+    recipe = make_recipe("Stoofpot", ingredients=[("Prei", "1", KG, PRODUCE)])
+    recipe.author = User.objects.get(username="kok")
+    recipe.save()
+    response = client.get(reverse(url_name, args=args(recipe)))
+    assert response.status_code == 200
+    html = response.content.decode()
+    assert html.count("<h1") == 1
+    assert not re.search(r"<h1[^>]*>\s*</h1>", html), "the h1 is empty"
+    assert "page-rule" in html
+
+
+@pytest.mark.django_db
 def test_camp_list_dates_are_short() -> None:
     camp = make_camp()
     client = member_client(camp)
@@ -205,3 +248,17 @@ def test_example_camp_pages_render_for_a_member() -> None:
         response = client.get(reverse(url_name, args=[camp.pk]))
         assert response.status_code == 200
         assert "alert-info" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_ingredient_form_errors_show_a_summary() -> None:
+    client = account_client()
+    make_recipe("Stoofpot", ingredients=[("Prei", "1", KG, PRODUCE)])
+    response = client.post(
+        reverse("ingredient_create"),
+        {"name": "Prei", "unit": KG, "category": PRODUCE, "shop": "colruyt"},
+    )
+    assert response.status_code == 200
+    html = response.content.decode()
+    assert "alert-danger" in html
+    assert "is-invalid" in html

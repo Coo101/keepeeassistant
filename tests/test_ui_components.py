@@ -8,7 +8,10 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import translation
 
+from core.constants import FoodTag
 from pages.templatetags.ui import short_date, table_input
+from recipes.forms import IngredientForm, StepFormSet
+from recipes.models import Recipe
 from tests.factories import make_camp
 
 
@@ -18,6 +21,10 @@ class _NameForm(forms.Form):
 
     def clean(self):
         raise forms.ValidationError("End before start.")
+
+
+class _ValidForm(forms.Form):
+    note = forms.CharField(required=False)
 
 
 def test_page_header_action() -> None:
@@ -133,3 +140,46 @@ def test_camp_nav_marks_the_active_page() -> None:
     ]
     assert 'aria-current="page"' in runbook_link
     assert "nav-link active" in runbook_link
+
+
+def test_page_header_badge() -> None:
+    html = render_to_string(
+        "components/page_header.html", {"title": "Soup", "badge": "read-only"}
+    )
+    h1 = html[html.index("<h1") : html.index("</h1>")]
+    assert "text-bg-secondary" in h1 and "read-only" in h1
+    plain = render_to_string("components/page_header.html", {"title": "Soup"})
+    assert "badge" not in plain
+
+
+@pytest.mark.django_db
+def test_form_errors_sees_the_second_formset() -> None:
+    steps = StepFormSet(
+        {
+            "steps-TOTAL_FORMS": "1",
+            "steps-INITIAL_FORMS": "0",
+            "steps-MIN_NUM_FORMS": "0",
+            "steps-MAX_NUM_FORMS": "1000",
+            "steps-0-order": "1",
+            "steps-0-instruction": "",
+            "steps-0-duration_minutes": "5",
+        },
+        prefix="steps",
+        instance=Recipe(),
+    )
+    assert not steps.is_valid()
+    html = render_to_string(
+        "components/form_errors.html",
+        {"form": _ValidForm({}), "formset": None, "formset2": steps},
+    )
+    assert "alert-danger" in html
+
+
+@pytest.mark.django_db
+def test_checkbox_chips() -> None:
+    first = FoodTag.CHOICES[0][0]
+    form = IngredientForm(user=None, initial={"tags": [first]})
+    html = render_to_string("components/checkbox_chips.html", {"field": form["tags"]})
+    assert html.count("<legend") == 1
+    assert html.count("form-check-input") == len(FoodTag.CHOICES)
+    assert html.count(" checked") == 1

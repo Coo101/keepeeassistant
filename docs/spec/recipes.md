@@ -40,7 +40,9 @@ every Chiro plans from. Recipes and ingredients are shared between all Chiros (D
 
 ### Recipes
 
-- List, add, edit, copy and delete recipes outside the admin.
+- List, add, edit, copy and delete recipes outside the admin. The list is grouped by
+  dish type; its search (on recipe and ingredient names, `?q=`) filters as you type
+  (HTMX), and works as a plain form without JavaScript.
 - Fields: name, dish type, base children + teens, ingredients (an ingredient can be
   added from the recipe form without leaving it), ordered steps with optional time.
   "Add ingredient" and "Add step" add an empty row in place (HTMX); without
@@ -48,11 +50,15 @@ every Chiro plans from. Recipes and ingredients are shared between all Chiros (D
 - Shows the total time (sum of the step durations).
 - **One-pager:** a recipe page with ingredients and steps, scaled to any number of
   portions (`?portions=`; invalid values fall back to the base), also as a PDF.
+  The ingredients update as you type the portions (HTMX), and the PDF link follows
+  them. The page also has a print button.
   Scaling: see [planning](planning.md).
 
 ### Ingredients
 
-- List, add and edit ingredients and their prices outside the admin.
+- List, add and edit ingredients and their prices outside the admin. The list's search
+  (name or product details, `?q=`) filters as you type; an ingredient without a price
+  is flagged.
 - The ingredient's page shows its price history.
 - Bills add camp prices: see [finance](finance.md).
 

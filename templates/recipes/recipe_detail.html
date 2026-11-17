@@ -1,79 +1,86 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n crispy_forms_filters assets %}
 {% block title %}{{ recipe.name }} — {% translate "Recipes" %}{% endblock %}
 {% block content %}
-<div class="recipe-page">
-  <p class="no-print"><a class="back-link" href="{% url 'recipe_list' %}">← {% translate "all recipes" %}</a></p>
-  <h1>{{ recipe.name }}</h1>
-  <p class="page-meta">
-    {{ recipe.get_dish_type_display }} ·
-    {% blocktranslate trimmed with children=recipe.base_children teens=recipe.base_teens portions=recipe.base_portions %}
-    base: {{ children }} children + {{ teens }} teens = <strong>{{ portions }} portions</strong>
-    {% endblocktranslate %}
-    {% if recipe.total_duration_minutes %} · <span class="badge">{% blocktranslate with minutes=recipe.total_duration_minutes %}{{ minutes }} min total{% endblocktranslate %}</span>{% endif %}
-    {% if recipe.author %} · {% blocktranslate with author=recipe.author.get_username %}by {{ author }}{% endblocktranslate %}{% endif %}
-    {% if not can_edit %} · <span class="badge">{% translate "read-only" %}</span>{% endif %}
-  </p>
-  <div class="actions no-print">
-    <form method="get" class="actions" style="margin:0">
-      <label for="portions-input" class="muted">{% translate "Scale to" %}</label>
-      <input id="portions-input" type="number" name="portions" min="1" max="9999" step="0.1"
-             value="{{ portions|default_if_none:''|stringformat:'s' }}" placeholder="{{ recipe.base_portions|stringformat:'s' }}" style="min-width:6rem;width:6rem">
-      <button class="btn" type="submit">{% translate "portions" %}</button>
-      {% if scale %}<a class="btn btn-outline" href="{% url 'recipe_detail' recipe.pk %}">{% translate "Reset" %}</a>{% endif %}
-    </form>
-    <a class="btn btn-outline" href="{% url 'recipe_pdf' recipe.pk %}{% if portions %}?portions={{ portions|stringformat:'s' }}{% endif %}">PDF</a>
-    <button class="btn btn-outline" onclick="window.print()">{% translate "Print" %}</button>
-    {% if can_edit %}<a class="btn btn-outline" href="{% url 'recipe_edit' recipe.pk %}">{% translate "Edit" %}</a>{% endif %}
-    {% if can_delete %}<a class="btn btn-danger-outline" href="{% url 'recipe_delete' recipe.pk %}">{% translate "Delete" %}</a>{% endif %}
-  </div>
-  {% if locked_by_others %}
-  <p class="muted no-print">{% translate "Another Chiro has planned this recipe, so it can't change anymore. Save a copy to make your own version." %}</p>
-  {% endif %}
-  <form method="post" action="{% url 'recipe_copy' recipe.pk %}" class="actions no-print">
-    {% csrf_token %}
-    <label for="{{ copy_form.name.id_for_label }}" class="muted">{% translate "Save a copy as" %}</label>
-    {{ copy_form.name }}
-    <button class="btn btn-outline" type="submit">{% translate "Save copy" %}</button>
-    {{ copy_form.name.errors }}
+{% url 'recipe_list' as list_url %}{% translate "All recipes" as back_label %}
+<div class="d-print-none">{% include "components/back_link.html" with url=list_url label=back_label %}</div>
+{% blocktranslate asvar base_text trimmed with children=recipe.base_children teens=recipe.base_teens portions=recipe.base_portions %}
+base: {{ children }} children + {{ teens }} teens = {{ portions }} portions
+{% endblocktranslate %}
+{% with total_text="" author_text="" badge_text="" edit_url="" edit_label="" %}
+{% if recipe.total_duration_minutes %}{% blocktranslate asvar total_text with minutes=recipe.total_duration_minutes %}{{ minutes }} min total{% endblocktranslate %}{% endif %}
+{% if recipe.author %}{% blocktranslate asvar author_text with author=recipe.author.get_username %}by {{ author }}{% endblocktranslate %}{% endif %}
+{% if can_edit %}{% url 'recipe_edit' recipe.pk as edit_url %}{% translate "Edit" as edit_label %}{% else %}{% translate "read-only" as badge_text %}{% endif %}
+{% with total_sep=total_text|yesno:" · ," author_sep=author_text|yesno:" · ," %}
+{% with meta=recipe.get_dish_type_display|add:" · "|add:base_text|add:total_sep|add:total_text|add:author_sep|add:author_text %}
+{% include "components/page_header.html" with title=recipe.name badge=badge_text meta=meta action_url=edit_url action_label=edit_label action_icon="pencil" action_style="outline" %}
+{% endwith %}
+{% endwith %}
+{% endwith %}
+
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3 d-print-none">
+  <form method="get" action="{% url 'recipe_detail' recipe.pk %}" class="d-flex flex-wrap align-items-center gap-2"
+        hx-get="{% url 'recipe_detail' recipe.pk %}" hx-trigger="input changed delay:400ms from:#portions-input, submit" hx-target="#recipe-ingredients" hx-swap="outerHTML" hx-push-url="true" hx-indicator="#recipe-scale-busy">
+    <label class="form-label mb-0" for="portions-input">{% translate "Scale to" %}</label>
+    <div class="input-group w-auto">
+      <input id="portions-input" class="form-control" type="number" name="portions" step="any" size="6"
+             value="{{ portions|default_if_none:''|stringformat:'s' }}" placeholder="{{ recipe.base_portions|stringformat:'s' }}">
+      <span class="input-group-text">{% translate "portions" %}</span>
+    </div>
+    <button class="btn btn-outline-primary" type="submit">{% translate "Scale" %}</button>
+    <span id="recipe-scale-busy" class="spinner-border spinner-border-sm htmx-indicator text-primary"><span class="visually-hidden">{% translate "Loading…" %}</span></span>
   </form>
-
-  <div class="recipe-columns">
-    <section>
-      <h2>{% translate "Ingredients" %}{% if scale %} <span class="badge">{% blocktranslate with scale=scale|floatformat:2 %}{{ portions }} portions · × {{ scale }}{% endblocktranslate %}</span>{% endif %}</h2>
-      {% if rows %}
-      <table class="compact">
-        <tbody>
-          {% for row in rows %}
-          <tr>
-            <td>{{ row.name }}</td>
-            <td>{{ row.quantity }} {% translate row.unit %}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <p class="empty-slot">{% translate "No ingredients entered yet." %}</p>
-      {% endif %}
-    </section>
-
-    <section>
-      <h2>{% translate "Steps" %}</h2>
-      {% if recipe.steps.all %}
-      <ol class="recipe-steps">
-        {% for step in recipe.steps.all %}
-        <li>{{ step.instruction }}{% if step.duration_minutes %} <span class="muted">({{ step.duration_minutes }} min)</span>{% endif %}</li>
-        {% endfor %}
-      </ol>
-      {% else %}
-      <p class="empty-slot">{% translate "No steps entered yet." %}</p>
-      {% endif %}
-    </section>
+  <div class="ms-auto d-flex flex-wrap align-items-center gap-2">
+    {% include "recipes/_recipe_pdf_link.html" %}
+    <button class="btn btn-outline-primary" type="button" data-print><i class="bi bi-printer" aria-hidden="true"></i> {% translate "Print" %}</button>
+    {% if can_delete %}<a class="btn btn-outline-danger ms-2" href="{% url 'recipe_delete' recipe.pk %}"><i class="bi bi-trash" aria-hidden="true"></i> {% translate "Delete" %}</a>{% endif %}
   </div>
+</div>
 
-  {% if recipe.notes %}
-  <h2>{% translate "Notes" %}</h2>
-  <div class="card recipe-notes">{{ recipe.notes|linebreaks }}</div>
-  {% endif %}
+{% if locked_by_others %}
+<div class="alert alert-secondary d-print-none"><i class="bi bi-lock" aria-hidden="true"></i> {% translate "Another Chiro has planned this recipe, so it can't change anymore. Save a copy to make your own version." %}</div>
+{% endif %}
+
+<div class="row g-4 mb-4 print-columns">
+  <div class="col-lg-5">
+    {% include "recipes/_recipe_ingredients.html" %}
+  </div>
+  <div class="col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-header"><h2 class="h5 mb-0">{% translate "Steps" %}</h2></div>
+      <div class="card-body">
+        {% if recipe.steps.all %}
+        <ol class="mb-0">
+          {% for step in recipe.steps.all %}
+          <li>{{ step.instruction }}{% if step.duration_minutes %} <span class="text-body-secondary">({% blocktranslate with minutes=step.duration_minutes %}{{ minutes }} min{% endblocktranslate %})</span>{% endif %}</li>
+          {% endfor %}
+        </ol>
+        {% else %}
+        <p class="text-body-secondary fst-italic mb-0">{% translate "No steps entered yet." %}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if recipe.notes %}
+<div class="card shadow-sm mb-4">
+  <div class="card-header"><h2 class="h5 mb-0">{% translate "Notes" %}</h2></div>
+  <div class="card-body">{{ recipe.notes|linebreaks }}</div>
+</div>
+{% endif %}
+
+<div class="card shadow-sm mb-4 d-print-none">
+  <div class="card-header"><h2 class="h5 mb-0">{% translate "Save a copy" %}</h2></div>
+  <div class="card-body">
+    <form method="post" action="{% url 'recipe_copy' recipe.pk %}">
+      {% csrf_token %}
+      <div class="row g-2 align-items-end">
+        <div class="col-lg-8">{{ copy_form.name|as_crispy_field }}</div>
+        <div class="col-lg-4 mb-3"><button class="btn btn-outline-primary" type="submit"><i class="bi bi-copy" aria-hidden="true"></i> {% translate "Save copy" %}</button></div>
+      </div>
+    </form>
+  </div>
 </div>
 {% endblock %}
+{% block scripts %}<script src="{% asset 'js/print.js' %}" defer></script>{% endblock %}

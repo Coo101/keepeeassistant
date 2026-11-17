@@ -1,0 +1,37 @@
+{% load i18n %}
+{% for group in groups %}
+<div class="card shadow-sm mb-4">
+  <div class="card-header">
+    <h2 class="h5 mb-0">{{ group.label }} <span class="text-body-secondary">· {{ group.recipes|length }}</span></h2>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th scope="col">{% translate "Recipe" %}</th>
+          <th scope="col" class="text-end">{% translate "Portions" %}</th>
+          <th scope="col" class="text-end">{% translate "Time" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for recipe in group.recipes %}
+        <tr>
+          <td><a class="fw-semibold" href="{% url 'recipe_detail' recipe.pk %}">{{ recipe.name }}</a></td>
+          <td class="text-end">{{ recipe.base_portions }}</td>
+          <td class="text-end text-nowrap">{% if recipe.total_duration_minutes %}{% blocktranslate with minutes=recipe.total_duration_minutes %}{{ minutes }} min{% endblocktranslate %}{% else %}—{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% empty %}
+{% if query %}
+{% blocktranslate asvar empty_text %}No recipes match "{{ query }}".{% endblocktranslate %}
+{% translate "Show all recipes" as empty_label %}{% url 'recipe_list' as list_url %}
+{% include "components/empty_state.html" with icon="search" text=empty_text action_url=list_url action_label=empty_label %}
+{% else %}
+{% translate "No recipes yet." as empty_text %}{% translate "Add the first one" as empty_label %}{% url 'recipe_create' as create_url %}
+{% include "components/empty_state.html" with icon="journal" text=empty_text action_url=create_url action_label=empty_label %}
+{% endif %}
+{% endfor %}
