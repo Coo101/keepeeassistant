@@ -18,7 +18,7 @@ AUG_1 = datetime.date(2026, 8, 1)
 def _camp_with_menu():
     camp = make_camp()  # Aug 1-5
     camp.cook_team = "Yonick +32 480 00 00 00"
-    camp.location = "Chiro Opoeteren\nNeeroeterenstraat 18"
+    camp.location = "Chiro Testdorp\nKerkstraat 1"
     camp.bakery = "Bakkerij De Smedt"
     camp.save()
     recipe = make_recipe(
@@ -44,7 +44,7 @@ def test_runbook_shows_info_days_and_steps() -> None:
     response = _dutch_client(camp).get(reverse("runbook", args=[camp.pk]))
     assert response.status_code == 200
     content = response.content.decode()
-    assert "Chiro Opoeteren" in content
+    assert "Chiro Testdorp" in content
     assert "Bakkerij De Smedt" in content
     # one titled, anchored section per camp day
     assert content.count("Dag ") >= 5

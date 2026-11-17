@@ -53,7 +53,7 @@ def _client_in(chiro: Chiro) -> Client:
 
 @pytest.fixture
 def chiro() -> Chiro:
-    return Chiro.objects.create(name="Chiro Opoeteren")
+    return Chiro.objects.create(name="Chiro Testdorp")
 
 
 def test_a_new_camp_starts_with_the_usual_afdelingen(chiro: Chiro) -> None:

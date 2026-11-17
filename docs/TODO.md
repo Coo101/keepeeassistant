@@ -29,19 +29,26 @@ admin.
 - [ ] Set an author on the existing recipes that should have one; recipes without an
       author can only be changed by staff
 
-### 2. First deploy on the LAN: to do (manual)
+### 2. First deploy to the production server: to do (manual)
 
-- [ ] Check that the repo secret `REGISTRY_TOKEN` is set on keepeeassistant in Gitea
-- [x] Merge `dev` into `main`: this runs the first build and deploy (PR #3, 2026-11-16)
-- [ ] Check that the stack's healthcheck accepts `/` redirecting to the login page
-- [ ] Copy the cleaned local database into the `keepeeassistant_data` volume. The
-      production volume doesn't exist yet, so the data is only in the local `db.sqlite3`.
-      Stop the dev server first, so nothing is left in `db.sqlite3-wal`, and copy `media/`
-      too if it has bills. The container runs as uid 1000, so make the files its own:
-      `docker run --rm -v keepeeassistant_data:/data alpine chown -R 1000 /data`
-- [ ] Set `DJANGO_CLIENT_IP_HEADER=HTTP_X_FORWARDED_FOR` and stop publishing the app's
-      port directly, so login limits apply per visitor behind Caddy
-- [ ] Add the Caddy site `meals.dk-1.home.zx` -> `keepeeassistant:8000`
+Production moved from the homelab (Gitea) to GitHub and a Hetzner server. The server
+side (compose, `.env`, Caddy, `deploy-app`) is in the homelab repo, `hetzner-prod/`.
+
+- [x] Set the `hetzner-prod` environment secrets: `KEEPEE_DEPLOY_KEY`,
+      `DEPLOY_KNOWN_HOSTS`, `DEPLOY_HOST`; limit the environment to `main` (2026-11-17)
+- [ ] Set the proxy settings on the server: run `playbooks/hetzner_prod.yml` in the
+      homelab repo, which writes the `.env` (`DJANGO_SECURE_COOKIES`,
+      `DJANGO_BEHIND_TLS_PROXY`, `DJANGO_CLIENT_IP_HEADER=HTTP_X_REAL_IP`) and the
+      Caddyfile (trusts `CF-Connecting-IP` only from Cloudflare, sets `X-Real-IP`)
+- [ ] Create `main` on GitHub from `dev` and merge `dev` into it: this runs the first
+      build and deploy
+- [ ] Make the GHCR package `keepeeassistant` public (or log the server in to ghcr.io)
+- [ ] Check that the healthcheck accepts `/admin/login/` and the site answers through
+      Cloudflare
+- [ ] Copy the cleaned local database to the server's data folder. The data is only in
+      the local `db.sqlite3`. Stop the dev server first, so nothing is left in
+      `db.sqlite3-wal`, and copy `media/` too if it has bills. The container runs as
+      uid 1000, so the files must be its own.
 - [ ] Create or check the admin account:
       `docker exec -it keepeeassistant python manage.py createsuperuser`
 
@@ -50,7 +57,7 @@ admin.
 Every page on Bootstrap and HTMX, core areas first, one plan and one review round per
 area. Planning screens are designed for a PC (D19). After each area passes review it's
 committed on its own branch and merged into `dev` by PR, and the next starts; issues
-from testing go on Gitea.
+from testing go on GitHub.
 
 - Design: `docs/superpowers/specs/2026-11-16-ui-move-design.md`
 - [x] 1. Camps and planner (also: the camp list's empty-state icon and long dates, the
@@ -78,9 +85,8 @@ inside; the live search's Clear button only follows a submitted search.
 Needed before the first camp that uses kitchen mode: phones at camp are on mobile
 data, not the LAN.
 
-- Add the Cloudflare tunnel, set `DJANGO_SECURE_COOKIES=1`, `DJANGO_BEHIND_TLS_PROXY=1`,
-  `DJANGO_ALLOWED_HOSTS` and `DJANGO_CSRF_TRUSTED_ORIGINS`, set the `EMAIL_*` values,
-  and check login and upload through the tunnel.
+- The server is public since step 2. Left: set the `EMAIL_*` values, and check login
+  and upload through Cloudflare.
 - Decide on Cloudflare Access login (log in once, by email): built on the
   `cloudflare-access` branch, not merged.
 
