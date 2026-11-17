@@ -14,3 +14,9 @@ media/
 
 # Duplicates left behind by the file-sync tool ("... (# Name clash ... #).py")
 *# Name clash *
+
+# SSH keys (e.g. the deploy key): never in the repo
+.ssh/
+id_*
+*.pem
+*.key

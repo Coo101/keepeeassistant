@@ -16,7 +16,7 @@ How the app is run, deployed, secured and backed up. Not tied to a camp stage.
 ### Branches and releases
 
 - Each roadmap step or feature is built on its own branch from `dev`
-  (`<kind>/<short-name>`, such as `ui/area-2-recipes`), pushed to Gitea, and merged
+  (`<kind>/<short-name>`, such as `ui/area-2-recipes`), pushed to GitHub, and merged
   into `dev` through a pull request after the checks and reviews pass.
 - `dev` is the integration branch, run locally from PyCharm (port 8100).
 - `main` only changes through a pull request from `dev`; merging it is a production
@@ -24,10 +24,14 @@ How the app is run, deployed, secured and backed up. Not tied to a camp stage.
 
 ### CI/CD
 
-- Gitea Actions (`.gitea/workflows/ci-cd.yml`). Every push and PR runs ruff, black,
-  Django checks and pytest. A push to `main` also builds the image, pushes it to the
-  Gitea registry and deploys it to the homelab Docker host, checking that the image
-  renders a PDF.
+- GitHub Actions (`.github/workflows/ci-cd.yml`). Every push and PR runs ruff, black,
+  Django checks and pytest. A push to `main` also builds the `linux/arm64` image on an
+  ARM runner, checks that it renders a PDF, pushes it to GHCR as `:<sha>` and `:latest`,
+  and deploys it to the production server (environment `hetzner-prod`).
+- The deploy is one SSH call, `deploy@<host> <sha>`. On the server that key is forced
+  to `deploy-app keepeeassistant`, which runs compose pull and up with that tag. The
+  server's compose file and `.env` live there, not in this repo. Rollback: re-run the
+  deploy job of an older run.
 
 ### Containers
 
@@ -42,9 +46,10 @@ How the app is run, deployed, secured and backed up. Not tied to a camp stage.
 
 ### Network
 
-- First on the LAN behind Caddy (`meals.dk-1.home.zx`).
-- Going public means a Cloudflare tunnel, the HTTPS settings below, and mail
-  (`EMAIL_*`). Kitchen mode needs this before the first camp that uses it.
+- Production runs on a public cloud server behind Caddy (HTTPS) and Cloudflare's
+  proxy. The app publishes no port; Caddy reaches it on a shared Docker network.
+- It still needs the HTTPS settings below and mail (`EMAIL_*`). Kitchen mode needs this
+  before the first camp that uses it.
 
 ### Security
 

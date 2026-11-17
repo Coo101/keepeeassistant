@@ -132,14 +132,13 @@ docker compose cp db.sqlite3 web:/data/db.sqlite3 && docker compose restart web
   `feature/kitchen-mode`, `fix/...`) and a pull request into `dev`; run `dev` locally
   from PyCharm. `dev` goes into `main` through a PR `dev` → `main`, merged with
   **Fast-forward only**, so `main` and `dev` never drift apart.
-- Gitea enforces this: no direct pushes to `dev` or `main`, only `yonick` merges, the
-  `test` check must pass, a PR into `main` must come from `dev` (`branch-guard`), and `dev`
-  must not be behind `main`.
-- Every push and PR runs the tests in Gitea Actions
-  ([.gitea/workflows/ci-cd.yml](.gitea/workflows/ci-cd.yml)).
-- A push to `main` also builds the image, pushes it to the Gitea registry
-  and deploys it to the homelab Docker host. Merging into `main` therefore
-  **is** a production release.
+- The repo is on GitHub. Every push and PR runs the tests in GitHub Actions
+  ([.github/workflows/ci-cd.yml](.github/workflows/ci-cd.yml)), and a PR into `main`
+  must come from `dev` (`branch-guard`).
+- A push to `main` also builds the ARM64 image, pushes it to GHCR
+  (`ghcr.io/coo101/keepeeassistant`) and deploys it to the production server
+  through the `hetzner-prod` environment. Merging into `main` therefore **is** a
+  production release.
 
 The open work is the roadmap in [docs/TODO.md](docs/TODO.md).
 
