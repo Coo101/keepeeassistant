@@ -147,6 +147,9 @@ area files. New ones continue from D20.
 - **D19** (2026-11-16): **Planning on a PC, the kitchen on a phone or tablet.**
   Planning views (stages 1 and 3) are designed at 1366px and checked at 375px; kitchen
   views (stage 2) at 375px and 768px; public pages work at both.
+- **D20** (2026-11-17): **The shopping page's trip lists work equally on a phone and
+  a PC**, an exception to D19, because they're read at the Collect&Go pickup. The day
+  picker, the warnings, the budget and the stock pages stay PC-first.
 
 ## Index
 

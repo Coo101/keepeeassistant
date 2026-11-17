@@ -295,27 +295,6 @@ select:not(.form-control, .form-select):focus { outline: 2px solid var(--accent-
 .form-row label { display: block; font-weight: 600; margin-bottom: 0.2rem; }
 .form-row .helptext { color: var(--muted); font-size: 0.85rem; margin-bottom: 0.2rem; }
 
-ul.checkboxes { list-style: none; padding: 0; margin: 0.5rem 0 1rem; display: flex; flex-wrap: wrap; gap: 0.4rem; }
-ul.checkboxes li { margin: 0; }
-
-ul.checkboxes label {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 0.25rem 0.75rem;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-ul.checkboxes label:hover { border-color: var(--accent); }
-ul.checkboxes label:has(input:checked) {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  color: var(--accent-dark);
-}
-
 /* ---------- Misc ---------- */
 
 .warning {
@@ -326,8 +305,6 @@ ul.checkboxes label:has(input:checked) {
   border-radius: 8px;
   margin: 1rem 0;
 }
-
-.category-block { margin-bottom: 1.1rem; }
 
 .empty-slot { color: var(--muted); font-style: italic; }
 
@@ -348,62 +325,6 @@ ul.checkboxes label:has(input:checked) {
   .table-scroll { overflow-x: visible; }
   .table-scroll > table { min-width: 0; }
 }
-
-/* ---------- Shop sections ---------- */
-
-.shop-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
-  gap: 1rem;
-  align-items: start;
-}
-
-.shop-section {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0.8rem 1rem;
-  box-shadow: 0 1px 3px rgb(0 0 0 / 0.06);
-}
-.shop-section .category-block:last-child { margin-bottom: 0; }
-.shop-section table.compact { max-width: none; }
-
-.shop-title {
-  background: var(--accent-soft);
-  color: var(--accent-dark);
-  border-radius: 6px;
-  padding: 0.25rem 0.6rem;
-  margin: 0 0 0.5rem;
-  font-size: 1rem;
-}
-
-.shop-totals {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  margin: 0.5rem 0 1rem;
-}
-.shop-total {
-  display: flex;
-  flex-direction: column;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--accent);
-  border-radius: 8px;
-  padding: 0.4rem 0.9rem;
-}
-.shop-total-label { font-size: 0.85rem; color: var(--muted); }
-.shop-total-value { font-weight: 700; font-variant-numeric: tabular-nums; }
-.shop-total-note { font-size: 0.75rem; color: #b45309; }
-.shop-total-partial { border-left-color: var(--warn-border); }
-
-/* ---------- Budget ---------- */
-
-.budget-table { max-width: 640px; }
-.budget-table td:nth-child(2),
-.budget-table td:nth-child(3),
-.budget-table td:nth-child(4) { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.budget-table tr.row-missing td { background: #fef3c7; }
 
 /* ---------- Runbook ---------- */
 

@@ -54,7 +54,7 @@ Follow `docs/DESIGN.md` and its review checklist. In short:
 
 ## Layout and breakpoints
 
-- **Planning views** (stages 1 and 3: camps, planner, recipes, ingredients, shopping, budget, bills, report, stock, accounts) are designed for a **PC at 1366px wide**, then checked at 375px: no horizontal page scroll, tables scroll inside their box, forms in one column, nothing cut off. Two-column forms from `lg` (D19).
+- **Planning views** (stages 1 and 3: camps, planner, recipes, ingredients, shopping, budget, bills, report, stock, accounts) are designed for a **PC at 1366px wide**, then checked at 375px: no horizontal page scroll, tables scroll inside their box, forms in one column, nothing cut off. Two-column forms from `lg` (D19). Exception: the shopping page's trip lists, which are read at the pickup, work equally on a phone: names wrap, quantities stay on one line, tap targets at least 44px (D20).
 - **Kitchen views** (stage 2) are designed for a **phone at 375px and a tablet at 768px**.
 - **Public pages** (home, news, help, login, join) work equally at both.
 - No horizontal scroll on the page itself at 375px. A wide table may scroll inside its own box.

@@ -59,7 +59,7 @@ def camp():
 
 
 def test_camp_urls_are_found() -> None:
-    assert len(_camp_url_names()) == 15
+    assert len(_camp_url_names()) == 16
 
 
 @pytest.mark.parametrize("url_name", _camp_url_names())

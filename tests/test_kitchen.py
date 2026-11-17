@@ -212,3 +212,26 @@ def test_bill_review_offers_a_new_ingredient_per_line(camp) -> None:
     # The script reads this selector as is: quotes inside it once broke it.
     assert 'data-selects="select[name^=form-][name$=-ingredient]"' in html
     assert "js/ingredient_dialog.js" in html
+
+
+def test_stock_page_layout(camp, pot) -> None:
+    html = (
+        member_client(camp)
+        .get(reverse("chiro_stock", args=[camp.chiro.pk]))
+        .content.decode()
+    )
+    assert html.count("<h1") == 1
+    assert "page-rule" in html
+    assert 'id="pantry"' in html
+    assert f'hx-get="{reverse("pantry_row", args=[camp.chiro.pk])}"' in html
+    assert 'class="form-control form-control-sm' in html
+
+
+def test_camp_utensils_offers_add_row(camp) -> None:
+    html = (
+        member_client(camp)
+        .get(reverse("camp_utensils", args=[camp.pk]))
+        .content.decode()
+    )
+    assert f'hx-get="{reverse("camp_utensil_row", args=[camp.pk])}"' in html
+    assert '<datalist id="utensil-names">' in html

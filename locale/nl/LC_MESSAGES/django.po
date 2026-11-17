@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Camp Meal Planner\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 13:41+0100\n"
+"POT-Creation-Date: 2026-11-17 21:05+0100\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1580,8 +1580,7 @@ msgstr "Rekening verwijderen"
 msgid "Bills"
 msgstr "Rekeningen"
 
-#: templates/bills/bill_list.html templates/kitchen/camp_utensils.html
-#: templates/shopping/shopping.html
+#: templates/bills/bill_list.html
 msgid "back to menu plan"
 msgstr "terug naar het menuplan"
 
@@ -1868,10 +1867,6 @@ msgid "Delete"
 msgstr "Verwijderen"
 
 #: templates/kitchen/camp_utensils.html
-msgid "kitchen utilities"
-msgstr "keukengerei"
-
-#: templates/kitchen/camp_utensils.html
 #, python-format
 msgid ""
 "What this camp needs. It's compared with the <a href=\"%(stock_url)s\">stock "
@@ -1899,13 +1894,13 @@ msgstr "Alles is in voorraad."
 msgid "Needed for this camp"
 msgstr "Nodig voor dit kamp"
 
+#: templates/kitchen/camp_utensils.html templates/kitchen/stock.html
+msgid "Add a row"
+msgstr "Rij toevoegen"
+
 #: templates/kitchen/stock.html
 msgid "Stock"
 msgstr "Voorraad"
-
-#: templates/kitchen/stock.html
-msgid "stock"
-msgstr "voorraad"
 
 #: templates/kitchen/stock.html
 msgid ""
@@ -2337,6 +2332,10 @@ msgstr "Terugzetten"
 msgid "No ingredients entered yet."
 msgstr "Nog geen ingrediënten ingevuld."
 
+#: templates/recipes/_recipe_pdf_link.html
+msgid "PDF"
+msgstr "Pdf"
+
 #: templates/recipes/_recipe_results.html
 msgid "Time"
 msgstr "Tijd"
@@ -2444,10 +2443,6 @@ msgstr "alleen lezen"
 #: templates/recipes/recipe_detail.html
 msgid "Scale to"
 msgstr "Omrekenen naar"
-
-#: templates/recipes/_recipe_pdf_link.html
-msgid "PDF"
-msgstr "Pdf"
 
 #: templates/recipes/recipe_detail.html
 msgid "Scale"
@@ -2663,10 +2658,6 @@ msgid "shopping lists"
 msgstr "boodschappenlijsten"
 
 #: templates/shopping/budget.html
-msgid "budget"
-msgstr "budget"
-
-#: templates/shopping/budget.html
 msgid "Estimated cost:"
 msgstr "Geschatte kosten:"
 
@@ -2697,10 +2688,10 @@ msgstr "Nog geen prijs voor:"
 #: templates/shopping/budget.html
 #, python-format
 msgid ""
-"these are not counted. Set prices on the <a "
+"these are not counted. Set prices on the <a class=\"alert-link\" "
 "href=\"%(ingredients_url)s\">ingredients page</a>."
 msgstr ""
-"die tellen niet mee. Vul prijzen in op de <a "
+"die tellen niet mee. Vul prijzen in op de <a class=\"alert-link\" "
 "href=\"%(ingredients_url)s\">ingrediëntenpagina</a>."
 
 #: templates/shopping/budget.html
@@ -2744,17 +2735,12 @@ msgid "latest"
 msgstr "laatste"
 
 #: templates/shopping/budget.html
-#, python-format
-msgid ""
-"No shopping trips selected yet — pick shopping days on the <a "
-"href=\"%(shopping_url)s\">shopping page</a> first."
-msgstr ""
-"Nog geen winkeldagen gekozen — kies eerst winkeldagen op de <a "
-"href=\"%(shopping_url)s\">boodschappenpagina</a>."
+msgid "No shopping days yet, so no budget."
+msgstr "Nog geen winkeldagen, dus nog geen budget."
 
-#: templates/shopping/shopping.html
-msgid "shopping"
-msgstr "boodschappen"
+#: templates/shopping/budget.html
+msgid "Pick shopping days"
+msgstr "Winkeldagen kiezen"
 
 #: templates/shopping/shopping.html
 msgid "Shopping days outside the dates below."
@@ -2763,11 +2749,31 @@ msgstr "Winkeldagen buiten de data hieronder."
 #: templates/shopping/shopping.html
 #, python-format
 msgid ""
-"They still count; <a href=\"%(edit_url)s\">change the camp dates</a> to get "
-"them back on this list, or remove them:"
+"They still count; <a class=\"alert-link\" href=\"%(edit_url)s\">change the "
+"camp dates</a> to get them back on this list, or remove them:"
 msgstr ""
-"Ze tellen nog mee; <a href=\"%(edit_url)s\">pas de kampdata aan</a> om ze "
-"terug op deze lijst te krijgen, of verwijder ze:"
+"Ze tellen nog mee; <a class=\"alert-link\" href=\"%(edit_url)s\">pas de "
+"kampdata aan</a> om ze terug op deze lijst te krijgen, of verwijder ze:"
+
+#: templates/shopping/shopping.html
+msgid "Shopping trips"
+msgstr "Boodschappenrondes"
+
+#: templates/shopping/shopping.html
+#, python-format
+msgid "%(date)s · %(counter)s shop"
+msgid_plural "%(date)s · %(counter)s shops"
+msgstr[0] "%(date)s · %(counter)s winkel"
+msgstr[1] "%(date)s · %(counter)s winkels"
+
+#: templates/shopping/shopping.html
+#, python-format
+msgid "%(date)s · nothing to buy"
+msgstr "%(date)s · niets te kopen"
+
+#: templates/shopping/shopping.html
+msgid "Shopping lists PDF"
+msgstr "Boodschappenlijsten als pdf"
 
 #: templates/shopping/shopping.html
 #, python-format
@@ -2811,10 +2817,6 @@ msgstr ""
 "ervoor valt."
 
 #: templates/shopping/shopping.html
-msgid "Shopping lists PDF"
-msgstr "Boodschappenlijsten als pdf"
-
-#: templates/shopping/shopping.html
 #, python-format
 msgid "%(counter)s camp day"
 msgid_plural "%(counter)s camp days"
@@ -2831,6 +2833,14 @@ msgstr[1] "%(counter)s artikels"
 #: templates/shopping/shopping.html
 msgid "Nothing to buy — no menu entries in the covered days."
 msgstr "Niets te kopen — geen maaltijden ingepland in de gedekte dagen."
+
+#: templates/shopping/shopping.html
+msgid "Back to top"
+msgstr "Terug naar boven"
+
+#: templates/shopping/shopping.html
+msgid "No shopping days yet. Tick the days you shop on above."
+msgstr "Nog geen winkeldagen. Vink hierboven de dagen aan waarop je winkelt."
 
 #: templates/shopping/shopping.html templates/shopping/shopping_print.html
 msgid "Kitchen utilities to buy"
@@ -2857,6 +2867,26 @@ msgstr "Niet gedekte dagen (geen ronde koopt ervoor):"
 #: templates/shopping/shopping_print.html
 msgid "Nothing to buy for this trip."
 msgstr "Niets te kopen voor deze ronde."
+
+#~ msgid "kitchen utilities"
+#~ msgstr "keukengerei"
+
+#~ msgid "stock"
+#~ msgstr "voorraad"
+
+#~ msgid "budget"
+#~ msgstr "budget"
+
+#, python-format
+#~ msgid ""
+#~ "No shopping trips selected yet — pick shopping days on the <a "
+#~ "href=\"%(shopping_url)s\">shopping page</a> first."
+#~ msgstr ""
+#~ "Nog geen winkeldagen gekozen — kies eerst winkeldagen op de <a "
+#~ "href=\"%(shopping_url)s\">boodschappenpagina</a>."
+
+#~ msgid "shopping"
+#~ msgstr "boodschappen"
 
 #, python-format
 #~ msgid ""

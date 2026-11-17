@@ -1,109 +1,138 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n ui %}
 {% block title %}{{ camp.name }} — {% translate "Shopping" %}{% endblock %}
 {% block content %}
-<p><a class="back-link" href="{% url 'planner' camp.pk %}">← {% translate "back to menu plan" %}</a></p>
-<h1>{{ camp.name }} — {% translate "shopping" %}</h1>
+{% translate "Shopping" as page_title %}
+{% include "components/page_header.html" with title=page_title meta=camp.name %}
+{% include "components/camp_nav.html" with camp=camp active="shopping" %}
 {% include "camps/_example_note.html" %}
 
 {% if outside_entries %}
 {% include "planning/_outside_entries.html" with back="shopping" %}
 {% endif %}
 {% if outside_trips %}
-<div class="warning">
-  ⚠️ <strong>{% translate "Shopping days outside the dates below." %}</strong>
-  {% url 'camp_edit' camp.pk as edit_url %}{% blocktranslate trimmed %}
-  They still count; <a href="{{ edit_url }}">change the camp dates</a> to get them back on this list, or remove them:
-  {% endblocktranslate %}
-  <ul class="outside-list">
-    {% for trip in outside_trips %}
-    <li>
-      {{ trip.date|date:"D d M Y" }}
-      <form method="post" action="{% url 'remove_outside_trip' camp.pk trip.pk %}">
-        {% csrf_token %}
-        <button class="btn btn-outline btn-small" type="submit">{% translate "Remove" %}</button>
-      </form>
-    </li>
-    {% endfor %}
-  </ul>
-</div>
-{% endif %}
-
-<p>{% url 'chiro_stock' camp.chiro.pk as stock_url %}{% blocktranslate with chiro=camp.chiro.name %}<a href="{{ stock_url }}#pantry">Already have something? Add it to the pantry of {{ chiro }}</a> and it comes off these lists.{% endblocktranslate %}</p>
-
-<h2>{% translate "Shopping days" %}</h2>
-<p class="muted">{% blocktranslate trimmed %}
-  A trip buys for the days <strong>after</strong> it, up to and including the
-  next trip day — never its own day. Add a trip before the camp starts to cover the opening days.
-{% endblocktranslate %}</p>
-<div class="card">
-  <form method="post">
-    {% csrf_token %}
-    <ul class="checkboxes">
-      {% for c in candidates %}
-      <li>
-        <label>
-          <input type="checkbox" name="trip_dates" value="{{ c.date|date:'Y-m-d' }}" {% if c.selected %}checked{% endif %}>
-          {{ c.date|date:"D d M" }}{% if c.pre_camp %} <span class="muted">({% translate "before camp" %})</span>{% endif %}
-        </label>
+<div class="alert alert-warning d-flex gap-2" role="alert">
+  <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+  <div>
+    <strong>{% translate "Shopping days outside the dates below." %}</strong>
+    {% url 'camp_edit' camp.pk as edit_url %}{% blocktranslate trimmed %}
+    They still count; <a class="alert-link" href="{{ edit_url }}">change the camp dates</a> to get them back on this list, or remove them:
+    {% endblocktranslate %}
+    <ul class="list-unstyled mt-2 mb-0">
+      {% for trip in outside_trips %}
+      <li class="d-flex flex-wrap align-items-center gap-2 mb-1">
+        <span>{{ trip.date|short_date:"year" }}</span>
+        <form method="post" action="{% url 'remove_outside_trip' camp.pk trip.pk %}">
+          {% csrf_token %}
+          <button class="btn btn-sm btn-outline-danger" type="submit"><i class="bi bi-trash" aria-hidden="true"></i> {% translate "Remove" %}</button>
+        </form>
       </li>
       {% endfor %}
     </ul>
-    <button class="btn" type="submit">{% translate "Save shopping days" %}</button>
-  </form>
-</div>
-
-{% if plan.uncovered_days %}
-<div class="warning">
-  ⚠️ <strong>{% translate "Uncovered days:" %}</strong>
-  {% for d in plan.uncovered_days %}{{ d|date:"D d M" }}{% if not forloop.last %}, {% endif %}{% endfor %}
-  — {% translate "no shopping trip covers these days. Add a trip dated before them." %}
+  </div>
 </div>
 {% endif %}
 
 {% if plan.trip_lists %}
-<div class="actions">
-  <a class="btn" href="{% url 'shopping_pdf' camp.pk %}">{% translate "Shopping lists PDF" %}</a>
-  <a class="btn btn-outline" href="{% url 'budget' camp.pk %}">{% translate "Budget" %}</a>
-</div>
-{% for tl in plan.trip_lists %}
-<h2>{% blocktranslate with date=tl.trip.date|date:"l d M" %}Shop on {{ date }}{% endblocktranslate %}</h2>
-<p class="muted">{% blocktranslate with start=tl.cover_start|date:"D d M" end=tl.cover_end|date:"D d M" %}Covers {{ start }} – {{ end }}{% endblocktranslate %}
-  ({% blocktranslate count counter=tl.covered_days|length %}{{ counter }} camp day{% plural %}{{ counter }} camp days{% endblocktranslate %})</p>
-{% if tl.shop_sections %}
-  <div class="shop-grid">
-    {% for section in tl.shop_sections %}
-    <section class="shop-section">
-      <h3 class="shop-title">{{ section.label }} <span class="muted">{% blocktranslate count counter=section.item_count %}{{ counter }} item{% plural %}{{ counter }} items{% endblocktranslate %}</span></h3>
-      {% for category, items in section.items_by_category.items %}
-      <div class="category-block">
-        <h4>{{ category }}</h4>
-        <table class="compact">
-          <tbody>
-            {% for item in items %}
-            <tr><td>{{ item.ingredient.name }}</td><td>{{ item.quantity }} {% translate item.unit %}</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
+<nav id="trip-links" aria-label="{% translate 'Shopping trips' %}" class="d-flex flex-wrap align-items-center gap-2 mb-4">
+  {% for tl in plan.trip_lists %}
+  <a class="btn btn-outline-primary btn-lg" href="#trip-{{ tl.trip.pk }}">{% if tl.shop_sections %}{% blocktranslate trimmed count counter=tl.shop_sections|length with date=tl.trip.date|short_date %}{{ date }} · {{ counter }} shop{% plural %}{{ date }} · {{ counter }} shops{% endblocktranslate %}{% else %}{% blocktranslate trimmed with date=tl.trip.date|short_date %}{{ date }} · nothing to buy{% endblocktranslate %}{% endif %}</a>
+  {% endfor %}
+  <div class="ms-lg-auto d-flex gap-2">
+    <a class="btn btn-outline-primary" href="{% url 'shopping_pdf' camp.pk %}"><i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> {% translate "Shopping lists PDF" %}</a>
+    <a class="btn btn-outline-primary" href="{% url 'budget' camp.pk %}"><i class="bi bi-currency-euro" aria-hidden="true"></i> {% translate "Budget" %}</a>
+  </div>
+</nav>
+{% endif %}
+
+<p>{% url 'chiro_stock' camp.chiro.pk as stock_url %}{% blocktranslate with chiro=camp.chiro.name %}<a href="{{ stock_url }}#pantry">Already have something? Add it to the pantry of {{ chiro }}</a> and it comes off these lists.{% endblocktranslate %}</p>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <h2 class="h5 card-title">{% translate "Shopping days" %}</h2>
+    <p class="form-text">{% blocktranslate trimmed %}
+      A trip buys for the days <strong>after</strong> it, up to and including the
+      next trip day — never its own day. Add a trip before the camp starts to cover the opening days.
+    {% endblocktranslate %}</p>
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        {% for c in candidates %}
+        <div class="form-check form-check-inline">
+          <input class="form-check-input" type="checkbox" name="trip_dates" id="trip-date-{{ c.date|date:'Y-m-d' }}" value="{{ c.date|date:'Y-m-d' }}" {% if c.selected %}checked{% endif %}>
+          <label class="form-check-label" for="trip-date-{{ c.date|date:'Y-m-d' }}">{{ c.date|short_date }}{% if c.pre_camp %} <span class="text-body-secondary">({% translate "before camp" %})</span>{% endif %}</label>
+        </div>
+        {% endfor %}
       </div>
-      {% endfor %}
-    </section>
+      <button class="btn btn-primary" type="submit">{% translate "Save shopping days" %}</button>
+    </form>
+  </div>
+</div>
+
+{% if plan.uncovered_days %}
+<div class="alert alert-warning d-flex gap-2" role="alert">
+  <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+  <div>
+    <strong>{% translate "Uncovered days:" %}</strong>
+    {% for d in plan.uncovered_days %}{{ d|short_date }}{% if not forloop.last %}, {% endif %}{% endfor %}
+    — {% translate "no shopping trip covers these days. Add a trip dated before them." %}
+  </div>
+</div>
+{% endif %}
+
+{% if plan.trip_lists %}
+{% for tl in plan.trip_lists %}
+<section id="trip-{{ tl.trip.pk }}" class="mb-4">
+  <h2>{% blocktranslate with date=tl.trip.date|short_date %}Shop on {{ date }}{% endblocktranslate %}</h2>
+  <p class="text-body-secondary">{% blocktranslate with start=tl.cover_start|short_date end=tl.cover_end|short_date %}Covers {{ start }} – {{ end }}{% endblocktranslate %}
+    ({% blocktranslate count counter=tl.covered_days|length %}{{ counter }} camp day{% plural %}{{ counter }} camp days{% endblocktranslate %})</p>
+  {% if tl.shop_sections %}
+  <div class="row g-3">
+    {% for section in tl.shop_sections %}
+    <div class="col-12 col-md-6 col-xl-4">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-baseline gap-2">
+          <h3 class="h6 mb-0">{{ section.label }}</h3>
+          <span class="text-body-secondary small text-nowrap">{% blocktranslate count counter=section.item_count %}{{ counter }} item{% plural %}{{ counter }} items{% endblocktranslate %}</span>
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            {% for category, items in section.items_by_category.items %}
+            <tbody>
+              <tr><th colspan="2" scope="colgroup" class="small fw-normal text-body-secondary">{{ category }}</th></tr>
+              {% for item in items %}
+              <tr><td>{{ item.ingredient.name }}</td><td class="text-end text-nowrap">{{ item.quantity }} {% translate item.unit %}</td></tr>
+              {% endfor %}
+            </tbody>
+            {% endfor %}
+          </table>
+        </div>
+      </div>
+    </div>
     {% endfor %}
   </div>
-{% else %}
-<p class="empty-slot">{% translate "Nothing to buy — no menu entries in the covered days." %}</p>
-{% endif %}
+  {% else %}
+  <p class="text-body-secondary">{% translate "Nothing to buy — no menu entries in the covered days." %}</p>
+  {% endif %}
+  <a class="icon-link py-3" href="#trip-links"><i class="bi bi-arrow-up" aria-hidden="true"></i> {% translate "Back to top" %}</a>
+</section>
 {% endfor %}
+{% else %}
+{% translate "No shopping days yet. Tick the days you shop on above." as empty_text %}
+{% include "components/empty_state.html" with icon="cart" text=empty_text %}
 {% endif %}
+
 <h2>{% translate "Kitchen utilities to buy" %}</h2>
 {% if utensils_to_buy %}
-<table class="compact">
-  <tbody>
-    {% for need in utensils_to_buy %}
-    <tr><td>{{ need.utensil.name }}</td><td>{{ need.to_buy }}</td></tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="card mb-2">
+  <table class="table table-sm mb-0">
+    <tbody>
+      {% for need in utensils_to_buy %}
+      <tr><td>{{ need.utensil.name }}</td><td class="text-end text-nowrap">{{ need.to_buy }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endif %}
-<p class="muted">{% url 'camp_utensils' camp.pk as utensils_url %}{% blocktranslate %}Compared with your Chiro's stock on the <a href="{{ utensils_url }}">kitchen utilities page</a>.{% endblocktranslate %}</p>
+<p class="text-body-secondary">{% url 'camp_utensils' camp.pk as utensils_url %}{% blocktranslate %}Compared with your Chiro's stock on the <a href="{{ utensils_url }}">kitchen utilities page</a>.{% endblocktranslate %}</p>
 {% endblock %}
