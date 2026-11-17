@@ -50,6 +50,9 @@ shopping page **flag every camp day no trip covers**.
   kept and warned about, and can be removed.
 - One summed list per trip, split per shop and grouped by category, using the logic
   above, minus the pantry.
+- The trips are Collect&Go pickups, so the lists are also read on a phone at the
+  pickup (read only, nothing to tick, D20): buttons at the top of the page jump to each
+  trip's list.
 - Warns about uncovered camp days and lists the kitchen utilities the stock lacks.
 
 ### Budget
@@ -88,6 +91,7 @@ shopping page **flag every camp day no trip covers**.
 
 - **D4**: A shopping day **doesn't** cover its own day; it buys for the following
   days up to and including the next shopping day. Uncovered days are flagged.
+- **D20** (in [SPEC](../SPEC.md)): the trip lists work equally on a phone and a PC.
 
 ## Planned
 

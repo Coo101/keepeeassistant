@@ -4,6 +4,10 @@
 
 A trip buys for the days **after** it, up to and including the next trip day. It never covers its own day. To cover your first day, add a trip before the camp starts. Days that no trip covers are flagged.
 
+## At the pickup
+
+Open the shopping page on your phone: the buttons at the top jump straight to one trip's list, split per shop.
+
 ## Prices
 
 The budget uses your camp's own price for an ingredient if it has one, otherwise the latest known price. Each line shows which one it used and from when.

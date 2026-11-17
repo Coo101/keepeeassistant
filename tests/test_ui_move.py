@@ -57,6 +57,10 @@ CONVERTED_TEMPLATES: list[str] = [
     "recipes/ingredient_list.html",
     "recipes/_ingredient_results.html",
     "recipes/ingredient_form.html",
+    "shopping/shopping.html",
+    "shopping/budget.html",
+    "kitchen/stock.html",
+    "kitchen/camp_utensils.html",
 ]
 
 # (URL name, the URL's args for a camp): full pages with one h1 and the red rule.
@@ -68,6 +72,9 @@ CONVERTED_PAGES: list[tuple[str, Callable[[Camp], list]]] = [
     ("planner", lambda camp: [camp.pk]),
     ("edit_slot", lambda camp: [camp.pk, camp.start_date.isoformat(), "dinner"]),
     ("runbook", lambda camp: [camp.pk]),
+    ("shopping", lambda camp: [camp.pk]),
+    ("budget", lambda camp: [camp.pk]),
+    ("camp_utensils", lambda camp: [camp.pk]),
 ]
 
 # (URL name, the URL's args for a recipe): recipe pages with one h1 and the red rule.

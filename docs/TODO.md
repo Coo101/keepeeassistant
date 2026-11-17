@@ -64,7 +64,8 @@ from testing go on GitHub.
   theme check at phone width). Plan: `docs/superpowers/plans/2026-11-16-ui-area-1-camps-planner.md`
 - [x] 2. Recipes and ingredients (also: the recipe search box focus ring). Plan:
   `docs/superpowers/plans/2026-11-17-ui-area-2-recipes.md`
-- [ ] 3. Shopping, budget and stock
+- [x] 3. Shopping, budget and stock (also: D20, trip lists readable on a phone at the
+  pickup). Plan: `docs/superpowers/plans/2026-11-17-ui-area-3-shopping.md`
 - [ ] 4. Bills and the financial report
 - [ ] 5. Accounts and public pages (also: the home page skips from `h1` to `h3`)
 - [ ] 6. Print check and `app.css` clean-up (also: `docs/DESIGN.md` §8 clean-up)
@@ -79,6 +80,13 @@ background is 4,3:1, under AA, on every page with a delete button; unchecked che
 borders are too faint on sand (under 3:1). Both are theme decisions for `app.css` and
 `DESIGN.md` §3.4. The new-ingredient dialog is taller than a laptop screen and scrolls
 inside; the live search's Clear button only follows a submitted search.
+
+Found in area 3's review: an example Chiro's stock page still shows Save and "Add a
+row" (saving is refused); same fix as area 1's example controls, a flag from the view.
+Saving shopping days, the stock or a camp's utilities gives no confirmation message.
+Pressing Enter in a table with "Add a row" (camp groups, pantry, utilities) adds a row
+instead of saving, because that button comes first in the form. Links inside the
+outside-dates alert of `planning/_outside_entries.html` lack `alert-link`.
 
 ### 4. Going public: to brainstorm
 

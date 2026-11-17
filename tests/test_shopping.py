@@ -4,6 +4,7 @@ import datetime
 from decimal import Decimal
 
 import pytest
+from django.urls import reverse
 
 from core.constants import DishType, MealType, Shop
 from recipes.models import Ingredient
@@ -17,6 +18,7 @@ from tests.factories import (
     assign,
     make_camp,
     make_recipe,
+    member_client,
 )
 
 pytestmark = pytest.mark.django_db
@@ -136,3 +138,49 @@ def test_items_are_grouped_per_shop() -> None:
     # sections follow the Shop.CHOICES order, not insertion order
     assert [s.shop for s in sections] == [Shop.COLRUYT, Shop.BAKKER]
     assert by_shop[Shop.BAKKER].item_count == 1
+
+
+def shopping_html(camp) -> str:
+    response = member_client(camp).get(reverse("shopping", args=[camp.pk]))
+    assert response.status_code == 200
+    return response.content.decode()
+
+
+def test_shopping_page_jumps_to_each_trip() -> None:
+    camp = make_camp(start=AUG(1), days=5)
+    recipe = make_recipe("Stew", ingredients=[("Potatoes", "2", KG, PRODUCE)])
+    assign(camp, AUG(2), MealType.DINNER, recipe)
+    assign(camp, AUG(4), MealType.DINNER, recipe)
+    trips = [
+        ShoppingTrip.objects.create(camp=camp, date=AUG(1)),
+        ShoppingTrip.objects.create(camp=camp, date=AUG(3)),
+    ]
+    html = shopping_html(camp)
+    assert 'id="trip-links"' in html
+    for trip in trips:
+        assert f'href="#trip-{trip.pk}"' in html
+        assert f'id="trip-{trip.pk}"' in html
+    assert html.count('href="#trip-links"') == 2
+
+
+def test_shopping_page_without_trips_shows_the_empty_state() -> None:
+    camp = make_camp(start=AUG(1), days=3)
+    html = shopping_html(camp)
+    assert "trip-links" not in html
+    assert reverse("shopping_pdf", args=[camp.pk]) not in html
+    assert "bi-cart" in html
+
+
+def test_trip_with_nothing_to_buy() -> None:
+    camp = make_camp(start=AUG(1), days=3)
+    trip = ShoppingTrip.objects.create(camp=camp, date=AUG(1))
+    html = shopping_html(camp)
+    assert f'id="trip-{trip.pk}"' in html
+    assert "Nothing to buy" in html
+
+
+def test_shopping_warnings_are_alerts() -> None:
+    camp = make_camp(start=AUG(1), days=3)
+    html = shopping_html(camp)
+    assert "alert-warning" in html
+    assert "⚠" not in html
