@@ -1,0 +1,12 @@
+# Security updates for Python packages are on in the repo settings (they target dev).
+# Version updates only for the workflow's actions, which are pinned to commit SHAs.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]

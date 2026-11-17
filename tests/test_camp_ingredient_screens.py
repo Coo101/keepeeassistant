@@ -57,7 +57,7 @@ def _client_in(*chiros: Chiro) -> Client:
 
 @pytest.fixture
 def chiro() -> Chiro:
-    return Chiro.objects.create(name="Chiro Opoeteren")
+    return Chiro.objects.create(name="Chiro Testdorp")
 
 
 @pytest.fixture

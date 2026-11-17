@@ -29,7 +29,7 @@ PASSWORD = "soep-en-brood-42"
 
 @pytest.fixture
 def chiro() -> Chiro:
-    return Chiro.objects.create(name="Chiro Opoeteren")
+    return Chiro.objects.create(name="Chiro Testdorp")
 
 
 @pytest.fixture
