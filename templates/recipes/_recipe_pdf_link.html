@@ -1,0 +1,1 @@
+{% load i18n %}<a id="recipe-pdf-link" class="btn btn-outline-primary" href="{% url 'recipe_pdf' recipe.pk %}{% if portions %}?portions={{ portions|stringformat:'s' }}{% endif %}"{% if oob %} hx-swap-oob="true"{% endif %}><i class="bi bi-file-earmark-pdf" aria-hidden="true"></i> {% translate "PDF" %}</a>

@@ -49,12 +49,14 @@ admin.
 
 Every page on Bootstrap and HTMX, core areas first, one plan and one review round per
 area. Planning screens are designed for a PC (D19). After each area passes review it's
-committed on `dev` and the next starts; issues from testing go on Gitea.
+committed on its own branch and merged into `dev` by PR, and the next starts; issues
+from testing go on Gitea.
 
 - Design: `docs/superpowers/specs/2026-11-16-ui-move-design.md`
 - [x] 1. Camps and planner (also: the camp list's empty-state icon and long dates, the
   theme check at phone width). Plan: `docs/superpowers/plans/2026-11-16-ui-area-1-camps-planner.md`
-- [ ] 2. Recipes and ingredients (also: the recipe search box focus ring)
+- [x] 2. Recipes and ingredients (also: the recipe search box focus ring). Plan:
+  `docs/superpowers/plans/2026-11-17-ui-area-2-recipes.md`
 - [ ] 3. Shopping, budget and stock
 - [ ] 4. Bills and the financial report
 - [ ] 5. Accounts and public pages (also: the home page skips from `h1` to `h3`)
@@ -64,6 +66,12 @@ Found in area 1's review, for a later round: example camps show edit controls th
 can't save (runbook note forms, slot links, no `read-only` badge next to the title);
 the view should pass a flag and the pages hide them. The runbook shows very small
 scaled amounts as "0,0 kg" (rounding, not UI).
+
+Found in area 2's review: Bootstrap's danger red (`btn-outline-danger`) on the sand page
+background is 4,3:1, under AA, on every page with a delete button; unchecked checkbox
+borders are too faint on sand (under 3:1). Both are theme decisions for `app.css` and
+`DESIGN.md` §3.4. The new-ingredient dialog is taller than a laptop screen and scrolls
+inside; the live search's Clear button only follows a submitted search.
 
 ### 4. Going public: to brainstorm
 

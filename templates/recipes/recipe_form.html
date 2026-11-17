@@ -1,40 +1,66 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n crispy_forms_tags %}
 {% block title %}{% if recipe.pk %}{{ recipe.name }}{% else %}{% translate "New recipe" %}{% endif %} — {% translate "Recipes" %}{% endblock %}
 {% block content %}
 {% if recipe.pk %}
-<p><a class="back-link" href="{% url 'recipe_detail' recipe.pk %}">← {% translate "back to recipe" %}</a></p>
-<h1>{% blocktranslate with name=recipe.name %}Edit {{ name }}{% endblocktranslate %}</h1>
+{% url 'recipe_detail' recipe.pk as back_url %}{% translate "Back to the recipe" as back_label %}
+{% include "components/back_link.html" with url=back_url label=back_label %}
+{% blocktranslate with name=recipe.name asvar page_title %}Edit {{ name }}{% endblocktranslate %}
+{% include "components/page_header.html" with title=page_title %}
 {% else %}
-<p><a class="back-link" href="{% url 'recipe_list' %}">← {% translate "all recipes" %}</a></p>
-<h1>{% translate "New recipe" %}</h1>
+{% url 'recipe_list' as back_url %}{% translate "All recipes" as back_label %}
+{% include "components/back_link.html" with url=back_url label=back_label %}
+{% translate "New recipe" as page_title %}
+{% include "components/page_header.html" with title=page_title %}
 {% endif %}
 
 {% if camp_count %}
-<div class="warning">
-  ⚠️ <strong>{% blocktranslate count counter=camp_count %}Planned in {{ counter }} camp.{% plural %}Planned in {{ counter }} camps.{% endblocktranslate %}</strong>
-  {% translate "Changes also update the shopping lists and budgets of those camps." %}
-  {% if planned_by_others %}<strong>{% translate "Some belong to other Chiros." %}</strong>{% endif %}
-  {% translate "To leave them as they are, save a copy of this recipe instead." %}
+<div class="alert alert-warning d-flex gap-2" role="alert">
+  <i class="bi bi-exclamation-triangle flex-shrink-0" aria-hidden="true"></i>
+  <div>
+    <strong>{% blocktranslate count counter=camp_count %}Planned in {{ counter }} camp.{% plural %}Planned in {{ counter }} camps.{% endblocktranslate %}</strong>
+    {% translate "Changes also update the shopping lists and budgets of those camps." %}
+    {% if planned_by_others %}<strong>{% translate "Some belong to other Chiros." %}</strong>{% endif %}
+    {% translate "To leave them as they are, save a copy of this recipe instead." %}
+  </div>
 </div>
 {% endif %}
 
-<form method="post" class="stacked-form">
+{% include "components/form_errors.html" with form=form formset=ingredients formset2=steps %}
+<form method="post">
   {% csrf_token %}
   {# First in the form, so Enter in a field saves instead of adding a row. #}
   <button class="visually-hidden" type="submit" tabindex="-1" aria-hidden="true">{% translate "Save recipe" %}</button>
-  {{ form.non_field_errors }}
-  <div class="card">
-    {% for field in form %}<div class="form-row">{{ field.as_field_group }}</div>{% endfor %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-header"><h2 class="h5 mb-0">{% translate "Recipe" %}</h2></div>
+    <div class="card-body">
+      <div class="row g-3">
+        {% for field in form %}
+          {% if field.is_hidden %}{{ field }}{% else %}<div class="{% if field.name == 'notes' or field.name == 'others_can_edit' %}col-12{% else %}col-lg-6{% endif %}">{{ field|as_crispy_field }}</div>{% endif %}
+        {% endfor %}
+      </div>
+    </div>
   </div>
-  <h2>{% translate "Ingredients" %}</h2>
-  <p class="muted">{% translate "Missing one?" %} <button class="btn btn-outline btn-small" type="button" data-new-ingredient>{% translate "New ingredient" %}</button></p>
-  {% url "recipe_formset_row" "ingredients" as add_ingredient_url %}{% translate "Add ingredient" as add_ingredient %}
-  <div class="card">{% include "recipes/_formset.html" with formset=ingredients add_url=add_ingredient_url add_label=add_ingredient %}</div>
-  <h2>{% translate "Steps" %}</h2>
-  {% url "recipe_formset_row" "steps" as add_step_url %}{% translate "Add step" as add_step %}
-  <div class="card">{% include "recipes/_formset.html" with formset=steps add_url=add_step_url add_label=add_step %}</div>
-  <button class="btn" type="submit">{% translate "Save recipe" %}</button>
+  <div class="card shadow-sm mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h2 class="h5 mb-0">{% translate "Ingredients" %}</h2>
+      <button class="btn btn-sm btn-outline-primary" type="button" data-new-ingredient><i class="bi bi-plus-circle" aria-hidden="true"></i> {% translate "New ingredient" %}</button>
+    </div>
+    <div class="card-body">
+      {% url "recipe_formset_row" "ingredients" as add_ingredient_url %}{% translate "Add ingredient" as add_ingredient %}
+      {% include "recipes/_formset.html" with formset=ingredients add_url=add_ingredient_url add_label=add_ingredient %}
+    </div>
+  </div>
+  <div class="card shadow-sm mb-4">
+    <div class="card-header"><h2 class="h5 mb-0">{% translate "Steps" %}</h2></div>
+    <div class="card-body">
+      {% url "recipe_formset_row" "steps" as add_step_url %}{% translate "Add step" as add_step %}
+      {% include "recipes/_formset.html" with formset=steps add_url=add_step_url add_label=add_step %}
+    </div>
+  </div>
+  <div class="d-flex justify-content-end mt-4">
+    <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg" aria-hidden="true"></i> {% translate "Save recipe" %}</button>
+  </div>
 </form>
 
 {% include "recipes/_new_ingredient_dialog.html" with selects="select[name^=ingredients-][name$=-ingredient]" %}

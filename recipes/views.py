@@ -15,6 +15,7 @@ from django.views.decorators.http import require_POST
 
 from core.constants import DishType
 from core.delete import confirm_delete
+from core.htmx import render_page_or_fragment
 from core.pdf import render_pdf
 from core.portions import format_quantity, round_quantity, scale_factor
 from recipes.forms import (
@@ -65,8 +66,11 @@ def recipe_list(request: HttpRequest) -> HttpResponse:
     for dish_type, label in DishType.CHOICES:
         if dish_type in by_type:
             groups.append({"label": label, "recipes": by_type[dish_type]})
-    return render(
-        request, "recipes/recipe_list.html", {"groups": groups, "query": query}
+    return render_page_or_fragment(
+        request,
+        "recipes/recipe_list.html",
+        "recipes/_recipe_results.html",
+        {"groups": groups, "query": query},
     )
 
 
@@ -120,7 +124,12 @@ def _render_detail(
     context["copy_form"] = copy_form or CopyRecipeForm(
         initial={"name": f"{recipe.name} (kopie)"}
     )
-    return render(request, "recipes/recipe_detail.html", context)
+    return render_page_or_fragment(
+        request,
+        "recipes/recipe_detail.html",
+        "recipes/_recipe_ingredients.html",
+        context,
+    )
 
 
 def recipe_detail(request: HttpRequest, recipe_id: int) -> HttpResponse:
@@ -248,9 +257,10 @@ def ingredient_list(request: HttpRequest) -> HttpResponse:
         ingredients = ingredients.filter(
             Q(name__icontains=query) | Q(product_details__icontains=query)
         )
-    return render(
+    return render_page_or_fragment(
         request,
         "recipes/ingredient_list.html",
+        "recipes/_ingredient_results.html",
         {"ingredients": ingredients, "query": query},
     )
 

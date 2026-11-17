@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Camp Meal Planner\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 17:14+0100\n"
+"POT-Creation-Date: 2026-11-17 13:41+0100\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -855,6 +855,7 @@ msgstr "Veel suiker: %(recipes)s"
 
 #: planning/forms.py templates/bills/_report_body.html
 #: templates/planning/overview_print.html
+#: templates/recipes/_recipe_results.html templates/recipes/recipe_form.html
 msgid "Recipe"
 msgstr "Recept"
 
@@ -880,7 +881,7 @@ msgstr "%(camp)s-overzicht.pdf"
 msgid "Latest price"
 msgstr "Laatste prijs"
 
-#: recipes/admin.py templates/recipes/ingredient_list.html
+#: recipes/admin.py templates/recipes/_ingredient_results.html
 msgid "Price date"
 msgstr "Prijsdatum"
 
@@ -900,8 +901,8 @@ msgstr "Er bestaat al een recept met deze naam."
 msgid "New name"
 msgstr "Nieuwe naam"
 
-#: recipes/forms.py templates/recipes/ingredient_form.html
-#: templates/recipes/ingredient_list.html
+#: recipes/forms.py templates/recipes/_ingredient_results.html
+#: templates/recipes/ingredient_form.html
 msgid "Price"
 msgstr "Prijs"
 
@@ -1310,9 +1311,10 @@ msgstr "Kampen"
 msgid "Recipes"
 msgstr "Recepten"
 
-#: templates/base.html templates/recipes/ingredient_form.html
-#: templates/recipes/ingredient_list.html templates/recipes/recipe_detail.html
-#: templates/recipes/recipe_form.html templates/recipes/recipe_print.html
+#: templates/base.html templates/recipes/_recipe_ingredients.html
+#: templates/recipes/ingredient_form.html
+#: templates/recipes/ingredient_list.html templates/recipes/recipe_form.html
+#: templates/recipes/recipe_print.html
 msgid "Ingredients"
 msgstr "Ingrediënten"
 
@@ -1470,7 +1472,7 @@ msgid "Date"
 msgstr "Datum"
 
 #: templates/bills/_report_body.html templates/bills/bill_list.html
-#: templates/recipes/ingredient_list.html
+#: templates/recipes/_ingredient_results.html
 msgid "Shop"
 msgstr "Winkel"
 
@@ -1773,11 +1775,11 @@ msgstr "Jongeren"
 msgid "Staff"
 msgstr "Leiding"
 
-#: templates/camps/camp_list.html
+#: templates/camps/camp_list.html templates/recipes/_recipe_results.html
 msgid "Portions"
 msgstr "Porties"
 
-#: templates/camps/camp_list.html
+#: templates/camps/camp_list.html templates/recipes/_ingredient_results.html
 msgid "Actions"
 msgstr "Acties"
 
@@ -1796,7 +1798,7 @@ msgstr "Boodschappen"
 msgid "Runbook"
 msgstr "Draaiboek"
 
-#: templates/camps/camp_list.html templates/recipes/ingredient_list.html
+#: templates/camps/camp_list.html templates/recipes/_ingredient_results.html
 #: templates/recipes/recipe_detail.html
 msgid "Edit"
 msgstr "Bewerken"
@@ -2074,7 +2076,7 @@ msgstr "%(name)s · %(portions)s porties"
 msgid "Scaled for %(portions)s portions"
 msgstr "Omgerekend naar %(portions)s porties"
 
-#: templates/planning/edit_slot.html
+#: templates/planning/edit_slot.html templates/recipes/recipe_detail.html
 #, python-format
 msgid "base: %(children)s children + %(teens)s teens = %(portions)s portions"
 msgstr ""
@@ -2084,8 +2086,8 @@ msgstr ""
 msgid "recipe page"
 msgstr "receptpagina"
 
-#: templates/planning/edit_slot.html templates/recipes/ingredient_list.html
-#: templates/shopping/budget.html
+#: templates/planning/edit_slot.html templates/recipes/_ingredient_results.html
+#: templates/recipes/ingredient_form.html templates/shopping/budget.html
 msgid "Ingredient"
 msgstr "Ingrediënt"
 
@@ -2269,6 +2271,40 @@ msgctxt "runbook"
 msgid "Notes"
 msgstr "No-tities"
 
+#: templates/recipes/_ingredient_results.html
+msgid "Unit"
+msgstr "Eenheid"
+
+#: templates/recipes/_ingredient_results.html
+msgid "Category"
+msgstr "Categorie"
+
+#: templates/recipes/_ingredient_results.html
+msgid "Product"
+msgstr "Product"
+
+#: templates/recipes/_ingredient_results.html templates/shopping/budget.html
+msgid "no price"
+msgstr "geen prijs"
+
+#: templates/recipes/_ingredient_results.html
+#, python-format
+msgid "No ingredients match \"%(query)s\"."
+msgstr "Geen ingrediënten gevonden voor “%(query)s”."
+
+#: templates/recipes/_ingredient_results.html
+msgid "Show all ingredients"
+msgstr "Toon alle ingrediënten"
+
+#: templates/recipes/_ingredient_results.html
+msgid "No ingredients yet."
+msgstr "Nog geen ingrediënten."
+
+#: templates/recipes/_ingredient_results.html
+#: templates/recipes/_recipe_results.html
+msgid "Add the first one"
+msgstr "Voeg het eerste toe"
+
 #: templates/recipes/_new_ingredient_dialog.html
 msgid "Couldn't save the ingredient. Check that you're still logged in."
 msgstr ""
@@ -2287,9 +2323,45 @@ msgstr ""
 msgid "Add ingredient"
 msgstr "Ingrediënt toevoegen"
 
+#: templates/recipes/_recipe_ingredients.html
+#, python-format
+msgid "%(portions)s portions · × %(scale)s"
+msgstr "%(portions)s porties · × %(scale)s"
+
+#: templates/recipes/_recipe_ingredients.html
+msgid "Reset"
+msgstr "Terugzetten"
+
+#: templates/recipes/_recipe_ingredients.html
+#: templates/recipes/recipe_print.html
+msgid "No ingredients entered yet."
+msgstr "Nog geen ingrediënten ingevuld."
+
+#: templates/recipes/_recipe_results.html
+msgid "Time"
+msgstr "Tijd"
+
+#: templates/recipes/_recipe_results.html templates/recipes/recipe_detail.html
+#, python-format
+msgid "%(minutes)s min"
+msgstr "%(minutes)s min"
+
+#: templates/recipes/_recipe_results.html
+#, python-format
+msgid "No recipes match \"%(query)s\"."
+msgstr "Geen recepten gevonden voor “%(query)s”."
+
+#: templates/recipes/_recipe_results.html
+msgid "Show all recipes"
+msgstr "Toon alle recepten"
+
+#: templates/recipes/_recipe_results.html
+msgid "No recipes yet."
+msgstr "Nog geen recepten."
+
 #: templates/recipes/ingredient_form.html
-msgid "all ingredients"
-msgstr "alle ingrediënten"
+msgid "All ingredients"
+msgstr "Alle ingrediënten"
 
 #: templates/recipes/ingredient_form.html
 msgid ""
@@ -2308,12 +2380,12 @@ msgstr ""
 "kunnen achteraf niet veranderen."
 
 #: templates/recipes/ingredient_form.html
-msgid "Save ingredient"
-msgstr "Ingrediënt bewaren"
-
-#: templates/recipes/ingredient_form.html
 msgid "Delete ingredient"
 msgstr "Ingrediënt verwijderen"
+
+#: templates/recipes/ingredient_form.html
+msgid "Save ingredient"
+msgstr "Ingrediënt bewaren"
 
 #: templates/recipes/ingredient_form.html
 msgid "Price history"
@@ -2322,6 +2394,10 @@ msgstr "Prijsgeschiedenis"
 #: templates/recipes/ingredient_form.html
 msgid "Source"
 msgstr "Bron"
+
+#: templates/recipes/ingredient_form.html
+msgid "No prices yet."
+msgstr "Nog geen prijzen."
 
 #: templates/recipes/ingredient_list.html
 msgid ""
@@ -2332,12 +2408,12 @@ msgstr ""
 "gebruikt voor schattingen in elk kamp zonder eigen prijs voor dat ingrediënt."
 
 #: templates/recipes/ingredient_list.html
-msgid "Search ingredients…"
-msgstr "Zoek ingrediënten…"
-
-#: templates/recipes/ingredient_list.html
 msgid "Search ingredients"
 msgstr "Zoek ingrediënten"
+
+#: templates/recipes/ingredient_list.html
+msgid "Search ingredients…"
+msgstr "Zoek ingrediënten…"
 
 #: templates/recipes/ingredient_list.html templates/recipes/recipe_list.html
 msgid "Search"
@@ -2347,45 +2423,14 @@ msgstr "Zoeken"
 msgid "Clear"
 msgstr "Wissen"
 
-#: templates/recipes/ingredient_list.html
-msgid "Unit"
-msgstr "Eenheid"
-
-#: templates/recipes/ingredient_list.html
-msgid "Category"
-msgstr "Categorie"
-
-#: templates/recipes/ingredient_list.html
-msgid "Product"
-msgstr "Product"
-
-#: templates/recipes/ingredient_list.html templates/shopping/budget.html
-msgid "no price"
-msgstr "geen prijs"
-
-#: templates/recipes/ingredient_list.html
-#, python-format
-msgid "No ingredients match \"%(query)s\"."
-msgstr "Geen ingrediënten gevonden voor “%(query)s”."
-
-#: templates/recipes/ingredient_list.html
-#, python-format
-msgid "No ingredients yet. <a href=\"%(create_url)s\">Add the first one</a>."
-msgstr ""
-"Nog geen ingrediënten. <a href=\"%(create_url)s\">Voeg het eerste toe</a>."
+#: templates/recipes/ingredient_list.html templates/recipes/recipe_detail.html
+#: templates/recipes/recipe_list.html
+msgid "Loading…"
+msgstr "Laden…"
 
 #: templates/recipes/recipe_detail.html templates/recipes/recipe_form.html
-msgid "all recipes"
-msgstr "alle recepten"
-
-#: templates/recipes/recipe_detail.html templates/recipes/recipe_print.html
-#, python-format
-msgid ""
-"base: %(children)s children + %(teens)s teens = <strong>%(portions)s "
-"portions</strong>"
-msgstr ""
-"basis: %(children)s kinderen + %(teens)s jongeren = <strong>%(portions)s "
-"porties</strong>"
+msgid "All recipes"
+msgstr "Alle recepten"
 
 #: templates/recipes/recipe_detail.html
 #, python-format
@@ -2400,9 +2445,13 @@ msgstr "alleen lezen"
 msgid "Scale to"
 msgstr "Omrekenen naar"
 
+#: templates/recipes/_recipe_pdf_link.html
+msgid "PDF"
+msgstr "Pdf"
+
 #: templates/recipes/recipe_detail.html
-msgid "Reset"
-msgstr "Terugzetten"
+msgid "Scale"
+msgstr "Omrekenen"
 
 #: templates/recipes/recipe_detail.html
 msgid "Print"
@@ -2416,23 +2465,6 @@ msgstr ""
 "Een andere Chiro heeft dit recept ingepland, dus het kan niet meer "
 "veranderen. Bewaar een kopie om je eigen versie te maken."
 
-#: templates/recipes/recipe_detail.html
-msgid "Save a copy as"
-msgstr "Bewaar een kopie als"
-
-#: templates/recipes/recipe_detail.html
-msgid "Save copy"
-msgstr "Kopie bewaren"
-
-#: templates/recipes/recipe_detail.html
-#, python-format
-msgid "%(portions)s portions · × %(scale)s"
-msgstr "%(portions)s porties · × %(scale)s"
-
-#: templates/recipes/recipe_detail.html templates/recipes/recipe_print.html
-msgid "No ingredients entered yet."
-msgstr "Nog geen ingrediënten ingevuld."
-
 #: templates/recipes/recipe_detail.html templates/recipes/recipe_print.html
 msgid "No steps entered yet."
 msgstr "Nog geen stappen ingevuld."
@@ -2441,13 +2473,21 @@ msgstr "Nog geen stappen ingevuld."
 msgid "Notes"
 msgstr "Notities"
 
-#: templates/recipes/recipe_form.html
+#: templates/recipes/recipe_detail.html
+msgid "Save a copy"
+msgstr "Een kopie maken"
+
+#: templates/recipes/recipe_detail.html
+msgid "Save copy"
+msgstr "Kopie bewaren"
+
+#: templates/recipes/recipe_form.html templates/recipes/recipe_list.html
 msgid "New recipe"
 msgstr "Nieuw recept"
 
 #: templates/recipes/recipe_form.html
-msgid "back to recipe"
-msgstr "terug naar het recept"
+msgid "Back to the recipe"
+msgstr "Terug naar het recept"
 
 #: templates/recipes/recipe_form.html
 #, python-format
@@ -2475,44 +2515,20 @@ msgid "Save recipe"
 msgstr "Recept bewaren"
 
 #: templates/recipes/recipe_form.html
-msgid "Missing one?"
-msgstr "Ontbreekt er een?"
-
-#: templates/recipes/recipe_form.html
 msgid "Add step"
 msgstr "Stap toevoegen"
 
 #: templates/recipes/recipe_list.html
-#, python-format
-msgid ""
-"The recipe library is shared between all Chiros. <a "
-"href=\"%(create_url)s\">Add a recipe</a>."
-msgstr ""
-"De receptenbib wordt gedeeld door alle Chiro's. <a "
-"href=\"%(create_url)s\">Voeg een recept toe</a>."
-
-#: templates/recipes/recipe_list.html
-msgid "Search recipes or ingredients…"
-msgstr "Zoek recepten of ingrediënten…"
+msgid "The recipe library is shared between all Chiros."
+msgstr "De receptenbibliotheek is gedeeld door alle Chiro's."
 
 #: templates/recipes/recipe_list.html
 msgid "Search recipes"
 msgstr "Zoek recepten"
 
 #: templates/recipes/recipe_list.html
-#, python-format
-msgid "No recipes match \"%(query)s\"."
-msgstr "Geen recepten gevonden voor “%(query)s”."
-
-#: templates/recipes/recipe_list.html templates/shopping/shopping_print.html
-#, python-format
-msgid "%(portions)s portions"
-msgstr "%(portions)s porties"
-
-#: templates/recipes/recipe_list.html
-#, python-format
-msgid "No recipes yet. <a href=\"%(create_url)s\">Add the first one</a>."
-msgstr "Nog geen recepten. <a href=\"%(create_url)s\">Voeg het eerste toe</a>."
+msgid "Search recipes or ingredients…"
+msgstr "Zoek recepten of ingrediënten…"
 
 #: templates/recipes/recipe_print.html
 #, python-format
@@ -2521,6 +2537,15 @@ msgid ""
 msgstr ""
 "omgerekend naar <strong>%(portions)s porties</strong> (× %(scale)s; basis "
 "%(base)s)"
+
+#: templates/recipes/recipe_print.html
+#, python-format
+msgid ""
+"base: %(children)s children + %(teens)s teens = <strong>%(portions)s "
+"portions</strong>"
+msgstr ""
+"basis: %(children)s kinderen + %(teens)s jongeren = <strong>%(portions)s "
+"porties</strong>"
 
 #: templates/registration/login.html
 #, python-format
@@ -2821,12 +2846,40 @@ msgstr ""
 "href=\"%(utensils_url)s\">pagina keukengerei</a>."
 
 #: templates/shopping/shopping_print.html
+#, python-format
+msgid "%(portions)s portions"
+msgstr "%(portions)s porties"
+
+#: templates/shopping/shopping_print.html
 msgid "Uncovered days (no trip buys for them):"
 msgstr "Niet gedekte dagen (geen ronde koopt ervoor):"
 
 #: templates/shopping/shopping_print.html
 msgid "Nothing to buy for this trip."
 msgstr "Niets te kopen voor deze ronde."
+
+#, python-format
+#~ msgid ""
+#~ "No ingredients yet. <a href=\"%(create_url)s\">Add the first one</a>."
+#~ msgstr ""
+#~ "Nog geen ingrediënten. <a href=\"%(create_url)s\">Voeg het eerste toe</a>."
+
+#~ msgid "all recipes"
+#~ msgstr "alle recepten"
+
+#~ msgid "Save a copy as"
+#~ msgstr "Bewaar een kopie als"
+
+#~ msgid "back to recipe"
+#~ msgstr "terug naar het recept"
+
+#~ msgid "Missing one?"
+#~ msgstr "Ontbreekt er een?"
+
+#, python-format
+#~ msgid "No recipes yet. <a href=\"%(create_url)s\">Add the first one</a>."
+#~ msgstr ""
+#~ "Nog geen recepten. <a href=\"%(create_url)s\">Voeg het eerste toe</a>."
 
 #, python-format
 #~ msgid ""

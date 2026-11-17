@@ -1,41 +1,68 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n crispy_forms_tags ui %}
 {% block title %}{% if ingredient %}{{ ingredient.name }}{% else %}{% translate "New ingredient" %}{% endif %} — {% translate "Ingredients" %}{% endblock %}
 {% block content %}
-<p><a class="back-link" href="{% url 'ingredient_list' %}">← {% translate "all ingredients" %}</a></p>
+{% url 'ingredient_list' as back_url %}{% translate "All ingredients" as back_label %}
+{% include "components/back_link.html" with url=back_url label=back_label %}
 {% if ingredient %}
-<h1>{% blocktranslate with name=ingredient.name %}Edit {{ name }}{% endblocktranslate %}</h1>
-<p class="page-meta">{% translate "The name and unit are fixed because recipes rely on them. Ask an administrator if one is wrong." %}</p>
+{% blocktranslate with name=ingredient.name asvar page_title %}Edit {{ name }}{% endblocktranslate %}
+{% translate "The name and unit are fixed because recipes rely on them. Ask an administrator if one is wrong." as page_meta %}
 {% else %}
-<h1>{% translate "New ingredient" %}</h1>
-<p class="page-meta">{% translate "Check the list first: everyone shares these ingredients. The name and unit can't be changed afterwards." %}</p>
+{% translate "New ingredient" as page_title %}
+{% translate "Check the list first: everyone shares these ingredients. The name and unit can't be changed afterwards." as page_meta %}
 {% endif %}
+{% include "components/page_header.html" with title=page_title meta=page_meta %}
+{% include "components/form_errors.html" with form=form %}
 
-<form method="post" class="stacked-form">
-  {% csrf_token %}
-  {{ form.non_field_errors }}
-  <div class="card">
-    {% for field in form %}<div class="form-row">{{ field.as_field_group }}</div>{% endfor %}
+<div class="row g-4">
+  <div class="{% if ingredient %}col-lg-7{% else %}col-12{% endif %}">
+    <form method="post">
+      {% csrf_token %}
+      <div class="card shadow-sm">
+        <div class="card-header"><h2 class="h5 mb-0">{% translate "Ingredient" %}</h2></div>
+        <div class="card-body">
+          <div class="row g-3">
+            {% for field in form %}
+              {% if field.is_hidden %}{{ field }}
+              {% elif field.name == "tags" %}<div class="col-12">{% include "components/checkbox_chips.html" with field=field %}</div>
+              {% elif field.name == "tags_checked" %}<div class="col-12">{{ field|as_crispy_field }}</div>
+              {% else %}<div class="col-lg-6">{{ field|as_crispy_field }}</div>{% endif %}
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        {% if ingredient %}<a class="btn btn-outline-danger" href="{% url 'ingredient_delete' ingredient.pk %}"><i class="bi bi-trash" aria-hidden="true"></i> {% translate "Delete ingredient" %}</a>{% endif %}
+        <button class="btn btn-primary ms-auto" type="submit"><i class="bi bi-check-lg" aria-hidden="true"></i> {% translate "Save ingredient" %}</button>
+      </div>
+    </form>
   </div>
-  <div class="actions">
-    <button class="btn" type="submit">{% translate "Save ingredient" %}</button>
-    {% if ingredient %}<a class="btn btn-danger-outline" href="{% url 'ingredient_delete' ingredient.pk %}">{% translate "Delete ingredient" %}</a>{% endif %}
+  {% if ingredient %}
+  <div class="col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-header"><h2 class="h5 mb-0">{% translate "Price history" %}</h2></div>
+      {% if prices %}
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead>
+            <tr><th scope="col">{% translate "Date" %}</th><th scope="col" class="text-end">{% translate "Price" %}</th><th scope="col">{% translate "Source" %}</th></tr>
+          </thead>
+          <tbody>
+            {% for price in prices %}
+            <tr>
+              <td class="text-nowrap">{{ price.date|short_date:"year" }}</td>
+              <td class="text-end text-nowrap">€ {{ price.price|floatformat:2 }}/{{ price.get_unit_display }}</td>
+              <td>{{ price.get_source_display }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="card-body"><p class="text-body-secondary fst-italic mb-0">{% translate "No prices yet." %}</p></div>
+      {% endif %}
+    </div>
   </div>
-</form>
-
-{% if prices %}
-<h2>{% translate "Price history" %}</h2>
-<table class="compact">
-  <thead><tr><th>{% translate "Date" %}</th><th>{% translate "Price" %}</th><th>{% translate "Source" %}</th></tr></thead>
-  <tbody>
-    {% for price in prices %}
-    <tr>
-      <td>{{ price.date|date:"d M Y" }}</td>
-      <td>€ {{ price.price|floatformat:2 }}/{{ price.get_unit_display }}</td>
-      <td>{{ price.get_source_display }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-{% endif %}
+  {% endif %}
+</div>
 {% endblock %}

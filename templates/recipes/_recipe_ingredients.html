@@ -1,0 +1,27 @@
+{% load i18n %}
+<div id="recipe-ingredients" class="card shadow-sm">
+  <div class="card-header d-flex flex-wrap align-items-baseline gap-2">
+    <h2 class="h5 mb-0">{% translate "Ingredients" %}</h2>
+    {% if scale %}
+    <span class="text-body-secondary">{% blocktranslate with scale=scale|floatformat:2 %}{{ portions }} portions · × {{ scale }}{% endblocktranslate %}</span>
+    <a class="ms-auto d-print-none" href="{% url 'recipe_detail' recipe.pk %}">{% translate "Reset" %}</a>
+    {% endif %}
+  </div>
+  <div class="card-body">
+    {% if rows %}
+    <table class="table table-sm mb-0">
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td>{{ row.name }}</td>
+          <td class="text-end text-nowrap">{{ row.quantity }} {% translate row.unit %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="text-body-secondary fst-italic mb-0">{% translate "No ingredients entered yet." %}</p>
+    {% endif %}
+  </div>
+</div>
+{% if is_fragment %}{% include "recipes/_recipe_pdf_link.html" with oob=True %}{% endif %}
