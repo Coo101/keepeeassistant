@@ -116,6 +116,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     environment: hetzner-prod
+    permissions:
+      contents: read
+      packages: read
     concurrency:
       group: deploy-hetzner-prod
       cancel-in-progress: false
@@ -145,10 +148,11 @@ jobs:
       - name: Deploy (compose pull + up on the server)
         env:
           HOST: ${{ secrets.DEPLOY_HOST }}
-        # The forced command ignores everything but the tag: it pulls and starts that image.
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Tag and actor go as the command; the short-lived token goes on stdin.
         run: |
-          ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=yes -o BatchMode=yes \
-            "deploy@$HOST" "$GITHUB_SHA" "${{ secrets.GITHUB_TOKEN }}" "${{ github.actor }}"
+          printf '%s\n' "$TOKEN" | ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=yes -o BatchMode=yes \
+            "deploy@$HOST" "$GITHUB_SHA $GITHUB_ACTOR"
 
       - name: Clean up key
         if: always()
