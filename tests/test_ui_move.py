@@ -455,3 +455,102 @@ def test_confirm_delete_blocked() -> None:
     html = account_client().get(url).content.decode()
     assert "alert-warning" in html
     assert "\u26a0" not in html
+
+
+ROOT = Path(__file__).resolve().parent.parent
+
+# Classes that JavaScript adds at run time, so no template or Python file names them.
+RUNTIME_CLASSES: dict[str, str] = {
+    "show": "Bootstrap's collapse and dropdowns add it when open",
+    "collapsing": "Bootstrap's collapse adds it while animating",
+    "htmx-request": "HTMX adds it while a request runs",
+    "htmx-swapping": "HTMX adds it while swapping content",
+    "htmx-settling": "HTMX adds it while settling content",
+    "htmx-added": "HTMX adds it to new content",
+    "htmx-indicator": "HTMX's indicator class, set on elements by hx-indicator",
+}
+
+
+def css_classes(css: str) -> set[str]:
+    """Every `.name` in a selector; comments, url(...) and declarations left out."""
+    css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    css = re.sub(r"url\([^)]*\)", "", css)
+    selectors = re.findall(r"([^{}]+)\{", css)
+    found: set[str] = set()
+    for selector in selectors:
+        if selector.strip().startswith("@"):
+            continue
+        found |= set(re.findall(r"\.(-?[_a-zA-Z][\w-]*)", selector))
+    return found
+
+
+def used_classes() -> str:
+    """The text of every template, the app's JavaScript and the project's own Python."""
+    paths = [
+        *(ROOT / "templates").rglob("*.html"),
+        *(ROOT / "static" / "js").rglob("*.js"),
+    ]
+    paths += [
+        path
+        for path in ROOT.rglob("*.py")
+        if not {"tests", "node_modules", "staticfiles"} & set(path.parts)
+        and not any(part.startswith(".") for part in path.relative_to(ROOT).parts)
+    ]
+    return "\n".join(path.read_text(encoding="utf-8") for path in paths)
+
+
+def test_css_classes() -> None:
+    assert css_classes(".a, .b:hover > .c {}\n/* .d */") == {"a", "b", "c"}
+    assert css_classes("x { background: url(a.png); }\n.e { margin: 0.5rem; }") == {"e"}
+    assert css_classes("@media (min-width: 992px) { .f { color: red; } }") == {"f"}
+
+
+def test_every_app_css_class_is_used() -> None:
+    app_css = (ROOT / "static" / "css" / "app.css").read_text(encoding="utf-8")
+    bootstrap = (
+        ROOT / "static" / "vendor" / "bootstrap" / "css" / "bootstrap.min.css"
+    ).read_text(encoding="utf-8")
+    bootstrap_classes = css_classes(bootstrap)
+    text = used_classes()
+    unused = sorted(
+        name
+        for name in css_classes(app_css) - RUNTIME_CLASSES.keys() - bootstrap_classes
+        if not re.search(rf"(?<![\w-]){re.escape(name)}(?![\w-])", text)
+    )
+    assert unused == []
+
+
+def test_danger_red_is_dark_enough() -> None:
+    app_css = (ROOT / "static" / "css" / "app.css").read_text(encoding="utf-8")
+    assert "--bs-danger: #B02A37" in app_css
+    assert "--bs-danger-rgb: 176, 42, 55" in app_css
+    assert "--bs-form-invalid-color: #B02A37" in app_css
+    assert "--bs-form-invalid-border-color: #B02A37" in app_css
+
+
+@pytest.mark.django_db
+def test_markdown_tables_and_headings_are_styled() -> None:
+    """The Markdown renderer's plain <table> and <h2> sit inside .prose, which
+    app.css styles; the unused-class test can't see generated HTML."""
+    html = Client().get(reverse("doc", args=["planning"])).content.decode()
+    prose = html.index('prose">')
+    assert "<table>" in html[prose:]
+    app_css = (ROOT / "static" / "css" / "app.css").read_text(encoding="utf-8")
+    for selector in (".prose h2", ".prose table", ".prose td", ".prose thead th"):
+        assert selector in app_css
+
+
+def test_outside_entries_links_use_alert_link() -> None:
+    text = (TEMPLATES / "planning" / "_outside_entries.html").read_text(
+        encoding="utf-8"
+    )
+    links = re.findall(r"<a [^>]*>", text)
+    assert links
+    for link in links:
+        assert "alert-link" in link, link
+
+
+def test_camp_form_scripts_are_versioned() -> None:
+    text = (TEMPLATES / "camps" / "camp_form.html").read_text(encoding="utf-8")
+    assert "{% static 'js/" not in text
+    assert re.search(r"\{% asset 'js/headcount\.js' %\}", text)
