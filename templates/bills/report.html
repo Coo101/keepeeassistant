@@ -1,13 +1,16 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n ui %}
 {% block title %}{{ camp.name }} — {% translate "Financial report" %}{% endblock %}
 {% block content %}
-<p><a class="back-link" href="{% url 'bill_list' camp.pk %}">← {% translate "all bills" %}</a></p>
-<h1>{{ camp.name }} — {% translate "financial report" %}</h1>
+{% url 'bill_list' camp.pk as bills_url %}{% translate "All bills" as back_label %}
+{% include "components/back_link.html" with url=bills_url label=back_label %}
+{% url 'report_pdf' camp.pk as pdf_url %}{% translate "Report PDF" as pdf_label %}{% translate "Financial report" as title %}
+{% blocktranslate trimmed asvar headcount with children=camp.num_children teens=camp.num_teens staff=camp.num_staff portions=camp.demand_portions %}
+{{ children }} children + {{ teens }} teens + {{ staff }} staff = <strong>{{ portions }} portions</strong>
+{% endblocktranslate %}
+{% blocktranslate trimmed asvar meta_line with start=camp.start_date|short_date end=camp.end_date|short_date:"year" %}{{ start }} – {{ end }} · {{ headcount }}{% endblocktranslate %}
+{% include "components/page_header.html" with title=title meta=meta_line action_url=pdf_url action_label=pdf_label action_icon="file-earmark-pdf" action_style="outline" %}
+{% include "components/camp_nav.html" with camp=camp active="report" %}
 {% include "camps/_example_note.html" %}
-<p class="page-meta">{{ camp.start_date }} – {{ camp.end_date }} · {% include "planning/_headcount.html" %}</p>
-<div class="actions"><a class="btn" href="{% url 'report_pdf' camp.pk %}">{% translate "Report PDF" %}</a></div>
-<div class="report">
 {% include "bills/_report_body.html" %}
-</div>
 {% endblock %}

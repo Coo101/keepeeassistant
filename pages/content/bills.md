@@ -19,6 +19,8 @@ Nothing changes until you've checked the lines and saved:
 - **Category**: camp food, kitchen utilities, activity, personal or other. Kitchen utilities can go into your Chiro's stock.
 - **Skipped**: text that isn't a purchase at all.
 
+Missing a line, or typing a bill in from scratch? *Add a line* adds an empty one under the table.
+
 A camp-food line with an ingredient sets your camp's price. Your choices are remembered for the next bill from that shop.
 
 ## The financial report

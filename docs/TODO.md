@@ -66,7 +66,9 @@ from testing go on GitHub.
   `docs/superpowers/plans/2026-11-17-ui-area-2-recipes.md`
 - [x] 3. Shopping, budget and stock (also: D20, trip lists readable on a phone at the
   pickup). Plan: `docs/superpowers/plans/2026-11-17-ui-area-3-shopping.md`
-- [ ] 4. Bills and the financial report
+- [x] 4. Bills and the financial report (also: bills as PDFs with text only, D21,
+  `docs/superpowers/plans/2026-11-18-bills-pdf-only.md`). Plan:
+  `docs/superpowers/plans/2026-11-18-ui-area-4-bills.md`
 - [ ] 5. Accounts and public pages (also: the home page skips from `h1` to `h3`)
 - [ ] 6. Print check and `app.css` clean-up (also: `docs/DESIGN.md` §8 clean-up)
 
@@ -87,6 +89,9 @@ Saving shopping days, the stock or a camp's utilities gives no confirmation mess
 Pressing Enter in a table with "Add a row" (camp groups, pantry, utilities) adds a row
 instead of saving, because that button comes first in the form. Links inside the
 outside-dates alert of `planning/_outside_entries.html` lack `alert-link`.
+
+Found in area 4's review: `camps/camp_form.html` still loads `headcount.js` with
+`{% static %}` instead of `{% asset %}`, so the dev server can serve an old copy.
 
 ### 4. Going public: to brainstorm
 

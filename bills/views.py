@@ -19,6 +19,7 @@ from camps.access import get_camp
 from camps.models import Camp
 from core.delete import confirm_delete
 from core.pdf import render_pdf
+from core.rows import row_index
 from kitchen.services import NEW_ITEM, add_to_stock
 from recipes.forms import IngredientForm
 from recipes.models import Ingredient
@@ -63,26 +64,41 @@ def bill_list(request: HttpRequest, camp_id: int) -> HttpResponse:
     )
 
 
-def bill_detail(request: HttpRequest, camp_id: int, bill_id: int) -> HttpResponse:
-    """The review: nothing changes a price before someone saves this page."""
-    bill = _bill(request, camp_id, bill_id)
-    data = request.POST if request.method == "POST" else None
-    formset = BillLineFormSet(
-        data, queryset=bill.lines.select_related("ingredient", "utensil")
-    )
-    chiro = bill.camp.chiro
-    # One query per dropdown, instead of one per line.
+def _line_choices(chiro: Chiro) -> tuple[list, list]:
+    """The ingredient and stock dropdowns: one query each, instead of one per line."""
     choices = [("", "---------")] + [
         (ingredient.pk, str(ingredient)) for ingredient in Ingredient.objects.all()
     ]
     stock_choices = [("", "—"), (NEW_ITEM, _("New item"))] + [
         (str(utensil.pk), utensil.name) for utensil in chiro.utensils.all()
     ]
-    for form in [*formset.forms, formset.empty_form]:
+    return choices, stock_choices
+
+
+def _set_line_choices(forms, chiro: Chiro) -> None:
+    choices, stock_choices = _line_choices(chiro)
+    for form in forms:
         form.fields["ingredient"].choices = choices
         form.fields["stock"].choices = stock_choices
 
-    if data is not None and formset.is_valid():
+
+def bill_detail(request: HttpRequest, camp_id: int, bill_id: int) -> HttpResponse:
+    """The review: nothing changes a price before someone saves this page."""
+    bill = _bill(request, camp_id, bill_id)
+    data = request.POST if request.method == "POST" else None
+    # Without JavaScript, "Add a line" posts the form: show it again with one more
+    # empty line, keeping what was typed, and save nothing.
+    adding_row = data is not None and data.get("add_row") == "form"
+    if adding_row:
+        data = data.copy()
+        data["form-TOTAL_FORMS"] = str(row_index(data.get("form-TOTAL_FORMS")) + 1)
+    formset = BillLineFormSet(
+        data, queryset=bill.lines.select_related("ingredient", "utensil")
+    )
+    chiro = bill.camp.chiro
+    _set_line_choices([*formset.forms, formset.empty_form], chiro)
+
+    if data is not None and not adding_row and formset.is_valid():
         with transaction.atomic():
             lines = formset.save(commit=False)
             for line in lines:
@@ -111,6 +127,22 @@ def bill_detail(request: HttpRequest, camp_id: int, bill_id: int) -> HttpRespons
                 prefix=NEW_INGREDIENT_PREFIX, user=request.user
             ),
         },
+    )
+
+
+def bill_line_row(request: HttpRequest, camp_id: int, bill_id: int) -> HttpResponse:
+    """One empty line for the review (HTMX), numbered by the page's TOTAL_FORMS,
+    which the response bumps out of band."""
+    bill = _bill(request, camp_id, bill_id)
+    index = row_index(request.GET.get("form-TOTAL_FORMS"))
+    formset = BillLineFormSet(queryset=bill.lines.none())
+    form = formset.empty_form
+    form.prefix = formset.add_prefix(index)
+    _set_line_choices([form], bill.camp.chiro)
+    return render(
+        request,
+        "bills/_bill_line_row.html",
+        {"form": form, "total_forms": index + 1},
     )
 
 

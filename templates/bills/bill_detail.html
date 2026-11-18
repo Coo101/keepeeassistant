@@ -1,25 +1,23 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n ui %}
 {% block title %}{{ bill }} — {{ camp.name }}{% endblock %}
 {% block content %}
-<p><a class="back-link" href="{% url 'bill_list' camp.pk %}">← {% translate "all bills" %}</a></p>
-<h1>{{ bill }}</h1>
+{% url 'bill_list' camp.pk as list_url %}{% translate "All bills" as list_label %}
+{% include "components/back_link.html" with url=list_url label=list_label %}
+{% if bill.printed_total is not None %}{% blocktranslate asvar meta_line with total=total|floatformat:2 printed=bill.printed_total|floatformat:2 %}Lines total <strong>€ {{ total }}</strong> · printed total € {{ printed }}{% endblocktranslate %}{% else %}{% blocktranslate asvar meta_line with total=total|floatformat:2 %}Lines total <strong>€ {{ total }}</strong>{% endblocktranslate %}{% endif %}
+{% include "components/page_header.html" with title=bill badge=bill.get_status_display badge_class=bill.status|status_badge meta=meta_line %}
 {% include "camps/_example_note.html" %}
-<p class="page-meta">
-  {{ bill.get_status_display }} · {% translate "lines total" %} <strong>€ {{ total|floatformat:2 }}</strong>
-  {% if bill.printed_total is not None %}· {% translate "printed total" %} € {{ bill.printed_total|floatformat:2 }}{% endif %}
-</p>
 
 {% if bill.status == "failed" %}
-<div class="warning">
-  ⚠️ <strong>{% translate "This bill couldn't be read." %}</strong> {{ bill.error }}
+<div class="alert alert-danger" role="alert">
+  <i class="bi bi-exclamation-octagon" aria-hidden="true"></i> <strong>{% translate "This bill couldn't be read." %}</strong> {{ bill.error }}
 </div>
 {% endif %}
 {% if total_differs %}
-<div class="warning">⚠️ {% translate "The lines don't add up to the printed total: check for missing or misread lines." %}</div>
+<div class="alert alert-warning" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> {% translate "The lines don't add up to the printed total: check for missing or misread lines." %}</div>
 {% endif %}
 
-<p class="muted">
+<p class="form-text mt-0">
   {% blocktranslate trimmed %}
   Check every line. <strong>Amount per item</strong> is in the ingredient's unit: a bottle of 1.5 L is 1.5, a bag of 500 g priced per kg is 0.5.
   A camp-food line with an ingredient sets this camp's price for it when you save. Use the category for anything else, and "skipped" for text that isn't a purchase. Kitchen utilities can go into your Chiro's stock.
@@ -28,61 +26,50 @@
 <form method="post" class="bill-review">
   {% csrf_token %}
   {{ formset.management_form }}
-  {{ formset.non_form_errors }}
+  {% if formset.non_form_errors %}<div class="alert alert-danger" role="alert">{{ formset.non_form_errors|join:" " }}</div>{% endif %}
   <div class="bill-lines-box">
-  <table class="bill-lines">
-    <thead>
-      {% with f=formset.empty_form %}
-      <tr>
-        <th class="col-description">{{ f.description.label }}</th>
-        <th class="col-ingredient">{{ f.ingredient.label }}</th>
-        <th class="col-category">{{ f.category.label }}</th>
-        <th class="col-number">{{ f.quantity.label }}</th>
-        <th class="col-number">{{ f.pack_amount.label }}</th>
-        <th class="col-number">{{ f.line_total.label }}</th>
-        <th class="col-check">{{ f.skipped.label }}</th>
-        <th class="col-stock">{{ f.stock.label }}</th>
-        <th class="col-check">{{ f.DELETE.label }}</th>
-      </tr>
-      {% endwith %}
-    </thead>
-    <tbody>
-      {% for form in formset %}
-      <tr>
-        <td>{% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}{{ form.non_field_errors }}{{ form.description }}{{ form.description.errors }}</td>
-        <td>
-          <div class="with-button">
-            {{ form.ingredient }}
-            <button class="btn btn-outline btn-small" type="button" data-new-ingredient data-select="{{ form.ingredient.html_name }}" data-name-from="{{ form.description.html_name }}" title="{% translate 'New ingredient' %}" aria-label="{% translate 'New ingredient' %}">+</button>
-          </div>
-          {{ form.ingredient.errors }}
-        </td>
-        <td>{{ form.category }}{{ form.category.errors }}</td>
-        <td>{{ form.quantity }}{{ form.quantity.errors }}</td>
-        <td>{{ form.pack_amount }}{{ form.pack_amount.errors }}</td>
-        <td>{{ form.line_total }}{{ form.line_total.errors }}</td>
-        <td class="col-check">{{ form.skipped }}</td>
-        <td>{% if form.instance.utensil %}<span class="muted">{% blocktranslate with name=form.instance.utensil.name %}In stock as {{ name }}{% endblocktranslate %}</span>{% else %}{{ form.stock }}{{ form.stock.errors }}{% endif %}</td>
-        <td class="col-check">{% if form.instance.pk %}{{ form.DELETE }}{% endif %}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+    <table class="table table-sm align-middle mb-0 bill-lines">
+      <thead>
+        {% with f=formset.empty_form %}
+        <tr>
+          <th scope="col" class="col-description">{{ f.description.label }}</th>
+          <th scope="col" class="col-ingredient">{{ f.ingredient.label }}</th>
+          <th scope="col" class="col-category">{{ f.category.label }}</th>
+          <th scope="col" class="col-number">{{ f.quantity.label }}</th>
+          <th scope="col" class="col-number">{{ f.pack_amount.label }}</th>
+          <th scope="col" class="col-number">{{ f.line_total.label }}</th>
+          <th scope="col" class="col-check">{{ f.skipped.label }}</th>
+          <th scope="col" class="col-stock">{{ f.stock.label }}</th>
+          <th scope="col" class="col-check">{{ f.DELETE.label }}</th>
+        </tr>
+        {% endwith %}
+      </thead>
+      <tbody id="bill-lines-rows">
+        {% for form in formset %}{% include "bills/_bill_line_row.html" %}{% endfor %}
+      </tbody>
+    </table>
   </div>
-  <div class="actions"><button class="btn" type="submit">{% translate "Save review" %}</button></div>
+  <div class="d-flex flex-wrap justify-content-between gap-2 mt-3">
+    <button class="btn btn-outline-primary btn-sm" type="submit" name="add_row" value="form" formnovalidate
+            hx-get="{% url 'bill_line_row' camp.pk bill.pk %}" hx-include="#id_form-TOTAL_FORMS" hx-target="#bill-lines-rows" hx-swap="beforeend">
+      <i class="bi bi-plus-lg" aria-hidden="true"></i> {% translate "Add a line" %}
+    </button>
+    <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg" aria-hidden="true"></i> {% translate "Save review" %}</button>
+  </div>
 </form>
 {% include "recipes/_new_ingredient_dialog.html" with selects="select[name^=form-][name$=-ingredient]" %}
 
-<div class="actions">
+<hr>
+<div class="d-flex flex-wrap align-items-center gap-2">
   {% if bill.file %}
-  <a class="btn btn-outline" href="{% url 'bill_file' camp.pk bill.pk %}">{% translate "Download file" %}</a>
+  <a class="btn btn-outline-secondary" href="{% url 'bill_file' camp.pk bill.pk %}"><i class="bi bi-download" aria-hidden="true"></i> {% translate "Download file" %}</a>
   <form method="post" action="{% url 'bill_remove_file' camp.pk bill.pk %}">
     {% csrf_token %}
-    <button class="btn btn-outline" type="submit">{% translate "Remove file, keep amounts" %}</button>
+    <button class="btn btn-outline-secondary" type="submit">{% translate "Remove file, keep amounts" %}</button>
   </form>
   {% else %}
-  <span class="muted">{% translate "The file was removed." %}</span>
+  <span class="text-body-secondary">{% translate "The file was removed." %}</span>
   {% endif %}
-  <a class="btn btn-danger-outline" href="{% url 'bill_delete' camp.pk bill.pk %}">{% translate "Delete bill" %}</a>
+  <a class="btn btn-outline-danger ms-auto" href="{% url 'bill_delete' camp.pk bill.pk %}"><i class="bi bi-trash" aria-hidden="true"></i> {% translate "Delete bill" %}</a>
 </div>
 {% endblock %}

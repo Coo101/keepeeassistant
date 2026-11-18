@@ -1,0 +1,19 @@
+{% load i18n ui %}{# One line of the bill review; also the row "Add a line" adds (HTMX). #}
+<tr>
+  <td>{% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}{% if form.non_field_errors %}<div class="text-danger small">{{ form.non_field_errors|join:" " }}</div>{% endif %}{{ form.description|table_input }}{% if form.description.errors %}<div class="invalid-feedback d-block">{{ form.description.errors|join:" " }}</div>{% endif %}</td>
+  <td>
+    <div class="input-group input-group-sm">
+      {{ form.ingredient|table_input }}
+      <button class="btn btn-outline-secondary" type="button" data-new-ingredient data-select="{{ form.ingredient.html_name }}" data-name-from="{{ form.description.html_name }}" title="{% translate 'New ingredient' %}" aria-label="{% translate 'New ingredient' %}"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
+    </div>
+    {% if form.ingredient.errors %}<div class="invalid-feedback d-block">{{ form.ingredient.errors|join:" " }}</div>{% endif %}
+  </td>
+  <td>{{ form.category|table_input }}{% if form.category.errors %}<div class="invalid-feedback d-block">{{ form.category.errors|join:" " }}</div>{% endif %}</td>
+  <td>{{ form.quantity|table_input }}{% if form.quantity.errors %}<div class="invalid-feedback d-block">{{ form.quantity.errors|join:" " }}</div>{% endif %}</td>
+  <td>{{ form.pack_amount|table_input }}{% if form.pack_amount.errors %}<div class="invalid-feedback d-block">{{ form.pack_amount.errors|join:" " }}</div>{% endif %}</td>
+  <td>{{ form.line_total|table_input }}{% if form.line_total.errors %}<div class="invalid-feedback d-block">{{ form.line_total.errors|join:" " }}</div>{% endif %}</td>
+  <td class="text-center">{{ form.skipped|table_input }}</td>
+  <td>{% if form.instance.utensil %}<span class="text-body-secondary small">{% blocktranslate with name=form.instance.utensil.name %}In stock as {{ name }}{% endblocktranslate %}</span>{% else %}{{ form.stock|table_input }}{% if form.stock.errors %}<div class="invalid-feedback d-block">{{ form.stock.errors|join:" " }}</div>{% endif %}{% endif %}</td>
+  <td class="text-center">{% if form.instance.pk %}{{ form.DELETE|table_input }}{% endif %}</td>
+</tr>
+{% if total_forms %}<input type="hidden" name="form-TOTAL_FORMS" value="{{ total_forms }}" id="id_form-TOTAL_FORMS" hx-swap-oob="true">{% endif %}

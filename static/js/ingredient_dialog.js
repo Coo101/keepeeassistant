@@ -31,18 +31,19 @@
     if (unit) unit.value = ingredient.unit;
   };
 
-  document.querySelectorAll("[data-new-ingredient]").forEach((opener) => {
-    opener.addEventListener("click", () => {
-      errors.hidden = true;
-      target = opener.dataset.select
-        ? document.querySelector(`select[name="${opener.dataset.select}"]`)
-        : null;
-      const source = opener.dataset.nameFrom
-        ? document.querySelector(`[name="${opener.dataset.nameFrom}"]`)
-        : null;
-      if (source && nameInput && !nameInput.value) nameInput.value = source.value;
-      dialog.showModal();
-    });
+  // One listener for the whole page, so openers in rows added later (HTMX) work too.
+  document.addEventListener("click", (event) => {
+    const opener = event.target.closest("[data-new-ingredient]");
+    if (!opener) return;
+    errors.hidden = true;
+    target = opener.dataset.select
+      ? document.querySelector(`select[name="${opener.dataset.select}"]`)
+      : null;
+    const source = opener.dataset.nameFrom
+      ? document.querySelector(`[name="${opener.dataset.nameFrom}"]`)
+      : null;
+    if (source && nameInput && !nameInput.value) nameInput.value = source.value;
+    dialog.showModal();
   });
   document
     .getElementById("new-ingredient-cancel")
