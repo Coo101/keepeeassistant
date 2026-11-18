@@ -148,7 +148,7 @@ jobs:
         # The forced command ignores everything but the tag: it pulls and starts that image.
         run: |
           ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=yes -o BatchMode=yes \
-            "deploy@$HOST" "$GITHUB_SHA"
+            "deploy@$HOST" "$GITHUB_SHA" "${{ secrets.GITHUB_TOKEN }}" "${{ github.actor }}"
 
       - name: Clean up key
         if: always()
