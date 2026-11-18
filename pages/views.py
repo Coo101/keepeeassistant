@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import markdown
+from django.conf import settings
 from django.contrib.auth.decorators import login_not_required
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, render
@@ -58,13 +59,25 @@ def post_detail(request: HttpRequest, slug: str) -> HttpResponse:
     )
 
 
+def doc_path(slug: str, language: str | None) -> Path | None:
+    """The help file for a slug, or None when it isn't in DOCS. The path is built
+    from the allow-listed names only, never from the URL or the language cookie.
+    English is the source; a translation sits next to it as <slug>.<language>.md."""
+    name = next((name for name in DOCS if name == slug), None)
+    if name is None:
+        return None
+    code = next((code for code, _label in settings.LANGUAGES if code == language), None)
+    translated = CONTENT_DIR / f"{name}.{code}.md"
+    if code and translated.exists():
+        return translated
+    return CONTENT_DIR / f"{name}.md"
+
+
 @login_not_required
 def doc(request: HttpRequest, slug: str) -> HttpResponse:
-    if slug not in DOCS:
-        raise Http404(f"No document {slug}")
-    # English is the source; a translation sits next to it as <slug>.<language>.md.
-    translated = CONTENT_DIR / f"{slug}.{get_language()}.md"
-    path = translated if translated.exists() else CONTENT_DIR / f"{slug}.md"
+    path = doc_path(slug, get_language())
+    if path is None:
+        raise Http404("No such document")
     title, text = split_title(path.read_text(encoding="utf-8"))
     return render(
         request,
