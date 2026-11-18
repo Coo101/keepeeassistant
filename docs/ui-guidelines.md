@@ -68,7 +68,7 @@ Follow `docs/DESIGN.md` and its review checklist. In short:
 - **Planning views** (camps, planner, recipes, shopping, budget, bills):
   - Tables in `table-responsive`: on a phone they scroll sideways inside their box. Only tables people really use on a phone get a card layout below `lg`.
   - Forms in a single column on mobile, two columns from `lg`.
-  - The page's main action sits next to the title from `lg`, under it on phones. A form's submit button sits bottom-right; destructive actions are set apart, in `btn-outline-danger`.
+  - The page's main action sits next to the title from `lg`, under it on phones. A form's submit button sits bottom-right; destructive actions are set apart, in `btn-outline-danger`. Only the confirmation page's final Delete button is solid `btn-danger`.
 
 ## Permissions in the UI
 

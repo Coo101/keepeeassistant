@@ -79,11 +79,12 @@ Defined once on `:root` in `app.css`; everything else uses these names.
 | `--chiro-sand` | `#E4D096` | Small accents only |
 | `--chiro-sand-soft` | `#F7F1E0` | Table headers, card headers, planner chips |
 | `--chiro-sand-faint` | `#FBF8EF` | Page background (cards stay white on it) |
-| `--text` | `#212529` | Body text (Bootstrap's default) |
-| `--muted` | `#5C636A` | Secondary text, meta lines, empty slots. Darker than Bootstrap's `#6C757D`, which falls under 4.5:1 on the sand tints |
+| `--bs-secondary-color` | `#5C636A` | Secondary text (`text-body-secondary`), meta lines, empty slots. Darker than Bootstrap's `#6C757D`, which falls under 4.5:1 on the sand tints |
+| `--bs-danger` | `#B02A37` | Destructive buttons, errors (also set as the form-error red). Bootstrap's red-600: its default `#DC3545` is 4.3:1 on sand-faint, under AA |
 
-Status colours stay Bootstrap's defaults: `success` `#198754`, `warning` `#FFC107`
-(always with dark text), `danger` `#DC3545`, `info` only for neutral notices.
+Body text stays Bootstrap's `#212529`. The other status colours stay Bootstrap's
+defaults: `success` `#198754`, `warning` `#FFC107` (always with dark text), `info` only
+for neutral notices.
 
 ### 3.4 Contrast
 
@@ -101,6 +102,11 @@ WCAG AA asks 4.5:1 for normal text and 3:1 for large text and UI parts.
 | White on red-dark | 6.3 | Any text |
 | White on red | 4.8 | Any text; keep the navbar text at 1rem or more |
 | Red on white | 4.8 | Passes, but red isn't a text colour here (§3.2) |
+| Danger on white | 6.5 | Any text (outline danger buttons, error text) |
+| Danger on sand-faint | 6.1 | Any text |
+| White on danger | 6.5 | Any text (the solid Delete button) |
+| Checkbox border `#6C757D` on white | 4.7 | UI part (needs 3:1) |
+| Checkbox border `#6C757D` on sand-faint | 4.4 | UI part (needs 3:1) |
 | Red on navy | 3.7 | Large text only: don't combine |
 | Red on sand | 3.2 | Large text only: don't combine |
 
@@ -172,7 +178,7 @@ sits at the right of the title from `lg`, below it on phones.
 
 ### 5.3 Shape and depth
 
-- Corners: `0.5rem` on cards, inputs and buttons (Bootstrap's default radius). Chips
+- Corners: Bootstrap's default radius, `0.375rem`, on cards, inputs and buttons. Chips
   and badges fully rounded.
 - Depth: cards `shadow-sm` on the sand-faint background. No gradients, no textures.
 - The guide calls the logo's red field "playful". The app keeps the playfulness for the
@@ -188,7 +194,7 @@ variables and the few things Bootstrap can't take from a variable (§8).
 |---|---|
 | Primary button | Navy background, white text; hover `--chiro-navy-hover` |
 | Secondary button | `btn-outline-primary`: navy border and text; hover `--chiro-navy-soft` |
-| Destructive button | `btn-outline-danger` with `bi-trash` and a verb, set apart from the other actions, always confirmed |
+| Destructive button | `btn-outline-danger` with `bi-trash` and a verb, set apart from the other actions, always confirmed; the confirmation page's final button is solid `btn-danger` |
 | Link | Navy, underlined in body text; hover `--chiro-navy-hover` |
 | Focus ring | Navy at 25% opacity, 0.25rem, on every interactive element; on the red navbar the ring is white at 60% |
 | Form controls | White, grey border; focus border navy; checked boxes and radios navy |
@@ -230,6 +236,10 @@ in and need their own rules:
   --chiro-sand-soft: #F7F1E0;
   --chiro-sand-faint: #FBF8EF;
 
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-heading: "Myriad Pro Condensed", "Myriad Pro", "Arial Narrow", "Roboto Condensed",
+    "sans-serif-condensed", "Helvetica Neue", Arial, sans-serif;
+
   --bs-primary: var(--chiro-navy);
   --bs-primary-rgb: 0, 18, 77;
   --bs-primary-text-emphasis: var(--chiro-navy);
@@ -241,6 +251,16 @@ in and need their own rules:
   --bs-link-hover-color-rgb: 38, 54, 104;
   --bs-focus-ring-color: rgba(0, 18, 77, 0.25);
   --bs-body-bg: var(--chiro-sand-faint);
+  --bs-body-font-family: var(--font-body);
+  /* Darker than Bootstrap's #6c757d, which drops under 4.5:1 on the sand tints. */
+  --bs-secondary-color: #5c636a;
+  /* Bootstrap's red-600: Bootstrap's own #dc3545 is 4.3:1 on sand-faint, under AA.
+     The subtle background and text-emphasis variables are dark enough and stay. */
+  --bs-danger: #B02A37;
+  --bs-danger-rgb: 176, 42, 55;
+  /* Field errors (invalid-feedback, is-invalid borders) have their own fixed red. */
+  --bs-form-invalid-color: #B02A37;
+  --bs-form-invalid-border-color: #B02A37;
 }
 
 .btn-primary {
@@ -269,6 +289,33 @@ in and need their own rules:
   --bs-btn-focus-shadow-rgb: 0, 18, 77;
 }
 
+/* The danger buttons have Bootstrap's red compiled in; these follow --bs-danger. */
+.btn-danger {
+  --bs-btn-bg: #B02A37;
+  --bs-btn-border-color: #B02A37;
+  --bs-btn-hover-bg: #8E2230;
+  --bs-btn-hover-border-color: #8E2230;
+  --bs-btn-active-bg: #8E2230;
+  --bs-btn-active-border-color: #842029;
+  --bs-btn-disabled-bg: #B02A37;
+  --bs-btn-disabled-border-color: #B02A37;
+  --bs-btn-focus-shadow-rgb: 176, 42, 55;
+}
+
+.btn-outline-danger {
+  --bs-btn-color: #B02A37;
+  --bs-btn-border-color: #B02A37;
+  --bs-btn-hover-bg: #B02A37;
+  --bs-btn-hover-border-color: #B02A37;
+  --bs-btn-active-bg: #8E2230;
+  --bs-btn-active-border-color: #8E2230;
+  --bs-btn-disabled-color: #B02A37;
+  --bs-btn-disabled-border-color: #B02A37;
+  --bs-btn-focus-shadow-rgb: 176, 42, 55;
+}
+
+/* Unchecked boxes: Bootstrap's #dee2e6 border is under 3:1 on white and sand. */
+.form-check-input { border-color: #6C757D; }
 .form-control:focus,
 .form-select:focus,
 .form-check-input:focus {
@@ -280,23 +327,32 @@ in and need their own rules:
   border-color: var(--chiro-navy);
 }
 
+/* Badges fully rounded (DESIGN §6). */
+.badge { --bs-badge-border-radius: var(--bs-border-radius-pill); }
+
 .navbar-chiro { background-color: var(--chiro-red); }
 .page-rule { width: 3rem; height: 3px; background: var(--chiro-red); border: 0; opacity: 1; }
-
-/* Focus rings: navy everywhere, white on the red navbar. */
-.btn:focus-visible { outline: 0; box-shadow: 0 0 0 0.25rem rgba(0, 18, 77, 0.25); }
-main a:focus-visible { outline: 2px solid var(--chiro-navy); outline-offset: 2px; }
-.navbar .nav-link:focus-visible,
-.navbar-brand:focus-visible,
-.navbar-toggler:focus { outline: 0; box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.6); }
 ```
 
 - `base.html`: the navbar's `bg-primary` becomes `navbar-chiro`, keeping
   `data-bs-theme="dark"` and the white link colours already in `app.css`.
-- The hand-written pages still use the old green tokens (`--accent`, `--accent-dark`,
-  `--accent-soft`, `--bg`). Point them at the new ones first (`--accent` to navy,
-  `--accent-soft` to sand-soft, `--bg` to sand-faint), so every page changes colour in
-  one go, before each area moves over to Bootstrap.
+- The rest of `app.css` is what Bootstrap's utilities can't express, one line each:
+  - the navbar: white links on red (Bootstrap's dark navbar dims them), the active
+    item, 44px tap targets;
+  - `h1`–`h3`: the condensed heading font in navy, and their sizes;
+  - tables' sand-soft header row, navy active pills and list items, and the focus rings (navy, red on
+    danger buttons, white on the navbar);
+  - `dialog`: Bootstrap 5.3 doesn't style it (the new-ingredient dialog);
+  - the planner's slot chips (dashed empty chip, hover states);
+  - `.prewrap` (Bootstrap has no `white-space: pre-line` utility), `.prose` (line
+    length of help pages and news, and the plain tables and headings their Markdown
+    renders to), `.runbook-day` (scroll margin under the sticky
+    pills), `.table-responsive` positioning (a visually-hidden heading otherwise
+    widens the page on a phone);
+  - print rules for the recipe page, and the bill review's fixed-layout table.
+- A test (`tests/test_ui_move.py`) fails when a class in `app.css` has no user in the
+  templates, the JavaScript or the project's Python; classes that JavaScript adds at
+  run time are listed there with the reason.
 - Light mode only; there is no dark theme to keep in step.
 
 ## 9. Review checklist

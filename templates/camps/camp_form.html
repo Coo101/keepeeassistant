@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n static crispy_forms_tags %}
+{% load i18n assets crispy_forms_tags %}
 {% block title %}{% if camp.pk %}{{ camp.name }}{% else %}{% translate "New camp" %}{% endif %} — {% translate "Camps" %}{% endblock %}
 {% block content %}
 {% if camp.pk %}
@@ -65,4 +65,4 @@
 </div>
 {% endif %}
 {% endblock %}
-{% block scripts %}<script src="{% static 'js/headcount.js' %}"></script>{% endblock %}
+{% block scripts %}<script src="{% asset 'js/headcount.js' %}"></script>{% endblock %}

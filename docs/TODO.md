@@ -52,7 +52,7 @@ side (compose, `.env`, Caddy, `deploy-app`) is in the homelab repo, `hetzner-pro
 - [ ] Create or check the admin account:
       `docker exec -it keepeeassistant python manage.py createsuperuser`
 
-### 3. UI move: in progress
+### 3. UI move: done
 
 Every page on Bootstrap and HTMX, core areas first, one plan and one review round per
 area. Planning screens are designed for a PC (D19). After each area passes review it's
@@ -71,28 +71,29 @@ from testing go on GitHub.
   `docs/superpowers/plans/2026-11-18-ui-area-4-bills.md`
 - [x] 5. Accounts and public pages (also: the home page skips from `h1` to `h3`). Plan:
   `docs/superpowers/plans/2026-11-18-ui-area-5-accounts.md`
-- [ ] 6. Print check and `app.css` clean-up (also: `docs/DESIGN.md` §8 clean-up)
+- [x] 6. Print check and `app.css` clean-up (also: `docs/DESIGN.md` §8 clean-up, the
+  danger red and checkbox contrast). Plan: `docs/superpowers/plans/2026-11-18-ui-area-6-cleanup.md`
 
-Found in area 1's review, for a later round: example camps show edit controls that
-can't save (runbook note forms, slot links, no `read-only` badge next to the title);
-the view should pass a flag and the pages hide them. The runbook shows very small
-scaled amounts as "0,0 kg" (rounding, not UI).
+### 3a. UI fixes from the move: to brainstorm
 
-Found in area 2's review: Bootstrap's danger red (`btn-outline-danger`) on the sand page
-background is 4,3:1, under AA, on every page with a delete button; unchecked checkbox
-borders are too faint on sand (under 3:1). Both are theme decisions for `app.css` and
-`DESIGN.md` §3.4. The new-ingredient dialog is taller than a laptop screen and scrolls
-inside; the live search's Clear button only follows a submitted search.
+Parked during the UI move's reviews (areas 1–5):
 
-Found in area 3's review: an example Chiro's stock page still shows Save and "Add a
-row" (saving is refused); same fix as area 1's example controls, a flag from the view.
-Saving shopping days, the stock or a camp's utilities gives no confirmation message.
-Pressing Enter in a table with "Add a row" (camp groups, pantry, utilities) adds a row
-instead of saving, because that button comes first in the form. Links inside the
-outside-dates alert of `planning/_outside_entries.html` lack `alert-link`.
-
-Found in area 4's review: `camps/camp_form.html` still loads `headcount.js` with
-`{% static %}` instead of `{% asset %}`, so the dev server can serve an old copy.
+- Example camps and example Chiros show edit controls that can't save: runbook note
+  forms, slot links, the stock page's Save and "Add a row". There's no `read-only`
+  badge next to the title, and a plain member's Chiro page has none either. The view
+  should pass a flag and the pages hide the controls.
+- Saving shopping days, the stock or a camp's utilities gives no confirmation message.
+- Pressing Enter in a table with "Add a row" (camp groups, pantry, utilities) adds a
+  row instead of saving, because that button comes first in the form.
+- The new-ingredient dialog is taller than a laptop screen and scrolls inside. The
+  live search's Clear button only shows after a search has been submitted.
+- Buttons and fields are 38px high (Bootstrap's default), under the 44px tap target in
+  `docs/ui-guidelines.md`, on the pages used on a phone.
+- The runbook shows very small scaled amounts as "0,0 kg" (rounding, not UI).
+- Headings with a size class (`<h2 class="h4">`, card headers' `h2.h5`) render in
+  Bootstrap's grey, not navy: Bootstrap's `.h1`–`.h6` colour beats the element rule.
+  Setting `--bs-heading-color` to navy fixes it, and changes the look of every card
+  header.
 
 ### 4. Going public: to brainstorm
 

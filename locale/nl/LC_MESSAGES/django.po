@@ -1310,8 +1310,7 @@ msgstr "Recepten"
 msgid "Ingredients"
 msgstr "Ingrediënten"
 
-#: templates/base.html templates/pages/home.html
-#: templates/pages/post_list.html
+#: templates/base.html templates/pages/home.html templates/pages/post_list.html
 msgid "News"
 msgstr "Nieuws"
 
@@ -2031,11 +2030,11 @@ msgstr "niet zichtbaar in het menuplan en op geen enkele boodschappenlijst"
 #: templates/planning/_outside_entries.html
 #, python-format
 msgid ""
-"<a href=\"%(edit_url)s\">Change the camp dates</a> to bring them back, or "
-"remove them:"
+"<a class=\"alert-link\" href=\"%(edit_url)s\">Change the camp dates</a> to "
+"bring them back, or remove them:"
 msgstr ""
-"<a href=\"%(edit_url)s\">Pas de kampdata aan</a> om ze terug te halen, of "
-"verwijder ze:"
+"<a class=\"alert-link\" href=\"%(edit_url)s\">Pas de kampdata aan</a> om ze "
+"terug te halen, of verwijder ze:"
 
 #: templates/planning/edit_slot.html
 #, python-format
@@ -2067,8 +2066,7 @@ msgstr ""
 msgid "recipe page"
 msgstr "receptpagina"
 
-#: templates/planning/edit_slot.html
-#: templates/recipes/_ingredient_results.html
+#: templates/planning/edit_slot.html templates/recipes/_ingredient_results.html
 #: templates/recipes/ingredient_form.html templates/shopping/budget.html
 msgid "Ingredient"
 msgstr "Ingrediënt"
