@@ -3,7 +3,8 @@
 {% block title %}{% translate "Invitation" %} — {% translate "Camp Meal Planner" %}{% endblock %}
 {% block content %}
 {% with chiro=invitation.chiro %}
-<h1>{% blocktranslate %}Join {{ chiro }}{% endblocktranslate %}</h1>
+{% blocktranslate asvar page_title %}Join {{ chiro }}{% endblocktranslate %}
+{% include "components/page_header.html" with title=page_title %}
 {% endwith %}
 <p>{% url 'login' as login_url %}{% blocktranslate trimmed with next=request.path|urlencode %}
   An account already uses this email address. <a href="{{ login_url }}?next={{ next }}">Log in</a> to join.

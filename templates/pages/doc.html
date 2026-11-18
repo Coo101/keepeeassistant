@@ -2,8 +2,13 @@
 {% load i18n %}
 {% block title %}{{ title }} — {% translate "Camp Meal Planner" %}{% endblock %}
 {% block content %}
-<nav class="toc">
-  {% for slug, label in docs %}<a href="{% url 'doc' slug %}"{% if slug == current %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
-</nav>
-<div class="prose">{{ body }}</div>
+{% include "components/page_header.html" with title=title %}
+<div class="row g-4">
+  <nav class="col-lg-3" aria-label="{% translate 'Help pages' %}">
+    <div class="list-group">
+      {% for slug, label in docs %}<a class="list-group-item list-group-item-action{% if slug == current %} active{% endif %}" href="{% url 'doc' slug %}"{% if slug == current %} aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}
+    </div>
+  </nav>
+  <div class="col-lg-9 prose">{{ body }}</div>
+</div>
 {% endblock %}

@@ -1,35 +1,40 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n ui %}
 {% block title %}{% translate "Camp Meal Planner" %} — {% translate "meals and shopping lists for Chiro camps" %}{% endblock %}
 {% block content %}
-<section class="hero">
-  <h1>{% translate "Feed your whole camp, without the spreadsheet" %}</h1>
-  <p>{% translate "Plan every meal, scale recipes to your headcount, get a shopping list per trip, and compare what you paid with your budget." %}</p>
-  <div class="actions">
-    {% if user.is_authenticated %}
-    <a class="btn" href="{% url 'camp_list' %}">{% translate "Go to your camps" %}</a>
-    {% else %}
-    <a class="btn" href="{% url 'login' %}">{% translate "Log in" %}</a>
-    {% endif %}
-    <a class="btn btn-outline" href="{% url 'doc' 'getting-started' %}">{% translate "How it works" %}</a>
+<section class="py-4">
+  <div class="col-lg-8">
+    <h1>{% translate "Feed your whole camp, without the spreadsheet" %}</h1>
+    <hr class="page-rule mt-2 mb-3">
+    <p class="lead">{% translate "Plan every meal, scale recipes to your headcount, get a shopping list per trip, and compare what you paid with your budget." %}</p>
+    <div class="d-flex flex-wrap gap-2 mb-3">
+      {% if user.is_authenticated %}
+      <a class="btn btn-primary" href="{% url 'camp_list' %}">{% translate "Go to your camps" %}</a>
+      {% else %}
+      <a class="btn btn-primary" href="{% url 'login' %}"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> {% translate "Log in" %}</a>
+      {% endif %}
+      <a class="btn btn-outline-primary" href="{% url 'doc' 'getting-started' %}">{% translate "How it works" %}</a>
+    </div>
+    {% if not user.is_authenticated %}<p class="text-body-secondary">{% url 'join_request' as join_url %}{% blocktranslate %}Camp Meal Planner is by invitation for now. <a href="{{ join_url }}">Request access.</a>{% endblocktranslate %}</p>{% endif %}
   </div>
-  {% if not user.is_authenticated %}<p class="muted">{% url 'join_request' as join_url %}{% blocktranslate %}Camp Meal Planner is by invitation for now. <a href="{{ join_url }}">Request access.</a>{% endblocktranslate %}</p>{% endif %}
 </section>
 
-<ul class="feature-grid">
-  <li class="card"><h3>{% translate "Shared recipes" %}</h3><p>{% translate "Reuse recipes from other Chiros and save your own version. Quantities scale to your camp, with under-12s counted as 0.7 portion." %}</p></li>
-  <li class="card"><h3>{% translate "Menu plan" %}</h3><p>{% translate "Fill a grid of days and meals. Each slot only offers recipes that fit, and a draaiboek for the kookploeg comes with it." %}</p></li>
-  <li class="card"><h3>{% translate "Shopping lists" %}</h3><p>{% translate "Choose your shopping days and get one list per trip and per shop. Days that no trip covers are flagged." %}</p></li>
-  <li class="card"><h3>{% translate "Budget and bills" %}</h3><p>{% translate "Estimate from the latest prices, then upload your bills to see what you really paid." %}</p></li>
-</ul>
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-3 mb-4">
+  <div class="col"><div class="card h-100"><div class="card-body"><h2 class="h5">{% translate "Shared recipes" %}</h2><p class="mb-0">{% translate "Reuse recipes from other Chiros and save your own version. Quantities scale to your camp, with under-12s counted as 0.7 portion." %}</p></div></div></div>
+  <div class="col"><div class="card h-100"><div class="card-body"><h2 class="h5">{% translate "Menu plan" %}</h2><p class="mb-0">{% translate "Fill a grid of days and meals. Each slot only offers recipes that fit, and a draaiboek for the kookploeg comes with it." %}</p></div></div></div>
+  <div class="col"><div class="card h-100"><div class="card-body"><h2 class="h5">{% translate "Shopping lists" %}</h2><p class="mb-0">{% translate "Choose your shopping days and get one list per trip and per shop. Days that no trip covers are flagged." %}</p></div></div></div>
+  <div class="col"><div class="card h-100"><div class="card-body"><h2 class="h5">{% translate "Budget and bills" %}</h2><p class="mb-0">{% translate "Estimate from the latest prices, then upload your bills to see what you really paid." %}</p></div></div></div>
+</div>
 
 {% if posts %}
 <h2>{% translate "News" %}</h2>
 {% for post in posts %}
-<article class="card">
-  <h3><a href="{% url 'post_detail' post.slug %}">{{ post.title }}</a></h3>
-  <p class="muted">{{ post.published_at|date:"d F Y" }}</p>
-</article>
+<div class="card mb-2">
+  <div class="card-body">
+    <h3 class="h5 mb-1"><a href="{% url 'post_detail' post.slug %}">{{ post.title }}</a></h3>
+    <p class="text-body-secondary small mb-0">{{ post.published_at|short_date:"year" }}</p>
+  </div>
+</div>
 {% endfor %}
 {% endif %}
 {% endblock %}

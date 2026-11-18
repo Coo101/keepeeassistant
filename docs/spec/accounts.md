@@ -47,6 +47,11 @@ details.
   (Markdown files in `pages/content/`). No CMS.
 - Account page: your details, your Chiros, changing your password. Password resets
   by email; mail only prints to the log until `EMAIL_HOST` is set.
+- The public pages (home, news, help, login, request access, invitations, password
+  pages) work as well on a phone as on a PC (D19); the account and Chiro pages are
+  planning views, designed for a PC. Help pages take their title from the file's
+  first `# ` line and list the other help pages beside the text (above it on a
+  phone). An open invitation's link wraps on a phone.
 
 ### Chiros, roles, invitations and join requests
 

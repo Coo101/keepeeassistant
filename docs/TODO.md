@@ -69,7 +69,8 @@ from testing go on GitHub.
 - [x] 4. Bills and the financial report (also: bills as PDFs with text only, D21,
   `docs/superpowers/plans/2026-11-18-bills-pdf-only.md`). Plan:
   `docs/superpowers/plans/2026-11-18-ui-area-4-bills.md`
-- [ ] 5. Accounts and public pages (also: the home page skips from `h1` to `h3`)
+- [x] 5. Accounts and public pages (also: the home page skips from `h1` to `h3`). Plan:
+  `docs/superpowers/plans/2026-11-18-ui-area-5-accounts.md`
 - [ ] 6. Print check and `app.css` clean-up (also: `docs/DESIGN.md` §8 clean-up)
 
 Found in area 1's review, for a later round: example camps show edit controls that

@@ -2,7 +2,8 @@
 {% load i18n %}
 {% block title %}{% translate "Not allowed" %} — {% translate "Camp Meal Planner" %}{% endblock %}
 {% block content %}
-<h1>{% translate "Not allowed" %}</h1>
+{% translate "Not allowed" as page_title %}
+{% include "components/page_header.html" with title=page_title %}
 <p>{% if exception %}{{ exception }}{% else %}{% translate "You can't do this here." %}{% endif %}</p>
-<p><a class="btn btn-outline" href="javascript:history.back()">{% translate "Back" %}</a></p>
+<a class="btn btn-outline-primary" href="javascript:history.back()"><i class="bi bi-arrow-left" aria-hidden="true"></i> {% translate "Back" %}</a>
 {% endblock %}
