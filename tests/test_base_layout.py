@@ -87,3 +87,15 @@ def test_pages_link_the_versioned_stylesheet(settings) -> None:
     settings.DEBUG = True
     html = account_client().get(reverse("camp_list")).content.decode()
     assert re.search(r'href="/static/css/app\.css\?v=\d+"', html)
+
+
+def test_footer_on_every_page_without_third_party_images() -> None:
+    html = Client().get(reverse("home")).content.decode()
+    footer = re.search(r"<footer[^>]*>(.*?)</footer>", html, re.S)
+    assert footer is not None
+    assert "d-print-none" in re.search(r"<footer[^>]*>", html).group(0)
+    assert "<img" not in footer.group(1)
+    assert "Buy me a beer" in footer.group(1)
+    for link in re.findall(r"<a [^>]*>", footer.group(1)):
+        assert 'rel="noopener noreferrer"' in link
+    assert "<footer" in account_client().get(reverse("camp_list")).content.decode()

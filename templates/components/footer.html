@@ -1,0 +1,22 @@
+{% load i18n %}
+<footer class="py-3 bg-light border-top d-print-none">
+  <div class="container">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+      <div class="d-flex align-items-center gap-2">
+        <span class="text-body-secondary">
+          <i class="bi bi-egg-fried me-1" aria-hidden="true"></i>
+          {% translate "Camp Meal Planner" %} &copy; {% now "Y" %}
+        </span>
+        <a href="https://github.com/Coo101" target="_blank" rel="noopener noreferrer" title="GitHub" aria-label="GitHub" class="btn btn-link btn-lg text-body-secondary">
+          <i class="bi bi-github" aria-hidden="true"></i>
+        </a>
+        <a href="https://bsky.app/profile/yonick-verlinden.bsky.social" target="_blank" rel="noopener noreferrer" title="Bluesky" aria-label="Bluesky" class="btn btn-link btn-lg text-body-secondary">
+          <i class="bi bi-bluesky" aria-hidden="true"></i>
+        </a>
+      </div>
+      <a href="https://www.buymeacoffee.com/Coo101" target="_blank" rel="noopener noreferrer" class="btn btn-warning">
+        <i class="bi bi-cup-straw" aria-hidden="true"></i> {% translate "Buy me a beer" %}
+      </a>
+    </div>
+  </div>
+</footer>
