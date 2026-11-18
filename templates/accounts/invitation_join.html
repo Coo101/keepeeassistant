@@ -3,11 +3,12 @@
 {% block title %}{% translate "Invitation" %} — {% translate "Camp Meal Planner" %}{% endblock %}
 {% block content %}
 {% with chiro=invitation.chiro %}
-<h1>{% blocktranslate %}Join {{ chiro }}{% endblocktranslate %}</h1>
+{% blocktranslate asvar page_title %}Join {{ chiro }}{% endblocktranslate %}
+{% include "components/page_header.html" with title=page_title %}
 <p>{% blocktranslate with username=user.get_username %}You're logged in as <strong>{{ username }}</strong>. Add this account to {{ chiro }}?{% endblocktranslate %}</p>
 <form method="post">
   {% csrf_token %}
-  <button class="btn" type="submit">{% blocktranslate %}Join {{ chiro }}{% endblocktranslate %}</button>
+  <button class="btn btn-primary" type="submit">{% blocktranslate %}Join {{ chiro }}{% endblocktranslate %}</button>
 </form>
 {% endwith %}
 {% endblock %}

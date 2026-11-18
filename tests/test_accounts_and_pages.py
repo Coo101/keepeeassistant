@@ -4,6 +4,7 @@ import datetime
 import re
 
 import pytest
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core import mail
 from django.test import Client, RequestFactory
@@ -19,7 +20,7 @@ from accounts.ratelimit import (
     client_address,
 )
 from pages.models import Post
-from pages.views import DOCS
+from pages.views import DOCS, split_title
 from tests.factories import account_client, make_camp, member_client
 
 pytestmark = pytest.mark.django_db
@@ -52,7 +53,34 @@ def test_home_news_and_docs_are_public() -> None:
     for slug in DOCS:
         response = client.get(reverse("doc", args=[slug]))
         assert response.status_code == 200
-        assert "<h1>" in response.content.decode()
+        html = response.content.decode()
+        assert html.count("<h1") == 1
+        assert "page-rule" in html
+
+
+def test_split_title() -> None:
+    assert split_title("# Aan de slag\n\nTekst") == ("Aan de slag", "\nTekst")
+    assert split_title("Tekst") == (None, "Tekst")
+    assert split_title("\n# T\nx") == ("T", "x")
+
+
+def test_doc_title_comes_from_the_file() -> None:
+    client = Client()
+    client.cookies[settings.LANGUAGE_COOKIE_NAME] = "nl"
+    html = client.get(reverse("doc", args=["getting-started"])).content.decode()
+    assert html.count("<h1") == 1
+    assert re.search(r"<h1[^>]*>\s*Aan de slag", html)
+
+
+def test_doc_without_a_title_line_keeps_the_label_and_body(
+    tmp_path, monkeypatch
+) -> None:
+    (tmp_path / "getting-started.md").write_text("Intro text", encoding="utf-8")
+    monkeypatch.setattr("pages.views.CONTENT_DIR", tmp_path)
+    html = Client().get(reverse("doc", args=["getting-started"])).content.decode()
+    assert html.count("<h1") == 1
+    assert re.search(r"<h1[^>]*>\s*Getting started", html)
+    assert "Intro text" in html
 
 
 def test_unknown_doc_is_not_found() -> None:

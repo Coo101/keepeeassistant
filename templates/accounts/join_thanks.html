@@ -2,6 +2,7 @@
 {% load i18n %}
 {% block title %}{% translate "Thank you" %} — {% translate "Camp Meal Planner" %}{% endblock %}
 {% block content %}
-<h1>{% translate "Thank you" %}</h1>
+{% translate "Thank you" as page_title %}
+{% include "components/page_header.html" with title=page_title %}
 <p>{% translate "Your request was received. If it's approved, you'll get an invitation by mail." %}</p>
 {% endblock %}

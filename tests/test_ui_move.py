@@ -4,6 +4,7 @@ Each area adds its converted templates to CONVERTED_TEMPLATES and its pages to
 CONVERTED_PAGES (docs/superpowers/specs/2026-11-16-ui-move-design.md).
 """
 
+import datetime
 import re
 from collections.abc import Callable
 from pathlib import Path
@@ -11,10 +12,12 @@ from pathlib import Path
 import pytest
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.test import Client
 from django.urls import reverse
 
-from accounts.models import Chiro, Membership
+from accounts.models import Chiro, Invitation, Membership, Role
 from camps.models import Camp
+from pages.models import Post
 from recipes.models import Recipe
 from tests.factories import (
     KG,
@@ -66,6 +69,28 @@ CONVERTED_TEMPLATES: list[str] = [
     "bills/bill_list.html",
     "bills/report.html",
     "bills/_report_body.html",
+    "pages/doc.html",
+    "pages/home.html",
+    "pages/post_list.html",
+    "pages/post_detail.html",
+    "accounts/account.html",
+    "accounts/chiro_detail.html",
+    "accounts/invitation_closed.html",
+    "accounts/invitation_join.html",
+    "accounts/invitation_login.html",
+    "accounts/invitation_signup.html",
+    "accounts/invitation_wrong_account.html",
+    "accounts/join_request.html",
+    "accounts/join_thanks.html",
+    "registration/login.html",
+    "registration/password_change_form.html",
+    "registration/password_change_done.html",
+    "registration/password_reset_form.html",
+    "registration/password_reset_done.html",
+    "registration/password_reset_confirm.html",
+    "registration/password_reset_complete.html",
+    "confirm_delete.html",
+    "403.html",
 ]
 
 # (URL name, the URL's args for a camp): full pages with one h1 and the red rule.
@@ -82,6 +107,15 @@ CONVERTED_PAGES: list[tuple[str, Callable[[Camp], list]]] = [
     ("camp_utensils", lambda camp: [camp.pk]),
     ("bill_list", lambda camp: [camp.pk]),
     ("financial_report", lambda camp: [camp.pk]),
+]
+
+# (URL name, args): public pages for a logged-out visitor, one h1 and the red rule.
+PUBLIC_PAGES: list[tuple[str, list]] = [
+    ("home", []),
+    ("post_list", []),
+    ("login", []),
+    ("password_reset", []),
+    ("join_request", []),
 ]
 
 # (URL name, the URL's args for a recipe): recipe pages with one h1 and the red rule.
@@ -120,6 +154,9 @@ OLD = {
     "slot-course",
     "step-block",
     "qty",
+    "hero",
+    "feature-grid",
+    "login-card",
 }
 
 CLASS_ATTRIBUTE = re.compile(r'class="([^"]*)"')
@@ -280,3 +317,141 @@ def test_ingredient_form_errors_show_a_summary() -> None:
     html = response.content.decode()
     assert "alert-danger" in html
     assert "is-invalid" in html
+
+
+def _one_h1_and_the_red_rule(html: str) -> None:
+    assert html.count("<h1") == 1
+    assert not re.search(r"<h1[^>]*>\s*</h1>", html), "the h1 is empty"
+    assert "page-rule" in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("url_name,args", PUBLIC_PAGES)
+def test_public_page_has_one_h1_and_the_red_rule(url_name: str, args: list) -> None:
+    response = Client().get(reverse(url_name, args=args))
+    assert response.status_code == 200
+    _one_h1_and_the_red_rule(response.content.decode())
+
+
+@pytest.mark.django_db
+def test_home_headings_in_order() -> None:
+    Post.objects.create(title="Nieuwe recepten", slug="nieuw", body="x")
+    html = Client().get(reverse("home")).content.decode()
+    levels = [int(level) for level in re.findall(r"<h([1-6])", html)]
+    assert levels[0] == 1
+    for before, after in zip(levels, levels[1:], strict=False):
+        assert after <= before + 1, levels
+
+
+@pytest.mark.django_db
+def test_post_pages() -> None:
+    client = Client()
+    assert "bi-newspaper" in client.get(reverse("post_list")).content.decode()
+    post = Post.objects.create(
+        title="Nieuwe recepten",
+        slug="nieuw",
+        body="Tekst",
+        published_at=datetime.datetime(2026, 3, 4, 12, 0, tzinfo=datetime.UTC),
+    )
+    response = client.get(reverse("post_list"))
+    assert response.status_code == 200
+    html = response.content.decode()
+    assert "Wed 4 Mar 2026" in html
+    assert "bi-newspaper" not in html
+    response = client.get(reverse("post_detail", args=[post.slug]))
+    assert response.status_code == 200
+    html = response.content.decode()
+    _one_h1_and_the_red_rule(html)
+    assert re.search(r"<h1[^>]*>\s*Nieuwe recepten", html)
+    assert "Wed 4 Mar 2026" in html
+
+
+@pytest.mark.django_db
+def test_account_and_chiro_pages_have_one_h1() -> None:
+    camp = make_camp()
+    client = member_client(camp, role=Role.ADMIN)
+    for url in (reverse("account"), reverse("chiro_detail", args=[camp.chiro_id])):
+        response = client.get(url)
+        assert response.status_code == 200
+        _one_h1_and_the_red_rule(response.content.decode())
+
+
+@pytest.mark.django_db
+def test_chiro_page_member_form_unchanged() -> None:
+    camp = make_camp()
+    invitation = Invitation.objects.create(chiro=camp.chiro, email="jan@example.com")
+    client = member_client(camp, role=Role.ADMIN)
+    html = client.get(reverse("chiro_detail", args=[camp.chiro_id])).content.decode()
+    membership = Membership.objects.get(chiro=camp.chiro, role=Role.ADMIN)
+    action = reverse("chiro_member", args=[camp.chiro_id, membership.pk])
+    assert f'action="{action}"' in html
+    assert f'<option value="{Role.ADMIN}" selected>' in html
+    select = re.search(r'<select[^>]*name="role"[^>]*>', html)
+    assert select is not None
+    assert "form-select" in select.group(0)
+    assert "aria-label=" in select.group(0)
+    remove = re.search(r'<button[^>]*name="remove"[^>]*>', html)
+    assert remove is not None
+    assert 'value="1"' in remove.group(0)
+    assert "btn-outline-danger" in remove.group(0)
+    link = reverse("invitation_accept", args=[invitation.token])
+    assert re.search(rf'<code class="text-break">[^<]*{re.escape(link)}', html)
+
+
+@pytest.mark.django_db
+def test_account_without_chiro_shows_empty_state() -> None:
+    html = account_client().get(reverse("account")).content.decode()
+    assert "bi-people" in html
+
+
+@pytest.mark.django_db
+def test_join_form_honeypot_stays_hidden() -> None:
+    html = Client().get(reverse("join_request")).content.decode()
+    honeypot = re.search(r'<input[^>]*name="website"[^>]*>', html)
+    assert honeypot is not None
+    assert 'type="hidden"' in honeypot.group(0)
+    assert not re.search(r'<label[^>]*for="id_website"', html)
+
+
+@pytest.mark.django_db
+def test_login_error_is_an_alert() -> None:
+    User.objects.create_user("kok", password="juist-wachtwoord-1")
+    response = Client().post(
+        reverse("login"),
+        {"username": "kok", "password": "fout", "next": "/camps/"},
+    )
+    assert response.status_code == 200
+    html = response.content.decode()
+    assert "alert-danger" in html
+    assert re.search(r'<input[^>]*name="next"[^>]*value="/camps/"', html)
+    assert "Username or email" in html
+    username = re.search(r'<input[^>]*name="username"[^>]*>', html)
+    assert username is not None
+    assert "form-control" in username.group(0)
+    assert 'autocomplete="username"' in username.group(0)
+
+
+@pytest.mark.django_db
+def test_confirm_delete_page() -> None:
+    camp = make_camp()
+    client = member_client(camp, role=Role.ADMIN)
+    response = client.get(reverse("camp_delete", args=[camp.pk]))
+    assert response.status_code == 200
+    html = response.content.decode()
+    _one_h1_and_the_red_rule(html)
+    button = re.search(
+        r'<button[^>]*class="btn btn-danger[^"]*"[^>]*>(.*?)</button>', html, re.S
+    )
+    assert button is not None
+    assert "bi-trash" in button.group(1)
+    assert f'href="{reverse("camp_list")}"' in html
+
+
+@pytest.mark.django_db
+def test_confirm_delete_blocked() -> None:
+    recipe = make_recipe("Soep", ingredients=[("Wortel", "1", KG, PRODUCE)])
+    ingredient = recipe.ingredients.first().ingredient
+    url = reverse("ingredient_delete", args=[ingredient.pk])
+    html = account_client().get(url).content.decode()
+    assert "alert-warning" in html
+    assert "\u26a0" not in html

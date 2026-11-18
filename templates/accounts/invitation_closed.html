@@ -2,6 +2,7 @@
 {% load i18n %}
 {% block title %}{% translate "Invitation" %} — {% translate "Camp Meal Planner" %}{% endblock %}
 {% block content %}
-<h1>{% translate "This invitation no longer works" %}</h1>
+{% translate "This invitation no longer works" as page_title %}
+{% include "components/page_header.html" with title=page_title %}
 <p>{% translate "It was already used or has expired. Ask for a new one." %}</p>
 {% endblock %}
