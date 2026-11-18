@@ -20,7 +20,7 @@ from accounts.ratelimit import (
     client_address,
 )
 from pages.models import Post
-from pages.views import DOCS, split_title
+from pages.views import CONTENT_DIR, DOCS, doc_path, split_title
 from tests.factories import account_client, make_camp, member_client
 
 pytestmark = pytest.mark.django_db
@@ -85,6 +85,15 @@ def test_doc_without_a_title_line_keeps_the_label_and_body(
 
 def test_unknown_doc_is_not_found() -> None:
     assert Client().get(reverse("doc", args=["nope"])).status_code == 404
+
+
+def test_doc_path_only_uses_allow_listed_names() -> None:
+    assert doc_path("planning", "nl") == CONTENT_DIR / "planning.nl.md"
+    assert doc_path("planning", "en") == CONTENT_DIR / "planning.md"
+    assert doc_path("planning", None) == CONTENT_DIR / "planning.md"
+    # A language that isn't in LANGUAGES never reaches the path.
+    assert doc_path("planning", "../../config/settings") == CONTENT_DIR / "planning.md"
+    assert doc_path("../../config/settings", "nl") is None
 
 
 def test_only_published_posts_show() -> None:
