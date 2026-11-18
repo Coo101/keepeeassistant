@@ -2,7 +2,8 @@
 {% load i18n %}
 {% block title %}{% translate "Invitation" %} — {% translate "Camp Meal Planner" %}{% endblock %}
 {% block content %}
-<h1>{% translate "This invitation is for another account" %}</h1>
+{% translate "This invitation is for another account" as page_title %}
+{% include "components/page_header.html" with title=page_title %}
 <p>{% blocktranslate with username=user.get_username email=invitation.email %}You're logged in as <strong>{{ username }}</strong>, and this link is for {{ email }}.{% endblocktranslate %}</p>
 <p>{% url 'account' as account_url %}{% blocktranslate %}Log out and open the link again. If this is your address, add it to <a href="{{ account_url }}">your account</a> first.{% endblocktranslate %}</p>
 {% endblock %}

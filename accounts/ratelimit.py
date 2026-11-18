@@ -105,7 +105,10 @@ class _LoginLimitMixin:
 
 
 class LimitedLoginForm(_LoginLimitMixin, AuthenticationForm):
-    pass
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        # Either works (accounts.backends), so the label says so.
+        self.fields["username"].label = _("Username or email")
 
 
 class LimitedAdminLoginForm(_LoginLimitMixin, AdminAuthenticationForm):

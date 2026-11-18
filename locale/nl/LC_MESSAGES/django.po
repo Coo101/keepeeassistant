@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Camp Meal Planner\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 13:41+0100\n"
+"POT-Creation-Date: 2026-11-18 14:54+0100\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -159,6 +159,10 @@ msgstr ""
 "Te veel mislukte pogingen. Wacht 15 minuten, of stel je wachtwoord opnieuw "
 "in."
 
+#: accounts/ratelimit.py
+msgid "Username or email"
+msgstr "Gebruikersnaam of e-mail"
+
 #: accounts/views.py
 msgid "Your details were saved."
 msgstr "Je gegevens zijn bewaard."
@@ -181,20 +185,24 @@ msgid "A Chiro needs at least one admin."
 msgstr "Een Chiro heeft minstens één beheerder nodig."
 
 #: bills/forms.py
-msgid "PDF or photo"
-msgstr "Pdf of foto"
+msgid "PDF with text"
+msgstr "Pdf met tekst"
 
 #: bills/forms.py
-msgid "Upload a PDF, JPG, PNG or WebP file."
-msgstr "Laad een pdf-, jpg-, png- of webp-bestand op."
+msgid "Upload a PDF. Turn a photo into a PDF with text first."
+msgstr "Laad een pdf op. Maak van een foto eerst een pdf met tekst."
 
 #: bills/forms.py
 msgid "The file can be 15 MB at most."
 msgstr "Het bestand mag hoogstens 15 MB zijn."
 
 #: bills/forms.py
-msgid "This file doesn't look like a real PDF or image."
-msgstr "Dit bestand lijkt geen echte pdf of afbeelding."
+msgid ""
+"This PDF has no text the app can read. Make a PDF with text (with text "
+"recognition), or ask for the shop's digital invoice."
+msgstr ""
+"Deze pdf heeft geen tekst die de app kan lezen. Maak een pdf met tekst (met "
+"tekstherkenning), of vraag de digitale factuur van de winkel."
 
 #: bills/forms.py
 msgid "Add to stock"
@@ -211,10 +219,6 @@ msgstr "Hoeveel is één stuk, in deze eenheid?"
 #: bills/forms.py
 msgid "That makes the price per unit too high."
 msgstr "Dan wordt de prijs per eenheid te hoog."
-
-#: bills/models.py
-msgid "Waiting to be read"
-msgstr "Wacht om ingelezen te worden"
 
 #: bills/models.py
 msgid "Couldn't be read"
@@ -236,7 +240,7 @@ msgstr "winkel"
 msgid "date"
 msgstr "datum"
 
-#: bills/models.py templates/bills/bill_detail.html
+#: bills/models.py
 msgid "printed total"
 msgstr "gedrukt totaal"
 
@@ -300,16 +304,8 @@ msgid "skipped"
 msgstr "overgeslagen"
 
 #: bills/reading.py
-msgid "The model's answer wasn't valid JSON."
-msgstr "Het antwoord van het model was geen geldige JSON."
-
-#: bills/reading.py
-msgid "The file couldn't be opened. Add the lines by hand."
-msgstr "Het bestand kon niet geopend worden. Voeg de lijnen zelf toe."
-
-#: bills/reading.py
-msgid "No lines were found. Add them by hand."
-msgstr "Er zijn geen lijnen gevonden. Voeg ze zelf toe."
+msgid "This shop's layout isn't known yet: add the lines by hand."
+msgstr "De opmaak van deze winkel is nog niet gekend: voeg de lijnen zelf toe."
 
 #: bills/views.py
 msgid "New item"
@@ -1083,7 +1079,8 @@ msgstr "Niet toegestaan"
 #: templates/accounts/invitation_signup.html
 #: templates/accounts/invitation_wrong_account.html
 #: templates/accounts/join_request.html templates/accounts/join_thanks.html
-#: templates/base.html templates/camps/camp_list.html templates/pages/doc.html
+#: templates/base.html templates/camps/camp_list.html
+#: templates/components/footer.html templates/pages/doc.html
 #: templates/pages/home.html templates/pages/post_detail.html
 #: templates/pages/post_list.html templates/recipes/ingredient_list.html
 #: templates/recipes/recipe_list.html templates/registration/login.html
@@ -1104,7 +1101,7 @@ msgstr "Dit kun je hier niet doen."
 msgid "Back"
 msgstr "Terug"
 
-#: templates/accounts/account.html
+#: templates/accounts/account.html templates/accounts/chiro_detail.html
 msgid "Your account"
 msgstr "Je account"
 
@@ -1125,8 +1122,13 @@ msgstr ""
 "uitnodiging."
 
 #: templates/accounts/account.html
-msgid "Your details"
-msgstr "Je gegevens"
+msgid "Password"
+msgstr "Wachtwoord"
+
+#: templates/accounts/account.html
+#: templates/registration/password_change_form.html
+msgid "Change password"
+msgstr "Wachtwoord veranderen"
 
 #: templates/accounts/account.html
 msgid ""
@@ -1136,21 +1138,12 @@ msgstr ""
 "als je het vergeet."
 
 #: templates/accounts/account.html
-msgid "Save details"
-msgstr "Gegevens bewaren"
-
-#: templates/accounts/account.html templates/registration/login.html
-msgid "Password"
-msgstr "Wachtwoord"
+msgid "Your details"
+msgstr "Je gegevens"
 
 #: templates/accounts/account.html
-#: templates/registration/password_change_form.html
-msgid "Change password"
-msgstr "Wachtwoord veranderen"
-
-#: templates/accounts/chiro_detail.html
-msgid "your account"
-msgstr "je account"
+msgid "Save details"
+msgstr "Gegevens bewaren"
 
 #: templates/accounts/chiro_detail.html
 msgid "Stock: kitchen utilities and food"
@@ -1318,7 +1311,8 @@ msgstr "Recepten"
 msgid "Ingredients"
 msgstr "Ingrediënten"
 
-#: templates/base.html templates/pages/home.html templates/pages/post_list.html
+#: templates/base.html templates/pages/home.html
+#: templates/pages/post_list.html
 msgid "News"
 msgstr "Nieuws"
 
@@ -1338,6 +1332,18 @@ msgstr "Uitloggen"
 #: templates/registration/login.html
 msgid "Log in"
 msgstr "Inloggen"
+
+#: templates/bills/_bill_line_row.html
+#: templates/recipes/_new_ingredient_dialog.html
+#: templates/recipes/ingredient_form.html
+#: templates/recipes/ingredient_list.html templates/recipes/recipe_form.html
+msgid "New ingredient"
+msgstr "Nieuw ingrediënt"
+
+#: templates/bills/_bill_line_row.html
+#, python-format
+msgid "In stock as %(name)s"
+msgstr "In voorraad als %(name)s"
 
 #: templates/bills/_report_body.html
 msgid "Check"
@@ -1489,36 +1495,24 @@ msgid "No personal costs on the bills."
 msgstr "Geen persoonlijke kosten op de rekeningen."
 
 #: templates/bills/bill_detail.html templates/bills/report.html
-msgid "all bills"
-msgstr "alle rekeningen"
+msgid "All bills"
+msgstr "Alle rekeningen"
 
 #: templates/bills/bill_detail.html
-msgid "lines total"
-msgstr "totaal van de lijnen"
-
-#: templates/bills/bill_detail.html
-msgid "Waiting to be read."
-msgstr "Wacht om ingelezen te worden."
-
-#: templates/bills/bill_detail.html
-msgid ""
-"This file has no readable text, so it goes to the AI model when that "
-"computer is on."
+#, python-format
+msgid "Lines total <strong>€ %(total)s</strong> · printed total € %(printed)s"
 msgstr ""
-"Dit bestand heeft geen leesbare tekst, dus het gaat naar het AI-model zodra "
-"die computer aanstaat."
+"Totaal van de lijnen <strong>€ %(total)s</strong> · gedrukt totaal € "
+"%(printed)s"
 
 #: templates/bills/bill_detail.html
-msgid "You don't have to wait: you can add the lines below by hand."
-msgstr "Je hoeft niet te wachten: je kunt de lijnen hieronder zelf toevoegen."
+#, python-format
+msgid "Lines total <strong>€ %(total)s</strong>"
+msgstr "Totaal van de lijnen <strong>€ %(total)s</strong>"
 
 #: templates/bills/bill_detail.html
 msgid "This bill couldn't be read."
 msgstr "Deze rekening kon niet ingelezen worden."
-
-#: templates/bills/bill_detail.html
-msgid "Try again"
-msgstr "Opnieuw proberen"
 
 #: templates/bills/bill_detail.html
 msgid ""
@@ -1544,16 +1538,8 @@ msgstr ""
 "voorraad van je Chiro."
 
 #: templates/bills/bill_detail.html
-#: templates/recipes/_new_ingredient_dialog.html
-#: templates/recipes/ingredient_form.html
-#: templates/recipes/ingredient_list.html templates/recipes/recipe_form.html
-msgid "New ingredient"
-msgstr "Nieuw ingrediënt"
-
-#: templates/bills/bill_detail.html
-#, python-format
-msgid "In stock as %(name)s"
-msgstr "In voorraad als %(name)s"
+msgid "Add a line"
+msgstr "Lijn toevoegen"
 
 #: templates/bills/bill_detail.html
 msgid "Save review"
@@ -1580,20 +1566,6 @@ msgstr "Rekening verwijderen"
 msgid "Bills"
 msgstr "Rekeningen"
 
-#: templates/bills/bill_list.html templates/kitchen/camp_utensils.html
-#: templates/shopping/shopping.html
-msgid "back to menu plan"
-msgstr "terug naar het menuplan"
-
-#: templates/bills/bill_list.html
-msgid "bills"
-msgstr "rekeningen"
-
-#: templates/bills/bill_list.html templates/bills/report.html
-#: templates/components/camp_nav.html
-msgid "Financial report"
-msgstr "Financieel verslag"
-
 #: templates/bills/bill_list.html
 msgid "Paid for food:"
 msgstr "Betaald voor eten:"
@@ -1608,6 +1580,11 @@ msgid "%(counter)s bill still open"
 msgid_plural "%(counter)s bills still open"
 msgstr[0] "%(counter)s rekening nog open"
 msgstr[1] "%(counter)s rekeningen nog open"
+
+#: templates/bills/bill_list.html templates/bills/report.html
+#: templates/components/camp_nav.html
+msgid "Financial report"
+msgstr "Financieel verslag"
 
 #: templates/bills/bill_list.html
 msgid "Paid and estimated per shop"
@@ -1639,31 +1616,46 @@ msgstr "Rekening toevoegen"
 
 #: templates/bills/bill_list.html
 msgid ""
-"⚠️ <strong>Bills can hold personal data</strong>, such as names, addresses "
-"and loyalty card numbers. Crop those out of photos where you can. The file "
-"is stored on this server and every member of this camp's Chiro can open it. "
-"Scans and photos are read by an AI model on the administrator's own "
-"computer, not by an outside service. You can remove the file after reviewing "
-"and keep the amounts."
+"<strong>Bills can hold personal data</strong>, such as names, addresses and "
+"loyalty card numbers. Crop those out before making the PDF where you can. "
+"The file is stored on this server and every member of this camp's Chiro can "
+"open it. It's read on this server, not by an AI or an outside service. You "
+"can remove the file after reviewing and keep the amounts."
 msgstr ""
-"⚠️ <strong>Rekeningen kunnen persoonsgegevens bevatten</strong>, zoals namen, "
-"adressen en klantenkaartnummers. Snij die waar je kunt weg uit foto's. Het "
-"bestand wordt op deze server bewaard en elk lid van de Chiro van dit kamp "
-"kan het openen. Scans en foto's worden ingelezen door een AI-model op de "
-"eigen computer van de beheerder, niet door een externe dienst. Na het "
-"nakijken kun je het bestand verwijderen en de bedragen houden."
+"<strong>Rekeningen kunnen persoonsgegevens bevatten</strong>, zoals namen, "
+"adressen en klantenkaartnummers. Snij die waar je kunt weg voor je de pdf "
+"maakt. Het bestand wordt op deze server bewaard en elk lid van de Chiro van "
+"dit kamp kan het openen. Het wordt op deze server ingelezen, niet door een "
+"AI of een externe dienst. Na het nakijken kun je het bestand verwijderen en "
+"de bedragen houden."
 
 #: templates/bills/bill_list.html
 msgid "Upload bill"
 msgstr "Rekening opladen"
 
-#: templates/bills/report.html templates/bills/report_print.html
-msgid "financial report"
-msgstr "financieel verslag"
-
 #: templates/bills/report.html
 msgid "Report PDF"
 msgstr "Verslag als pdf"
+
+#: templates/bills/report.html templates/planning/_headcount.html
+#: templates/planning/planner.html templates/planning/runbook.html
+#, python-format
+msgid ""
+"%(children)s children + %(teens)s teens + %(staff)s staff = "
+"<strong>%(portions)s portions</strong>"
+msgstr ""
+"%(children)s kinderen + %(teens)s jongeren + %(staff)s leiding = "
+"<strong>%(portions)s porties</strong>"
+
+#: templates/bills/report.html templates/planning/planner.html
+#: templates/planning/runbook.html
+#, python-format
+msgid "%(start)s – %(end)s · %(headcount)s"
+msgstr "%(start)s – %(end)s · %(headcount)s"
+
+#: templates/bills/report_print.html
+msgid "financial report"
+msgstr "financieel verslag"
 
 #: templates/bills/report_print.html templates/planning/overview_print.html
 #: templates/planning/runbook_print.html templates/recipes/recipe_print.html
@@ -1836,6 +1828,10 @@ msgstr "Menuplan"
 msgid "Edit camp"
 msgstr "Kamp bewerken"
 
+#: templates/components/footer.html
+msgid "Buy me a beer"
+msgstr "Trakteer me op een pintje"
+
 #: templates/components/form_errors.html
 msgid "Some fields need your attention; see below."
 msgstr "Enkele velden moeten nog aangepast worden; zie hieronder."
@@ -1868,10 +1864,6 @@ msgid "Delete"
 msgstr "Verwijderen"
 
 #: templates/kitchen/camp_utensils.html
-msgid "kitchen utilities"
-msgstr "keukengerei"
-
-#: templates/kitchen/camp_utensils.html
 #, python-format
 msgid ""
 "What this camp needs. It's compared with the <a href=\"%(stock_url)s\">stock "
@@ -1899,13 +1891,13 @@ msgstr "Alles is in voorraad."
 msgid "Needed for this camp"
 msgstr "Nodig voor dit kamp"
 
+#: templates/kitchen/camp_utensils.html templates/kitchen/stock.html
+msgid "Add a row"
+msgstr "Rij toevoegen"
+
 #: templates/kitchen/stock.html
 msgid "Stock"
 msgstr "Voorraad"
-
-#: templates/kitchen/stock.html
-msgid "stock"
-msgstr "voorraad"
 
 #: templates/kitchen/stock.html
 msgid ""
@@ -1943,6 +1935,10 @@ msgstr ""
 "Eten dat je Chiro al heeft, in de eenheid van het ingrediënt. Elk kamp van "
 "de Chiro haalt het van zijn boodschappenlijsten en budget, te beginnen bij "
 "de eerste ronde."
+
+#: templates/pages/doc.html
+msgid "Help pages"
+msgstr "Hulppagina's"
 
 #: templates/pages/home.html
 msgid "meals and shopping lists for Chiro camps"
@@ -2022,22 +2018,12 @@ msgstr ""
 "te zien wat je echt betaalde."
 
 #: templates/pages/post_detail.html
-msgid "all news"
-msgstr "alle nieuws"
+msgid "All news"
+msgstr "Al het nieuws"
 
 #: templates/pages/post_list.html
 msgid "No news yet."
 msgstr "Nog geen nieuws."
-
-#: templates/planning/_headcount.html templates/planning/planner.html
-#: templates/planning/runbook.html
-#, python-format
-msgid ""
-"%(children)s children + %(teens)s teens + %(staff)s staff = "
-"<strong>%(portions)s portions</strong>"
-msgstr ""
-"%(children)s kinderen + %(teens)s jongeren + %(staff)s leiding = "
-"<strong>%(portions)s porties</strong>"
 
 #: templates/planning/_outside_entries.html
 msgid "Planned outside the camp dates"
@@ -2050,11 +2036,11 @@ msgstr "niet zichtbaar in het menuplan en op geen enkele boodschappenlijst"
 #: templates/planning/_outside_entries.html
 #, python-format
 msgid ""
-"<a href=\"%(edit_url)s\">Change the camp dates</a> to bring them back, or "
-"remove them:"
+"<a class=\"alert-link\" href=\"%(edit_url)s\">Change the camp dates</a> to "
+"bring them back, or remove them:"
 msgstr ""
-"<a href=\"%(edit_url)s\">Pas de kampdata aan</a> om ze terug te halen, of "
-"verwijder ze:"
+"<a class=\"alert-link\" href=\"%(edit_url)s\">Pas de kampdata aan</a> om ze "
+"terug te halen, of verwijder ze:"
 
 #: templates/planning/edit_slot.html
 #, python-format
@@ -2086,7 +2072,8 @@ msgstr ""
 msgid "recipe page"
 msgstr "receptpagina"
 
-#: templates/planning/edit_slot.html templates/recipes/_ingredient_results.html
+#: templates/planning/edit_slot.html
+#: templates/recipes/_ingredient_results.html
 #: templates/recipes/ingredient_form.html templates/shopping/budget.html
 msgid "Ingredient"
 msgstr "Ingrediënt"
@@ -2121,11 +2108,6 @@ msgstr "Omgerekende ingrediënten"
 #: templates/planning/planner.html
 msgid "Overview PDF"
 msgstr "Overzicht als pdf"
-
-#: templates/planning/planner.html templates/planning/runbook.html
-#, python-format
-msgid "%(start)s – %(end)s · %(headcount)s"
-msgstr "%(start)s – %(end)s · %(headcount)s"
 
 #: templates/planning/planner.html
 #, python-format
@@ -2337,6 +2319,10 @@ msgstr "Terugzetten"
 msgid "No ingredients entered yet."
 msgstr "Nog geen ingrediënten ingevuld."
 
+#: templates/recipes/_recipe_pdf_link.html
+msgid "PDF"
+msgstr "Pdf"
+
 #: templates/recipes/_recipe_results.html
 msgid "Time"
 msgstr "Tijd"
@@ -2444,10 +2430,6 @@ msgstr "alleen lezen"
 #: templates/recipes/recipe_detail.html
 msgid "Scale to"
 msgstr "Omrekenen naar"
-
-#: templates/recipes/_recipe_pdf_link.html
-msgid "PDF"
-msgstr "Pdf"
 
 #: templates/recipes/recipe_detail.html
 msgid "Scale"
@@ -2562,10 +2544,6 @@ msgid "Check the fields below."
 msgstr "Kijk de velden hieronder na."
 
 #: templates/registration/login.html
-msgid "Username or email"
-msgstr "Gebruikersnaam of e-mail"
-
-#: templates/registration/login.html
 #: templates/registration/password_reset_form.html
 msgid "Forgot your password?"
 msgstr "Wachtwoord vergeten?"
@@ -2663,10 +2641,6 @@ msgid "shopping lists"
 msgstr "boodschappenlijsten"
 
 #: templates/shopping/budget.html
-msgid "budget"
-msgstr "budget"
-
-#: templates/shopping/budget.html
 msgid "Estimated cost:"
 msgstr "Geschatte kosten:"
 
@@ -2697,10 +2671,10 @@ msgstr "Nog geen prijs voor:"
 #: templates/shopping/budget.html
 #, python-format
 msgid ""
-"these are not counted. Set prices on the <a "
+"these are not counted. Set prices on the <a class=\"alert-link\" "
 "href=\"%(ingredients_url)s\">ingredients page</a>."
 msgstr ""
-"die tellen niet mee. Vul prijzen in op de <a "
+"die tellen niet mee. Vul prijzen in op de <a class=\"alert-link\" "
 "href=\"%(ingredients_url)s\">ingrediëntenpagina</a>."
 
 #: templates/shopping/budget.html
@@ -2744,17 +2718,12 @@ msgid "latest"
 msgstr "laatste"
 
 #: templates/shopping/budget.html
-#, python-format
-msgid ""
-"No shopping trips selected yet — pick shopping days on the <a "
-"href=\"%(shopping_url)s\">shopping page</a> first."
-msgstr ""
-"Nog geen winkeldagen gekozen — kies eerst winkeldagen op de <a "
-"href=\"%(shopping_url)s\">boodschappenpagina</a>."
+msgid "No shopping days yet, so no budget."
+msgstr "Nog geen winkeldagen, dus nog geen budget."
 
-#: templates/shopping/shopping.html
-msgid "shopping"
-msgstr "boodschappen"
+#: templates/shopping/budget.html
+msgid "Pick shopping days"
+msgstr "Winkeldagen kiezen"
 
 #: templates/shopping/shopping.html
 msgid "Shopping days outside the dates below."
@@ -2763,11 +2732,31 @@ msgstr "Winkeldagen buiten de data hieronder."
 #: templates/shopping/shopping.html
 #, python-format
 msgid ""
-"They still count; <a href=\"%(edit_url)s\">change the camp dates</a> to get "
-"them back on this list, or remove them:"
+"They still count; <a class=\"alert-link\" href=\"%(edit_url)s\">change the "
+"camp dates</a> to get them back on this list, or remove them:"
 msgstr ""
-"Ze tellen nog mee; <a href=\"%(edit_url)s\">pas de kampdata aan</a> om ze "
-"terug op deze lijst te krijgen, of verwijder ze:"
+"Ze tellen nog mee; <a class=\"alert-link\" href=\"%(edit_url)s\">pas de "
+"kampdata aan</a> om ze terug op deze lijst te krijgen, of verwijder ze:"
+
+#: templates/shopping/shopping.html
+msgid "Shopping trips"
+msgstr "Boodschappenrondes"
+
+#: templates/shopping/shopping.html
+#, python-format
+msgid "%(date)s · %(counter)s shop"
+msgid_plural "%(date)s · %(counter)s shops"
+msgstr[0] "%(date)s · %(counter)s winkel"
+msgstr[1] "%(date)s · %(counter)s winkels"
+
+#: templates/shopping/shopping.html
+#, python-format
+msgid "%(date)s · nothing to buy"
+msgstr "%(date)s · niets te kopen"
+
+#: templates/shopping/shopping.html
+msgid "Shopping lists PDF"
+msgstr "Boodschappenlijsten als pdf"
 
 #: templates/shopping/shopping.html
 #, python-format
@@ -2811,10 +2800,6 @@ msgstr ""
 "ervoor valt."
 
 #: templates/shopping/shopping.html
-msgid "Shopping lists PDF"
-msgstr "Boodschappenlijsten als pdf"
-
-#: templates/shopping/shopping.html
 #, python-format
 msgid "%(counter)s camp day"
 msgid_plural "%(counter)s camp days"
@@ -2831,6 +2816,14 @@ msgstr[1] "%(counter)s artikels"
 #: templates/shopping/shopping.html
 msgid "Nothing to buy — no menu entries in the covered days."
 msgstr "Niets te kopen — geen maaltijden ingepland in de gedekte dagen."
+
+#: templates/shopping/shopping.html
+msgid "Back to top"
+msgstr "Terug naar boven"
+
+#: templates/shopping/shopping.html
+msgid "No shopping days yet. Tick the days you shop on above."
+msgstr "Nog geen winkeldagen. Vink hierboven de dagen aan waarop je winkelt."
 
 #: templates/shopping/shopping.html templates/shopping/shopping_print.html
 msgid "Kitchen utilities to buy"
@@ -2857,6 +2850,76 @@ msgstr "Niet gedekte dagen (geen ronde koopt ervoor):"
 #: templates/shopping/shopping_print.html
 msgid "Nothing to buy for this trip."
 msgstr "Niets te kopen voor deze ronde."
+
+#~ msgid "your account"
+#~ msgstr "je account"
+
+#~ msgid "all bills"
+#~ msgstr "alle rekeningen"
+
+#~ msgid "lines total"
+#~ msgstr "totaal van de lijnen"
+
+#~ msgid "back to menu plan"
+#~ msgstr "terug naar het menuplan"
+
+#~ msgid "bills"
+#~ msgstr "rekeningen"
+
+#~ msgid "PDF or photo"
+#~ msgstr "Pdf of foto"
+
+#~ msgid "Upload a PDF, JPG, PNG or WebP file."
+#~ msgstr "Laad een pdf-, jpg-, png- of webp-bestand op."
+
+#~ msgid "This file doesn't look like a real PDF or image."
+#~ msgstr "Dit bestand lijkt geen echte pdf of afbeelding."
+
+#~ msgid "Waiting to be read"
+#~ msgstr "Wacht om ingelezen te worden"
+
+#~ msgid "The model's answer wasn't valid JSON."
+#~ msgstr "Het antwoord van het model was geen geldige JSON."
+
+#~ msgid "No lines were found. Add them by hand."
+#~ msgstr "Er zijn geen lijnen gevonden. Voeg ze zelf toe."
+
+#~ msgid "Waiting to be read."
+#~ msgstr "Wacht om ingelezen te worden."
+
+#~ msgid ""
+#~ "This file has no readable text, so it goes to the AI model when that "
+#~ "computer is on."
+#~ msgstr ""
+#~ "Dit bestand heeft geen leesbare tekst, dus het gaat naar het AI-model "
+#~ "zodra die computer aanstaat."
+
+#~ msgid "You don't have to wait: you can add the lines below by hand."
+#~ msgstr ""
+#~ "Je hoeft niet te wachten: je kunt de lijnen hieronder zelf toevoegen."
+
+#~ msgid "Try again"
+#~ msgstr "Opnieuw proberen"
+
+#~ msgid "kitchen utilities"
+#~ msgstr "keukengerei"
+
+#~ msgid "stock"
+#~ msgstr "voorraad"
+
+#~ msgid "budget"
+#~ msgstr "budget"
+
+#, python-format
+#~ msgid ""
+#~ "No shopping trips selected yet — pick shopping days on the <a "
+#~ "href=\"%(shopping_url)s\">shopping page</a> first."
+#~ msgstr ""
+#~ "Nog geen winkeldagen gekozen — kies eerst winkeldagen op de <a "
+#~ "href=\"%(shopping_url)s\">boodschappenpagina</a>."
+
+#~ msgid "shopping"
+#~ msgstr "boodschappen"
 
 #, python-format
 #~ msgid ""

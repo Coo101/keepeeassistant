@@ -9,17 +9,19 @@
     h1 { font-size: 16pt; margin-bottom: 0; }
     h2 { font-size: 13pt; border-bottom: 2px solid #2c6e49; padding-bottom: 2px; margin-top: 1.2em; page-break-after: avoid; }
     h3 { font-size: 11pt; margin-bottom: 0.2em; page-break-after: avoid; }
-    .meta, .muted { color: #555; }
-    table { border-collapse: collapse; margin: 0.3em 0 0.8em; }
+    .meta, .text-body-secondary { color: #555; }
+    .table { border-collapse: collapse; margin: 0.3em 0 0.8em; }
+    .w-100 { width: 100%; }
+    .w-auto { width: auto; }
     th, td { border: 1px solid #bbb; padding: 3pt 6pt; text-align: left; vertical-align: top; }
     th { background: #eee; }
-    td:last-child, td:nth-last-child(2) { white-space: nowrap; }
-    .report-meals { width: 100%; }
+    .text-end, th.text-end { text-align: right; }
+    .text-nowrap { white-space: nowrap; }
     .report-day { page-break-inside: avoid; }
     .badge { font-weight: normal; color: #555; }
-    .warning { border: 1.5pt solid #f59e0b; background: #fef3c7; padding: 4pt 8pt; margin: 6pt 0; }
-    .warning p { margin: 3pt 0; }
-    .ok { color: #1e4d33; }
+    .alert { border: 1.5pt solid #f59e0b; background: #fef3c7; padding: 4pt 8pt; margin: 6pt 0; }
+    .alert p { margin: 3pt 0; }
+    .text-success { color: #1e4d33; }
     {% if pdf_fallback %}@media screen { body::before { content: "{% translate "PDF engine unavailable — use your browser's Print to save as PDF." %}"; display:block; background:#fef3c7; padding:8px; margin-bottom:12px; } }{% endif %}
   </style>
 </head>

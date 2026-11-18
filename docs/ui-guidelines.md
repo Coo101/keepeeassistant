@@ -54,7 +54,7 @@ Follow `docs/DESIGN.md` and its review checklist. In short:
 
 ## Layout and breakpoints
 
-- **Planning views** (stages 1 and 3: camps, planner, recipes, ingredients, shopping, budget, bills, report, stock, accounts) are designed for a **PC at 1366px wide**, then checked at 375px: no horizontal page scroll, tables scroll inside their box, forms in one column, nothing cut off. Two-column forms from `lg` (D19).
+- **Planning views** (stages 1 and 3: camps, planner, recipes, ingredients, shopping, budget, bills, report, stock, accounts) are designed for a **PC at 1366px wide**, then checked at 375px: no horizontal page scroll, tables scroll inside their box, forms in one column, nothing cut off. Two-column forms from `lg` (D19). Exception: the shopping page's trip lists, which are read at the pickup, work equally on a phone: names wrap, quantities stay on one line, tap targets at least 44px (D20).
 - **Kitchen views** (stage 2) are designed for a **phone at 375px and a tablet at 768px**.
 - **Public pages** (home, news, help, login, join) work equally at both.
 - No horizontal scroll on the page itself at 375px. A wide table may scroll inside its own box.
@@ -68,7 +68,7 @@ Follow `docs/DESIGN.md` and its review checklist. In short:
 - **Planning views** (camps, planner, recipes, shopping, budget, bills):
   - Tables in `table-responsive`: on a phone they scroll sideways inside their box. Only tables people really use on a phone get a card layout below `lg`.
   - Forms in a single column on mobile, two columns from `lg`.
-  - The page's main action sits next to the title from `lg`, under it on phones. A form's submit button sits bottom-right; destructive actions are set apart, in `btn-outline-danger`.
+  - The page's main action sits next to the title from `lg`, under it on phones. A form's submit button sits bottom-right; destructive actions are set apart, in `btn-outline-danger`. Only the confirmation page's final Delete button is solid `btn-danger`.
 
 ## Permissions in the UI
 

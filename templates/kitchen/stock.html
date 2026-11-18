@@ -1,45 +1,61 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n ui %}
 {% block title %}{% translate "Stock" %} — {{ chiro.name }}{% endblock %}
 {% block content %}
-{% if is_member %}<p><a class="back-link" href="{% url 'chiro_detail' chiro.pk %}">← {{ chiro.name }}</a></p>{% endif %}
-<h1>{{ chiro.name }} — {% translate "stock" %}</h1>
-{% if chiro.is_example and not user.is_staff %}<div class="warning">🔍 {% translate "This is an example: you can look around, but not change it." %}</div>{% endif %}
+{% if is_member %}{% url 'chiro_detail' chiro.pk as chiro_url %}{% include "components/back_link.html" with url=chiro_url label=chiro.name %}{% endif %}
+{% translate "Stock" as title %}
+{% include "components/page_header.html" with title=title meta=chiro.name %}
+{% if chiro.is_example and not user.is_staff %}<div class="alert alert-info" role="status"><i class="bi bi-eye" aria-hidden="true"></i> {% translate "This is an example: you can look around, but not change it." %}</div>{% endif %}
 
-<h2>{% translate "Kitchen utilities" %}</h2>
-<p class="page-meta">{% translate "What your Chiro owns: pots, fire pits, gas bottles and so on. Every camp of the Chiro compares what it needs with this list, and buys what's missing. Utilities bought on a bill can be added here when you review it." %}</p>
-<form method="post">
-  {% csrf_token %}
-  <input type="hidden" name="section" value="utensils">
-  {{ formset.management_form }}
-  {{ formset.non_form_errors }}
-  <div class="table-scroll">
-  <table>
-    <thead>
-      <tr><th>{% translate "Name" %}</th><th>{% translate "In stock" %}</th><th>{% translate "Note" %}</th><th>{% translate "Needed by" %}</th><th>{% translate "Delete" %}</th></tr>
-    </thead>
-    <tbody>
-      {% for form in formset %}
-      <tr>
-        <td>{% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}{{ form.non_field_errors }}{{ form.name }}{{ form.name.errors }}</td>
-        <td>{{ form.in_stock }}{{ form.in_stock.errors }}</td>
-        <td>{{ form.note }}{{ form.note.errors }}</td>
-        <td>{% if form.instance.pk %}{% for need in form.instance.camp_needs.all %}{{ need.camp.name }}: {{ need.needed }}{% if not forloop.last %}<br>{% endif %}{% empty %}<span class="muted">—</span>{% endfor %}{% endif %}</td>
-        <td>{% if form.instance.pk %}{{ form.DELETE }}{% endif %}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<div class="card mb-4">
+  <div class="card-header"><h2 class="h5 mb-0">{% translate "Kitchen utilities" %}</h2></div>
+  <div class="card-body">
+    <p class="form-text mt-0">{% translate "What your Chiro owns: pots, fire pits, gas bottles and so on. Every camp of the Chiro compares what it needs with this list, and buys what's missing. Utilities bought on a bill can be added here when you review it." %}</p>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="section" value="utensils">
+      {{ formset.management_form }}
+      {% if formset.non_form_errors %}<div class="alert alert-danger" role="alert">{{ formset.non_form_errors|join:" " }}</div>{% endif %}
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+          <thead>
+            <tr>
+              <th scope="col">{% translate "Name" %}</th>
+              <th scope="col">{% translate "In stock" %}</th>
+              <th scope="col">{% translate "Note" %}</th>
+              <th scope="col">{% translate "Needed by" %}</th>
+              <th scope="col">{% translate "Delete" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for form in formset %}
+            <tr>
+              <td>{% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}{% if form.non_field_errors %}<div class="text-danger small">{{ form.non_field_errors|join:" " }}</div>{% endif %}{{ form.name|table_input }}{% if form.name.errors %}<div class="invalid-feedback d-block">{{ form.name.errors|join:" " }}</div>{% endif %}</td>
+              <td>{{ form.in_stock|table_input }}{% if form.in_stock.errors %}<div class="invalid-feedback d-block">{{ form.in_stock.errors|join:" " }}</div>{% endif %}</td>
+              <td>{{ form.note|table_input }}{% if form.note.errors %}<div class="invalid-feedback d-block">{{ form.note.errors|join:" " }}</div>{% endif %}</td>
+              <td>{% if form.instance.pk %}{% for need in form.instance.camp_needs.all %}{{ need.camp.name }}: {{ need.needed }}{% if not forloop.last %}<br>{% endif %}{% empty %}<span class="text-body-secondary">—</span>{% endfor %}{% endif %}</td>
+              <td>{% if form.instance.pk %}{{ form.DELETE|table_input }}{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="d-flex gap-2 mt-3"><button class="btn btn-primary" type="submit"><i class="bi bi-check-lg" aria-hidden="true"></i> {% translate "Save" %}</button></div>
+    </form>
   </div>
-  <div class="actions"><button class="btn" type="submit">{% translate "Save" %}</button></div>
-</form>
+</div>
 
-<h2 id="pantry">{% translate "Pantry" %}</h2>
-<p class="page-meta">{% translate "Food your Chiro already has, in the ingredient's unit. Every camp of the Chiro takes it off its shopping lists and budget, starting with the first trip." %}</p>
-<form method="post">
-  {% csrf_token %}
-  <input type="hidden" name="section" value="pantry">
-  {% include "recipes/_formset.html" with formset=pantry %}
-  <div class="actions"><button class="btn" type="submit">{% translate "Save" %}</button></div>
-</form>
+<div class="card mb-4" id="pantry">
+  <div class="card-header"><h2 class="h5 mb-0">{% translate "Pantry" %}</h2></div>
+  <div class="card-body">
+    <p class="form-text mt-0">{% translate "Food your Chiro already has, in the ingredient's unit. Every camp of the Chiro takes it off its shopping lists and budget, starting with the first trip." %}</p>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="section" value="pantry">
+      {% url 'pantry_row' chiro.pk as add_url %}{% translate "Add a row" as add_label %}
+      {% include "recipes/_formset.html" with formset=pantry add_url=add_url add_label=add_label %}
+      <div class="d-flex gap-2 mt-3"><button class="btn btn-primary" type="submit"><i class="bi bi-check-lg" aria-hidden="true"></i> {% translate "Save" %}</button></div>
+    </form>
+  </div>
+</div>
 {% endblock %}

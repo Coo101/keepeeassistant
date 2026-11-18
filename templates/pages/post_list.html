@@ -1,14 +1,18 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n ui %}
 {% block title %}{% translate "News" %} — {% translate "Camp Meal Planner" %}{% endblock %}
 {% block content %}
-<h1>{% translate "News" %}</h1>
+{% translate "News" as page_title %}
+{% include "components/page_header.html" with title=page_title %}
 {% for post in posts %}
-<article class="card">
-  <h3><a href="{% url 'post_detail' post.slug %}">{{ post.title }}</a></h3>
-  <p class="muted">{{ post.published_at|date:"d F Y" }}</p>
-</article>
+<div class="card mb-2">
+  <div class="card-body">
+    <h2 class="h5 mb-1"><a href="{% url 'post_detail' post.slug %}">{{ post.title }}</a></h2>
+    <p class="text-body-secondary small mb-0">{{ post.published_at|short_date:"year" }}</p>
+  </div>
+</div>
 {% empty %}
-<p class="empty-slot">{% translate "No news yet." %}</p>
+{% translate "No news yet." as empty_text %}
+{% include "components/empty_state.html" with icon="newspaper" text=empty_text %}
 {% endfor %}
 {% endblock %}

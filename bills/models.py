@@ -25,7 +25,6 @@ def _bill_path(bill: "Bill", filename: str) -> str:
 
 class Bill(models.Model):
     class Status(models.TextChoices):
-        WAITING = "waiting", _("Waiting to be read")
         FAILED = "failed", _("Couldn't be read")
         REVIEW = "review", _("To review")
         DONE = "done", _("Reviewed")
@@ -39,7 +38,7 @@ class Bill(models.Model):
     status = models.CharField(
         max_length=10,
         choices=Status.choices,
-        default=Status.WAITING,
+        default=Status.REVIEW,
         verbose_name=_("status"),
     )
     error = models.CharField(max_length=300, blank=True)

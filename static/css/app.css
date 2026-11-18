@@ -1,4 +1,5 @@
-/* Camp Meal Planner — basic app styling */
+/* Camp Meal Planner: the Chiro theme on top of Bootstrap 5.3 (docs/DESIGN.md §8),
+   plus the few rules Bootstrap's utilities can't express. */
 
 :root {
   --chiro-red: #E1143C;
@@ -25,20 +26,16 @@
   --bs-link-hover-color-rgb: 38, 54, 104;
   --bs-focus-ring-color: rgba(0, 18, 77, 0.25);
   --bs-body-bg: var(--chiro-sand-faint);
-
-  /* Old tokens used by the hand-written pages, now pointing at the Chiro palette. */
-  --accent: var(--chiro-navy);
-  --accent-dark: var(--chiro-navy-hover);
-  --accent-soft: var(--chiro-sand-soft);
-  --bg: var(--chiro-sand-faint);
-  --surface: #ffffff;
-  --text: #212529;
+  --bs-body-font-family: var(--font-body);
   /* Darker than Bootstrap's #6c757d, which drops under 4.5:1 on the sand tints. */
-  --muted: #5c636a;
   --bs-secondary-color: #5c636a;
-  --border: #e5e7eb;
-  --warn-bg: #fef3c7;
-  --warn-border: #f59e0b;
+  /* Bootstrap's red-600: Bootstrap's own #dc3545 is 4.3:1 on sand-faint, under AA.
+     The subtle background and text-emphasis variables are dark enough and stay. */
+  --bs-danger: #B02A37;
+  --bs-danger-rgb: 176, 42, 55;
+  /* Field errors (invalid-feedback, is-invalid borders) have their own fixed red. */
+  --bs-form-invalid-color: #B02A37;
+  --bs-form-invalid-border-color: #B02A37;
 }
 
 .btn-primary {
@@ -67,6 +64,33 @@
   --bs-btn-focus-shadow-rgb: 0, 18, 77;
 }
 
+/* The danger buttons have Bootstrap's red compiled in; these follow --bs-danger. */
+.btn-danger {
+  --bs-btn-bg: #B02A37;
+  --bs-btn-border-color: #B02A37;
+  --bs-btn-hover-bg: #8E2230;
+  --bs-btn-hover-border-color: #8E2230;
+  --bs-btn-active-bg: #8E2230;
+  --bs-btn-active-border-color: #842029;
+  --bs-btn-disabled-bg: #B02A37;
+  --bs-btn-disabled-border-color: #B02A37;
+  --bs-btn-focus-shadow-rgb: 176, 42, 55;
+}
+
+.btn-outline-danger {
+  --bs-btn-color: #B02A37;
+  --bs-btn-border-color: #B02A37;
+  --bs-btn-hover-bg: #B02A37;
+  --bs-btn-hover-border-color: #B02A37;
+  --bs-btn-active-bg: #8E2230;
+  --bs-btn-active-border-color: #8E2230;
+  --bs-btn-disabled-color: #B02A37;
+  --bs-btn-disabled-border-color: #B02A37;
+  --bs-btn-focus-shadow-rgb: 176, 42, 55;
+}
+
+/* Unchecked boxes: Bootstrap's #dee2e6 border is under 3:1 on white and sand. */
+.form-check-input { border-color: #6C757D; }
 .form-control:focus,
 .form-select:focus,
 .form-check-input:focus {
@@ -78,18 +102,11 @@
   border-color: var(--chiro-navy);
 }
 
+/* Badges fully rounded (DESIGN §6). */
+.badge { --bs-badge-border-radius: var(--bs-border-radius-pill); }
+
 .navbar-chiro { background-color: var(--chiro-red); }
 .page-rule { width: 3rem; height: 3px; background: var(--chiro-red); border: 0; opacity: 1; }
-
-* { box-sizing: border-box; }
-
-body {
-  font-family: var(--font-body);
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.5;
-}
 
 /* ---------- Navbar (base.html) ---------- */
 
@@ -115,17 +132,7 @@ body {
   align-items: center;
 }
 
-.login-card { max-width: 22rem; }
-.login-card input[type="text"],
-.login-card input[type="password"] {
-  width: 100%;
-  font: inherit;
-  padding: 0.4rem 0.6rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-}
-
-/* ---------- Typography ---------- */
+/* ---------- Headings: the condensed Chiro font, in navy ---------- */
 
 h1, h2, h3 {
   font-family: var(--font-heading);
@@ -133,50 +140,12 @@ h1, h2, h3 {
   font-stretch: condensed;
   color: var(--chiro-navy);
 }
-h1 { font-size: 1.75rem; margin: 0 0 0.25rem; letter-spacing: -0.01em; }
+h1 { font-size: 1.75rem; letter-spacing: -0.01em; }
 @media (min-width: 992px) { h1 { font-size: 2rem; } }
-h2 { font-size: 1.375rem; margin: 1.75rem 0 0.5rem; }
-h3 { font-size: 1.125rem; margin: 0 0 0.35rem; }
+h2 { font-size: 1.375rem; }
+h3 { font-size: 1.125rem; }
 
-a { color: var(--accent); }
-a:hover { color: var(--accent-dark); }
-
-.muted { color: var(--muted); font-size: 0.9rem; }
-
-.page-meta { color: var(--muted); margin: 0 0 1rem; }
-.page-meta strong { color: var(--text); }
-
-.back-link { font-size: 0.9rem; text-decoration: none; }
-
-/* ---------- Cards & tables ---------- */
-
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 1rem 1.25rem;
-  box-shadow: 0 1px 3px rgb(0 0 0 / 0.06);
-  margin: 1rem 0;
-}
-
-table { border-collapse: collapse; width: 100%; background: var(--surface); }
-
-/* Old tables on pages not moved yet; Bootstrap tables (.table) are themed below. */
-table:not(.table) th, table:not(.table) td {
-  border: 1px solid var(--border);
-  padding: 0.5rem 0.7rem;
-  text-align: left;
-  vertical-align: top;
-}
-
-table:not(.table) thead th {
-  background: var(--accent-soft);
-  color: var(--accent-dark);
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-table:not(.table) tbody tr:hover { background: var(--chiro-sand-faint); }
+/* ---------- Tables, pills and focus rings ---------- */
 
 /* Bootstrap tables (DESIGN §6): sand-soft header row with navy text. */
 .table { --bs-table-hover-bg: var(--chiro-sand-faint); }
@@ -186,58 +155,28 @@ table:not(.table) tbody tr:hover { background: var(--chiro-sand-faint); }
   font-weight: 600;
 }
 
-/* Active pill navy, not Bootstrap blue (camp nav, runbook days). */
+/* Active pill and list item navy, not Bootstrap blue (camp nav, runbook days, the
+   help pages' list). */
 .nav-pills { --bs-nav-pills-link-active-bg: var(--chiro-navy); }
-
-table.compact { max-width: 480px; }
-table.compact td:last-child { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-
-/* ---------- Buttons ---------- */
-
-/* The old hand-written buttons, on pages not moved yet (roadmap step 3). They must
-   not touch Bootstrap's own variants, or btn-outline-* turns solid navy. */
-.btn:not(.btn-primary):not(.btn-secondary):not(.btn-link):not(.btn-sm):not([class*="btn-outline-"]) {
-  display: inline-block;
-  background: var(--accent);
-  color: white;
-  border: 1px solid var(--accent);
-  padding: 0.45rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  text-decoration: none;
-  transition: background 0.12s ease;
+.list-group {
+  --bs-list-group-active-bg: var(--chiro-navy);
+  --bs-list-group-active-border-color: var(--chiro-navy);
 }
-.btn:not(.btn-primary):not(.btn-secondary):not(.btn-link):not(.btn-sm):not([class*="btn-outline-"]):hover { background: var(--accent-dark); color: white; }
 
-.btn-outline { background: var(--surface); color: var(--accent); }
-.btn-outline:hover { background: var(--accent-soft); color: var(--accent-dark); }
-
-.btn-small { padding: 0.15rem 0.6rem; font-size: 0.85rem; }
-.btn-danger { background: var(--surface); color: #b91c1c; border-color: #b91c1c; }
-.btn-danger:hover { background: #fee2e2; color: #991b1b; border-color: #991b1b; }
-.btn-danger-outline { background: var(--surface); color: #b91c1c; border-color: #b91c1c; }
-.btn-danger-outline:hover { background: #fee2e2; color: #991b1b; }
-
-/* Focus rings (DESIGN §6): navy, white on the red navbar. */
+/* Focus rings (DESIGN §6): navy, red on danger buttons, white on the red navbar. */
 .btn:focus-visible { outline: 0; box-shadow: 0 0 0 0.25rem rgba(0, 18, 77, 0.25); }
 .btn-danger:focus-visible,
-.btn-danger-outline:focus-visible { box-shadow: 0 0 0 0.25rem rgba(185, 28, 28, 0.25); }
+.btn-outline-danger:focus-visible { box-shadow: 0 0 0 0.25rem rgba(176, 42, 55, 0.25); }
 main a:focus-visible { outline: 2px solid var(--chiro-navy); outline-offset: 2px; }
 .navbar .nav-link:focus-visible,
 .navbar-brand:focus-visible,
 .navbar-toggler:focus { outline: 0; box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.6); }
 
-.outside-list { list-style: none; padding: 0; margin: 0.5rem 0; }
-.outside-list li { display: flex; align-items: center; gap: 0.6rem; margin: 0.25rem 0; }
-.outside-list form { margin: 0; }
-
+/* Bootstrap 5.3 doesn't style <dialog> (the new-ingredient dialog). */
 dialog { border: 1px solid var(--bs-border-color); border-radius: var(--bs-border-radius-lg); width: min(32rem, calc(100vw - 2rem)); box-sizing: border-box; }
 dialog::backdrop { background: rgb(0 0 0 / 0.4); }
 
-.actions { margin: 1rem 0; display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center; }
-
-/* ---------- Planner grid ---------- */
+/* ---------- Planner grid: chips Bootstrap's badges can't do (dashed, hover) ---------- */
 
 .slot-chip {
   display: inline-block;
@@ -268,174 +207,27 @@ dialog::backdrop { background: rgb(0 0 0 / 0.4); }
 }
 .slot-chip-missing:hover { background: var(--bs-danger-bg-subtle); border-color: var(--bs-danger-text-emphasis); color: var(--bs-danger-text-emphasis); }
 
-/* ---------- Forms ---------- */
+/* ---------- Text ---------- */
 
-/* Old hand-styled inputs only; Bootstrap controls keep their own look. */
-:where(select, input[type="text"], input[type="number"]):not(.form-control, .form-select) {
-  font: inherit;
-  padding: 0.4rem 0.6rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface);
-  min-width: 16rem;
-}
-select:not(.form-control, .form-select):focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
-
-.stacked-form input[type="date"], .stacked-form input[type="time"], .stacked-form textarea {
-  font: inherit;
-  padding: 0.4rem 0.6rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface);
-}
-.stacked-form textarea { width: 100%; max-width: 40rem; box-sizing: border-box; }
-.stacked-form select, .stacked-form input[type="text"], .stacked-form input[type="number"] { max-width: 100%; }
-.form-row { margin-bottom: 0.9rem; }
-.form-row:last-child { margin-bottom: 0; }
-.form-row label { display: block; font-weight: 600; margin-bottom: 0.2rem; }
-.form-row .helptext { color: var(--muted); font-size: 0.85rem; margin-bottom: 0.2rem; }
-
-ul.checkboxes { list-style: none; padding: 0; margin: 0.5rem 0 1rem; display: flex; flex-wrap: wrap; gap: 0.4rem; }
-ul.checkboxes li { margin: 0; }
-
-ul.checkboxes label {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 0.25rem 0.75rem;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-ul.checkboxes label:hover { border-color: var(--accent); }
-ul.checkboxes label:has(input:checked) {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  color: var(--accent-dark);
-}
-
-/* ---------- Misc ---------- */
-
-.warning {
-  background: var(--warn-bg);
-  border: 1px solid var(--warn-border);
-  border-left-width: 5px;
-  padding: 0.7rem 1rem;
-  border-radius: 8px;
-  margin: 1rem 0;
-}
-
-.category-block { margin-bottom: 1.1rem; }
-
-.empty-slot { color: var(--muted); font-style: italic; }
-
-.badge {
-  display: inline-block;
-  background: var(--accent-soft);
-  color: var(--accent-dark);
-  border-radius: 999px;
-  padding: 0.05rem 0.55rem;
-  font-size: 0.85rem;
-  font-variant-numeric: tabular-nums;
-}
-
-/* Wide tables scroll inside their own box instead of pushing the page. */
-.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.table-scroll > table { min-width: 34rem; }
-@media print {
-  .table-scroll { overflow-x: visible; }
-  .table-scroll > table { min-width: 0; }
-}
-
-/* ---------- Shop sections ---------- */
-
-.shop-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr));
-  gap: 1rem;
-  align-items: start;
-}
-
-.shop-section {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0.8rem 1rem;
-  box-shadow: 0 1px 3px rgb(0 0 0 / 0.06);
-}
-.shop-section .category-block:last-child { margin-bottom: 0; }
-.shop-section table.compact { max-width: none; }
-
-.shop-title {
-  background: var(--accent-soft);
-  color: var(--accent-dark);
-  border-radius: 6px;
-  padding: 0.25rem 0.6rem;
-  margin: 0 0 0.5rem;
-  font-size: 1rem;
-}
-
-.shop-totals {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  margin: 0.5rem 0 1rem;
-}
-.shop-total {
-  display: flex;
-  flex-direction: column;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--accent);
-  border-radius: 8px;
-  padding: 0.4rem 0.9rem;
-}
-.shop-total-label { font-size: 0.85rem; color: var(--muted); }
-.shop-total-value { font-weight: 700; font-variant-numeric: tabular-nums; }
-.shop-total-note { font-size: 0.75rem; color: #b45309; }
-.shop-total-partial { border-left-color: var(--warn-border); }
-
-/* ---------- Budget ---------- */
-
-.budget-table { max-width: 640px; }
-.budget-table td:nth-child(2),
-.budget-table td:nth-child(3),
-.budget-table td:nth-child(4) { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.budget-table tr.row-missing td { background: #fef3c7; }
-
-/* ---------- Runbook ---------- */
-
-.toc {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.5rem 0.7rem;
-  margin: 1rem 0;
-  box-shadow: 0 2px 6px rgb(0 0 0 / 0.08);
-}
-.toc a {
-  text-decoration: none;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 0.15rem 0.7rem;
-  font-size: 0.9rem;
-}
-.toc a:hover { border-color: var(--accent); background: var(--accent-soft); }
-
+/* Multi-line camp fields on the runbook keep their line breaks; Bootstrap has no
+   pre-line utility. */
 .prewrap { white-space: pre-line; margin: 0.2rem 0 0; }
 
-/* Old-style cards on pages not moved yet (roadmap step 3). */
-.card h3 { margin-top: 0; }
+/* Help pages and news posts: Markdown, at a readable line length. The Markdown
+   renderer writes plain <table> and <h2>, so they get their look here. */
+.prose { max-width: 42rem; line-height: 1.6; }
+.prose h2 { margin-top: 1.75rem; }
+.prose table { border-collapse: collapse; margin-bottom: 1rem; background: #fff; }
+.prose th,
+.prose td { border: 1px solid var(--bs-border-color); padding: 0.5rem 0.7rem; vertical-align: top; }
+.prose thead th { background: var(--chiro-sand-soft); color: var(--chiro-navy); font-weight: 600; }
 
+/* Runbook days stay clear of the sticky day pills when jumped to. */
 .runbook-day { scroll-margin-top: 4rem; }
+
+/* A visually-hidden table heading is absolutely positioned: without this it escapes
+   the scrolling box and widens the whole page on a phone. */
+.table-responsive { position: relative; }
 
 /* ---------- Print (recipe one-pager) ---------- */
 
@@ -449,58 +241,22 @@ ul.checkboxes label:has(input:checked) {
   .card { box-shadow: none; }
 }
 
-/* ---------- Public pages ---------- */
-
-.hero { padding: 2rem 0 1rem; max-width: 42rem; }
-.hero h1 { font-size: 2rem; margin: 0 0 0.75rem; }
-.hero p { font-size: 1.05rem; }
-.feature-grid {
-  list-style: none;
-  padding: 0;
-  margin: 1.5rem 0;
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-}
-.feature-grid .card { margin: 0; }
-.prose { max-width: 42rem; line-height: 1.6; }
-.toc a[aria-current="page"] { font-weight: 700; }
-.header-auth a { color: inherit; }
-
 /* ---------- Bill review: a wide table, with the matching columns first ---------- */
 
 main:has(.bill-review) { max-width: none; }
 .bill-lines { table-layout: fixed; }
 .bill-lines th, .bill-lines td { padding: 0.3rem 0.4rem; }
 /* The header stays in view while scrolling through a long bill. */
-.bill-lines thead th { position: sticky; top: 0; z-index: 1; }
+.bill-lines thead th { position: sticky; top: 0; z-index: 1; background-color: var(--bs-body-bg); }
 .bill-lines .col-description { width: 20%; }
 .bill-lines .col-category { width: 9.5rem; }
 .bill-lines .col-ingredient { width: 20%; }
 .bill-lines .col-number { width: 6.5rem; }
 .bill-lines .col-check { width: 4.5rem; text-align: center; }
 .bill-lines .col-stock { width: 11%; }
-.bill-lines input[type="text"], .bill-lines input[type="number"], .bill-lines select {
-  width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-}
-.with-button { display: flex; gap: 0.25rem; align-items: center; }
-.with-button select { flex: 1; }
 /* Narrow screens scroll the table sideways; the header can't stick then. */
 @media (max-width: 60rem) {
   .bill-lines-box { overflow-x: auto; }
   .bill-lines { min-width: 60rem; }
   .bill-lines thead th { position: static; }
 }
-
-/* ---------- Financial report ---------- */
-
-.report table.report-summary { width: auto; min-width: 22rem; }
-.report-summary td:last-child, .report-meals td:nth-last-child(-n+2) {
-  text-align: right;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-.report .warning p { margin: 0.3rem 0; }
-.ok { color: var(--accent-dark); font-weight: 600; }

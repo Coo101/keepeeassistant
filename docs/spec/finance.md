@@ -9,7 +9,7 @@ report. Budget estimates before the camp are in [shopping](shopping.md).
 ## Data
 
 - **Bill**: `camp`, `file` (optional; empty once removed), `original_name`, `shop`,
-  `date`, `status` (waiting to be read / couldn't be read / to review / reviewed),
+  `date`, `status` (couldn't be read / to review / reviewed),
   `error`, `printed_total`, `uploaded_by`, `uploaded_at`.
 - **BillLine**: `bill`, `description`, `article` (the shop's number, if printed),
   `quantity`, `pack_amount` (per item, in the ingredient's unit), `line_total` (incl.
@@ -22,15 +22,17 @@ report. Budget estimates before the camp are in [shopping](shopping.md).
 
 ### Bills
 
-- Per camp: upload bills (PDF or photo) after a privacy warning. Only members of the
+- Per camp: upload bills after a privacy warning, as PDFs with text only (D21). An
+  image, a PDF without text or a damaged file is refused with a message; photos are
+  turned into a PDF with text recognition first, with another tool. Only members of the
   camp's Chiro can open them, always as a download. A file can be removed while
   keeping the lines, and goes when its bill or camp is deleted. (Privacy rules: see
   [SPEC](../SPEC.md).)
 - Reading:
   - PDFs with text are read in plain Python (`pdfplumber`), tuned for Collect&Go
     (Colruyt) and Van Zon invoices.
-  - Scans and photos wait for an Ollama vision model (`manage.py read_bills`, the
-    `bill-reader` service), and stay waiting while it's unreachable.
+  - A layout the reader doesn't know is kept with no lines as "couldn't be read",
+    for typing the lines in.
   - Lines can always be added by hand.
   - Invoices listing amounts without VAT get the VAT added per line, so the lines add
     up to what was paid; leftover cents go on a rounding line.
@@ -38,9 +40,11 @@ report. Budget estimates before the camp are in [shopping](shopping.md).
     number; otherwise the description.
 - Review: a person checks every line (ingredient, amount per item in the ingredient's
   unit, category). Saving sets the camp's price (paid / total amount) and remembers
-  the match per shop. Nothing changes a price before that. The review table fits the
-  page, keeps its header in view, and can create a missing ingredient per line, named
-  after the line. (Prices: see [recipes](recipes.md).)
+  the match per shop. Nothing changes a price before that. The review table is built
+  for a PC: it fits the page at 1366px, keeps its header in view, and can create a
+  missing ingredient per line, named after the line. *Add a line* adds an empty line
+  (in place, or by posting the form without JavaScript); bills list status as badges
+  (to review, reviewed, couldn't be read). (Prices: see [recipes](recipes.md).)
 - Categories: only camp food sets prices. Camp food and other (deposits, discounts)
   count towards the food total compared with the budget. Skipped lines count for
   nothing.
@@ -68,7 +72,10 @@ None yet.
 ## Decisions
 
 - **D14**: **Bills are read on our own hardware** (Python, or Ollama on a local PC),
-  never by a cloud AI.
+  never by a cloud AI. *Replaced by D21.*
+- **D21** (2026-11-18): **Bills are PDFs with text, read in plain Python; no AI.** The
+  server has no AI and other users don't spend the owner's credits. Photos become a
+  PDF with text recognition before upload; anything else is refused.
 
 ## Planned
 

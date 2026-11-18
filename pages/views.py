@@ -28,6 +28,16 @@ def _render_markdown(text: str) -> str:
     return mark_safe(markdown.markdown(text, extensions=["tables", "sane_lists"]))
 
 
+def split_title(text: str) -> tuple[str | None, str]:
+    """A help file's `# Title` first line, and the text after it; (None, text)
+    when the first line that isn't blank isn't a `# ` heading."""
+    stripped = text.lstrip("\n")
+    first, _newline, rest = stripped.partition("\n")
+    if first.startswith("# "):
+        return first[2:].strip(), rest
+    return None, text
+
+
 @login_not_required
 def home(request: HttpRequest) -> HttpResponse:
     return render(request, "pages/home.html", {"posts": Post.objects.published()[:3]})
@@ -55,12 +65,12 @@ def doc(request: HttpRequest, slug: str) -> HttpResponse:
     # English is the source; a translation sits next to it as <slug>.<language>.md.
     translated = CONTENT_DIR / f"{slug}.{get_language()}.md"
     path = translated if translated.exists() else CONTENT_DIR / f"{slug}.md"
-    text = path.read_text(encoding="utf-8")
+    title, text = split_title(path.read_text(encoding="utf-8"))
     return render(
         request,
         "pages/doc.html",
         {
-            "title": DOCS[slug],
+            "title": title or DOCS[slug],
             "body": _render_markdown(text),
             "docs": DOCS.items(),
             "current": slug,

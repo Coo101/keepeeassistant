@@ -1,23 +1,20 @@
 """Bills: upload, reading, review, prices and access (docs/spec/finance.md)."""
 
 import datetime
-import io
-import json
-import urllib.error
+import re
 from decimal import Decimal
 from pathlib import Path
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.management import call_command
+from django.db import connection
+from django.db.migrations.executor import MigrationExecutor
 from django.test import Client
-from django.urls import reverse
-from PIL import Image
+from django.urls import NoReverseMatch, reverse
 
 from accounts.models import Chiro, Role
 from bills.models import Bill, BillLine, LineMatch
 from bills.parsing import parse_pack, parse_text
-from bills.reading import read_with_ollama
 from bills.services import apply_review, camp_spending, store_parsed_bill
 from camps.models import Camp
 from core.constants import PriceSource, Shop, Unit
@@ -37,6 +34,11 @@ BILL_TEXT = [
     "BTW 6% 0,46",
     "Bancontact 8,18",
 ]
+# Real text, but no layout the reader knows.
+UNKNOWN_TEXT = ["Bakkerij Testdorp", "Dank u wel"]
+NO_TEXT = "This PDF has no text the app can read."
+NOT_A_PDF = "Upload a PDF. Turn a photo into a PDF with text first."
+UNKNOWN_LAYOUT = "This shop&#x27;s layout isn&#x27;t known yet: add the lines by hand."
 
 
 def text_pdf(lines: list[str] = BILL_TEXT) -> bytes:
@@ -67,12 +69,6 @@ def text_pdf(lines: list[str] = BILL_TEXT) -> bytes:
         f"startxref\n{xref}\n%%EOF"
     ).encode()
     return out
-
-
-def png_bytes() -> bytes:
-    buffer = io.BytesIO()
-    Image.new("RGB", (10, 10)).save(buffer, format="PNG")
-    return buffer.getvalue()
 
 
 def upload(client: Client, camp: Camp, name="bill.pdf", content=None, **extra):
@@ -328,14 +324,6 @@ def test_upload_reads_a_text_pdf_and_changes_no_price(client, camp, carrots) -> 
     assert not IngredientPrice.objects.exists()
 
 
-def test_scan_without_text_waits_for_ollama(client, camp) -> None:
-    upload(client, camp, name="photo.png", content=png_bytes())
-    bill = Bill.objects.get()
-    assert bill.status == Bill.Status.WAITING
-    page = client.get(reverse("bill_detail", args=[camp.pk, bill.pk]))
-    assert "Waiting to be read" in page.content.decode()
-
-
 @pytest.mark.parametrize(
     ("name", "content"),
     [
@@ -354,6 +342,17 @@ def test_upload_page_shows_the_privacy_warning(client, camp) -> None:
     page = client.get(reverse("bill_list", args=[camp.pk])).content.decode()
     assert "Bills can hold personal data" in page
     assert "enctype=" in page
+
+
+def test_bill_list_shows_status_badges(client, camp) -> None:
+    upload(client, camp)
+    html = client.get(reverse("bill_list", args=[camp.pk])).content.decode()
+    assert "badge text-bg-warning" in html
+
+
+def test_bill_list_empty_state(client, camp) -> None:
+    html = client.get(reverse("bill_list", args=[camp.pk])).content.decode()
+    assert "bi-receipt" in html
 
 
 def test_review_sets_the_camps_price_and_remembers_the_match(
@@ -452,7 +451,7 @@ def test_unmatched_food_line_keeps_the_bill_open(client, camp) -> None:
 
 
 def test_a_line_can_be_added_by_hand(client, camp, carrots) -> None:
-    upload(client, camp, name="photo.png", content=png_bytes())
+    upload(client, camp, content=text_pdf(UNKNOWN_TEXT))
     bill = Bill.objects.get()
     response = client.post(
         reverse("bill_detail", args=[camp.pk, bill.pk]),
@@ -544,7 +543,7 @@ def _bill_urls(camp: Camp, bill: Bill) -> list[str]:
         for name in (
             "bill_detail",
             "bill_file",
-            "bill_retry",
+            "bill_line_row",
             "bill_remove_file",
             "bill_delete",
         )
@@ -643,96 +642,6 @@ def test_delete_camp_removes_files_but_keeps_prices(client, camp, carrots) -> No
     assert IngredientPrice.objects.get().camp is None
 
 
-class _Answer(io.BytesIO):
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args):
-        return False
-
-
-def _waiting_bill(client, camp) -> Bill:
-    upload(client, camp, name="photo.png", content=png_bytes())
-    return Bill.objects.get()
-
-
-def test_ollama_answer_becomes_lines(client, camp, carrots, monkeypatch, settings):
-    settings.OLLAMA_URL = "http://ollama.test"
-    bill = _waiting_bill(client, camp)
-    answer = {
-        "lines": [
-            {"description": "Wortel 2KG", "quantity": 1, "line_total": 3.5},
-            {"description": "", "quantity": 1, "line_total": 1},
-            {"description": "kapot", "line_total": "x"},
-            "rommel",
-        ],
-        "total": 3.5,
-    }
-    seen = {}
-
-    def fake_urlopen(request, timeout):
-        seen["body"] = json.loads(request.data)
-        return _Answer(json.dumps({"response": json.dumps(answer)}).encode())
-
-    monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
-
-    call_command("read_bills")
-
-    bill.refresh_from_db()
-    assert bill.status == Bill.Status.REVIEW
-    assert bill.printed_total == Decimal("3.50")
-    line = bill.lines.get()
-    assert line.ingredient == carrots
-    assert line.pack_amount == Decimal("2")
-    assert seen["body"]["images"]
-    assert not IngredientPrice.objects.exists()
-
-
-def test_bill_keeps_waiting_while_ollama_is_off(client, camp, monkeypatch, settings):
-    settings.OLLAMA_URL = "http://ollama.test"
-    bill = _waiting_bill(client, camp)
-
-    def refuse(request, timeout):
-        raise urllib.error.URLError("refused")
-
-    monkeypatch.setattr("urllib.request.urlopen", refuse)
-    call_command("read_bills")
-
-    bill.refresh_from_db()
-    assert bill.status == Bill.Status.WAITING
-
-
-def test_bad_ollama_answer_marks_the_bill_and_it_can_retry(
-    client, camp, monkeypatch, settings
-):
-    settings.OLLAMA_URL = "http://ollama.test"
-    bill = _waiting_bill(client, camp)
-    monkeypatch.setattr(
-        "urllib.request.urlopen",
-        lambda request, timeout: _Answer(
-            json.dumps({"response": "geen json"}).encode()
-        ),
-    )
-    read_with_ollama(bill)
-
-    bill.refresh_from_db()
-    assert bill.status == Bill.Status.FAILED
-    assert bill.error
-    client.post(reverse("bill_retry", args=[camp.pk, bill.pk]))
-    bill.refresh_from_db()
-    assert bill.status == Bill.Status.WAITING
-
-
-def test_read_bills_leaves_bills_with_lines_alone(client, camp, settings) -> None:
-    settings.OLLAMA_URL = ""
-    bill = _waiting_bill(client, camp)
-    BillLine.objects.create(
-        bill=bill, description="Met de hand", line_total=Decimal("1")
-    )
-    call_command("read_bills")
-    assert bill.lines.count() == 1
-
-
 def test_piece_ingredient_defaults_to_one_item(client, camp) -> None:
     Ingredient.objects.create(name="Wortel", unit=PIECE)
     Ingredient.objects.create(name="Melk", unit=LITER)
@@ -782,83 +691,6 @@ def test_short_ingredient_name_needs_a_whole_word(client, camp) -> None:
     assert onion.ingredient.name == "Ui"
 
 
-def test_saving_an_empty_review_keeps_a_scan_in_the_queue(client, camp) -> None:
-    bill = _waiting_bill(client, camp)
-    client.post(
-        reverse("bill_detail", args=[camp.pk, bill.pk]),
-        {"form-TOTAL_FORMS": "1", "form-INITIAL_FORMS": "0"},
-    )
-    bill.refresh_from_db()
-    assert bill.status == Bill.Status.WAITING
-
-
-def test_read_finishing_after_hand_entry_changes_nothing(
-    client, camp, monkeypatch, settings
-):
-    settings.OLLAMA_URL = "http://ollama.test"
-    bill = _waiting_bill(client, camp)
-    answer = {"lines": [{"description": "X", "quantity": 1, "line_total": 1}]}
-
-    def slow_read(request, timeout):
-        BillLine.objects.create(bill=bill, description="Hand", line_total=Decimal("2"))
-        Bill.objects.filter(pk=bill.pk).update(status=Bill.Status.DONE)
-        return _Answer(json.dumps({"response": json.dumps(answer)}).encode())
-
-    monkeypatch.setattr("urllib.request.urlopen", slow_read)
-    read_with_ollama(bill)
-
-    bill.refresh_from_db()
-    assert bill.status == Bill.Status.DONE
-    assert [line.description for line in bill.lines.all()] == ["Hand"]
-
-
-def test_worker_stops_the_round_when_ollama_is_off(client, camp, monkeypatch, settings):
-    settings.OLLAMA_URL = "http://ollama.test"
-    _waiting_bill(client, camp)
-    _waiting_bill_two = upload(client, camp, name="two.png", content=png_bytes())
-    assert _waiting_bill_two.status_code == 302
-    calls = []
-
-    def refuse(request, timeout):
-        calls.append(1)
-        raise OSError("off")
-
-    monkeypatch.setattr("urllib.request.urlopen", refuse)
-    call_command("read_bills")
-    assert len(calls) == 1
-
-
-def test_one_bad_bill_does_not_stop_the_others(client, camp, monkeypatch, settings):
-    settings.OLLAMA_URL = "http://ollama.test"
-    upload(client, camp, name="one.png", content=png_bytes())
-    upload(client, camp, name="two.png", content=png_bytes())
-    seen = []
-
-    def crash_once(bill):
-        seen.append(bill.pk)
-        raise RuntimeError("boom")
-
-    monkeypatch.setattr(
-        "bills.management.commands.read_bills.read_with_ollama", crash_once
-    )
-    call_command("read_bills")
-    assert len(seen) == 2
-
-
-def test_sideways_photo_is_turned_upright(client, camp) -> None:
-    from bills.reading import _page_images
-
-    buffer = io.BytesIO()
-    exif = Image.Exif()
-    exif[0x0112] = 6  # rotate 90 degrees to display
-    Image.new("RGB", (20, 10)).save(buffer, format="JPEG", exif=exif)
-    upload(client, camp, name="photo.jpg", content=buffer.getvalue())
-
-    (png,) = _page_images(Bill.objects.get())
-
-    assert Image.open(io.BytesIO(png)).size == (10, 20)
-
-
 def test_deleting_a_bill_in_the_admin_removes_its_prices(client, camp, carrots):
     from django.contrib.auth.models import User
 
@@ -873,3 +705,155 @@ def test_deleting_a_bill_in_the_admin_removes_its_prices(client, camp, carrots):
 
     assert response.status_code == 302
     assert not IngredientPrice.objects.exists()
+
+
+# PDFs with text only, read in Python (D21).
+
+
+def test_upload_refuses_a_photo(client, camp) -> None:
+    response = upload(client, camp, name="photo.png", content=b"\x89PNG\r\n")
+    assert response.status_code == 200
+    assert NOT_A_PDF in response.content.decode()
+    assert not Bill.objects.exists()
+
+
+@pytest.mark.parametrize(
+    "content", [text_pdf([]), b"%PDF-1.4 garbage"], ids=["no text", "damaged"]
+)
+def test_upload_refuses_a_pdf_without_readable_text(client, camp, content) -> None:
+    response = upload(client, camp, content=content)
+    assert response.status_code == 200
+    assert NO_TEXT in response.content.decode()
+    assert not Bill.objects.exists()
+
+
+def test_unknown_layout_is_accepted_for_typing(client, camp) -> None:
+    response = upload(client, camp, content=text_pdf(UNKNOWN_TEXT))
+    bill = Bill.objects.get()
+    assert response["Location"] == reverse("bill_detail", args=[camp.pk, bill.pk])
+    assert bill.status == Bill.Status.FAILED
+    assert not bill.lines.exists()
+    page = client.get(response["Location"]).content.decode()
+    assert UNKNOWN_LAYOUT in page
+
+
+def test_saving_an_empty_review_keeps_a_failed_bill_failed(client, camp) -> None:
+    upload(client, camp, content=text_pdf(UNKNOWN_TEXT))
+    bill = Bill.objects.get()
+    client.post(
+        reverse("bill_detail", args=[camp.pk, bill.pk]),
+        {"form-TOTAL_FORMS": "1", "form-INITIAL_FORMS": "0"},
+    )
+    bill.refresh_from_db()
+    assert bill.status == Bill.Status.FAILED
+
+
+def test_retry_url_is_gone(camp) -> None:
+    with pytest.raises(NoReverseMatch):
+        reverse("bill_retry", args=[camp.pk, 1])
+
+
+@pytest.mark.django_db(transaction=True)
+def test_waiting_bills_become_failed_by_the_migration() -> None:
+    executor = MigrationExecutor(connection)
+    executor.migrate([("bills", "0004_kitchen_utilities")])
+    apps = executor.loader.project_state([("bills", "0004_kitchen_utilities")]).apps
+    # Only the bills app goes back: the other tables are as they are today.
+    camp = make_camp()
+    old_bill = apps.get_model("bills", "Bill").objects.create(
+        camp_id=camp.pk, status="waiting", date=datetime.date(2026, 8, 1)
+    )
+    apps.get_model("bills", "BillLine").objects.create(
+        bill=old_bill, description="Met de hand", line_total=Decimal("1")
+    )
+
+    executor = MigrationExecutor(connection)
+    executor.migrate(executor.loader.graph.leaf_nodes())
+
+    bill = Bill.objects.get(pk=old_bill.pk)
+    assert bill.status == Bill.Status.FAILED
+    assert (
+        bill.error == "Waiting for the AI reader, which is gone: add the lines by hand."
+    )
+    assert bill.lines.count() == 1
+
+
+def test_a_stored_file_that_cannot_be_opened_marks_the_bill_failed(
+    client, camp, monkeypatch
+) -> None:
+    from bills.reading import read_text_pdf
+
+    # A known layout, not read yet: only the broken file can make it fail.
+    bill = Bill.objects.create(
+        camp=camp, shop=Shop.COLRUYT, file=SimpleUploadedFile("b.pdf", text_pdf())
+    )
+    assert bill.status == Bill.Status.REVIEW
+
+    def broken_open(*args, **kwargs):
+        raise OSError("disk gone")
+
+    monkeypatch.setattr(type(bill.file), "open", broken_open)
+    read_text_pdf(bill)
+    bill.refresh_from_db()
+    assert bill.status == Bill.Status.FAILED
+
+
+# "Add a line" on the review table.
+
+
+def test_bill_line_row_gets_the_next_index(client, camp, carrots) -> None:
+    upload(client, camp)
+    bill = Bill.objects.get()
+    url = reverse("bill_line_row", args=[camp.pk, bill.pk]) + "?form-TOTAL_FORMS=3"
+    html = client.get(url).content.decode()
+    assert 'name="form-3-description"' in html
+    assert 'data-select="form-3-ingredient"' in html
+    assert ">Wortel" in html
+    assert 'id="id_form-TOTAL_FORMS" hx-swap-oob="true"' in html
+    assert 'value="4"' in html
+
+
+def test_add_line_without_javascript_keeps_edits_and_saves_nothing(
+    client, camp, carrots
+) -> None:
+    upload(client, camp)
+    bill = Bill.objects.get()
+    count = bill.lines.count()
+    data = review_data(bill, **{"0_ingredient": carrots.pk, "0_pack_amount": "1"})
+    data["add_row"] = "form"
+    response = client.post(reverse("bill_detail", args=[camp.pk, bill.pk]), data)
+    assert response.status_code == 200
+    html = response.content.decode()
+    assert f'name="form-{count}-description"' in html
+    assert not IngredientPrice.objects.exists()
+    bill.refresh_from_db()
+    assert bill.status == Bill.Status.REVIEW
+
+
+# The review page on Bootstrap.
+
+
+def test_review_page_layout(client, camp) -> None:
+    upload(client, camp)
+    bill = Bill.objects.get()
+    html = client.get(reverse("bill_detail", args=[camp.pk, bill.pk])).content.decode()
+    assert html.count("<h1") == 1
+    assert "page-rule" in html
+    assert "text-bg-warning" in html
+    assert f'hx-get="{reverse("bill_line_row", args=[camp.pk, bill.pk])}"' in html
+    delete_url = reverse("bill_delete", args=[camp.pk, bill.pk])
+    assert re.search(rf'<a[^>]*btn-outline-danger[^>]*href="{delete_url}"', html)
+
+
+def test_failed_bill_without_file_can_be_typed(client, camp) -> None:
+    upload(client, camp, content=text_pdf(UNKNOWN_TEXT))
+    bill = Bill.objects.get()
+    assert bill.status == Bill.Status.FAILED
+    # Removing the file through the view also resets the status, so drop it directly.
+    bill.file.delete(save=False)
+    Bill.objects.filter(pk=bill.pk).update(file="")
+    html = client.get(reverse("bill_detail", args=[camp.pk, bill.pk])).content.decode()
+    assert UNKNOWN_LAYOUT in html
+    assert "The file was removed." in html
+    assert "text-bg-danger" in html
+    assert 'name="form-0-description"' in html

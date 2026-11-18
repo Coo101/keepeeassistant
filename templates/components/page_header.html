@@ -1,11 +1,12 @@
 {% comment %}
-{% include "components/page_header.html" with title=... badge=... meta=... action_url=... action_label=... action_icon="plus-lg" action_style="outline" %}
+{% include "components/page_header.html" with title=... badge=... badge_class=... meta=... action_url=... action_label=... action_icon="plus-lg" action_style="outline" %}
+badge_class is a Bootstrap colour class for the badge (default text-bg-secondary).
 The action sits next to the title from lg, under it on a phone.
 {% endcomment %}
 <div class="page-header mb-4">
   <div class="d-lg-flex justify-content-between align-items-center gap-3">
     <div>
-      <h1 class="mb-0">{{ title }}{% if badge %}<span class="badge text-bg-secondary fs-6 align-middle ms-2">{{ badge }}</span>{% endif %}</h1>
+      <h1 class="mb-0">{{ title }}{% if badge %}<span class="badge {{ badge_class|default:'text-bg-secondary' }} fs-6 align-middle ms-2">{{ badge }}</span>{% endif %}</h1>
       {% if meta %}<p class="text-body-secondary mb-0">{{ meta }}</p>{% endif %}
     </div>
     {% if action_url %}<a {% if action_style == 'outline' %}class="btn btn-outline-primary mt-2 mt-lg-0 text-nowrap d-print-none"{% else %}class="btn btn-primary mt-2 mt-lg-0 text-nowrap d-print-none"{% endif %} href="{{ action_url }}">{% if action_icon %}<i class="bi bi-{{ action_icon }}" aria-hidden="true"></i> {% endif %}{{ action_label }}</a>{% endif %}

@@ -80,7 +80,7 @@ Python 3.12+ (the Docker image uses 3.13), Django 5.2, SQLite in WAL mode, Djang
 templates (server-rendered, no build step), Bootstrap 5.3, Bootstrap Icons and HTMX
 vendored in `static/vendor/` with `django-htmx` and crispy-forms
 (`crispy-bootstrap5`), WeasyPrint for PDFs (print-friendly HTML when its libraries
-are missing), `pdfplumber` and an Ollama vision model for bills, `markdown` for news
+are missing), `pdfplumber` for bills (PDFs with text only, D21), `markdown` for news
 and help pages, gunicorn + whitenoise in Docker, pytest + pytest-django, ruff +
 black. Dependencies are pinned in `pyproject.toml`; `requirements*.txt` are
 generated with `uv export` and a test checks they match.
@@ -103,9 +103,8 @@ generated with `uv export` and a test checks they match.
 - **Performance:** pages with lists (planner, shopping, budget, report) use a fixed
   number of queries, whatever the size of the camp.
 - **Privacy:** bills can show names, addresses and loyalty numbers. Uploading shows a
-  warning, files are only served to the camp's Chiro as downloads, and photos are
-  only sent to the Ollama server set in `OLLAMA_URL` (your own machine), never a
-  cloud service.
+  warning, files are only served to the camp's Chiro as downloads, and bills are read
+  in plain Python on the server, never by an AI service (D21).
 - **Languages:** Dutch (default) and English. Text is written in English and marked
   for translation; the Dutch lives in `locale/nl/` (the compiled `.mo` is committed),
   help pages as `<slug>.nl.md`. The browser's language decides until someone picks NL
@@ -147,6 +146,9 @@ area files. New ones continue from D20.
 - **D19** (2026-11-16): **Planning on a PC, the kitchen on a phone or tablet.**
   Planning views (stages 1 and 3) are designed at 1366px and checked at 375px; kitchen
   views (stage 2) at 375px and 768px; public pages work at both.
+- **D20** (2026-11-17): **The shopping page's trip lists work equally on a phone and
+  a PC**, an exception to D19, because they're read at the Collect&Go pickup. The day
+  picker, the warnings, the budget and the stock pages stay PC-first.
 
 ## Index
 

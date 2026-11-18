@@ -52,7 +52,7 @@ side (compose, `.env`, Caddy, `deploy-app`) is in the homelab repo, `hetzner-pro
 - [ ] Create or check the admin account:
       `docker exec -it keepeeassistant python manage.py createsuperuser`
 
-### 3. UI move: in progress
+### 3. UI move: done
 
 Every page on Bootstrap and HTMX, core areas first, one plan and one review round per
 area. Planning screens are designed for a PC (D19). After each area passes review it's
@@ -64,21 +64,36 @@ from testing go on GitHub.
   theme check at phone width). Plan: `docs/superpowers/plans/2026-11-16-ui-area-1-camps-planner.md`
 - [x] 2. Recipes and ingredients (also: the recipe search box focus ring). Plan:
   `docs/superpowers/plans/2026-11-17-ui-area-2-recipes.md`
-- [ ] 3. Shopping, budget and stock
-- [ ] 4. Bills and the financial report
-- [ ] 5. Accounts and public pages (also: the home page skips from `h1` to `h3`)
-- [ ] 6. Print check and `app.css` clean-up (also: `docs/DESIGN.md` §8 clean-up)
+- [x] 3. Shopping, budget and stock (also: D20, trip lists readable on a phone at the
+  pickup). Plan: `docs/superpowers/plans/2026-11-17-ui-area-3-shopping.md`
+- [x] 4. Bills and the financial report (also: bills as PDFs with text only, D21,
+  `docs/superpowers/plans/2026-11-18-bills-pdf-only.md`). Plan:
+  `docs/superpowers/plans/2026-11-18-ui-area-4-bills.md`
+- [x] 5. Accounts and public pages (also: the home page skips from `h1` to `h3`). Plan:
+  `docs/superpowers/plans/2026-11-18-ui-area-5-accounts.md`
+- [x] 6. Print check and `app.css` clean-up (also: `docs/DESIGN.md` §8 clean-up, the
+  danger red and checkbox contrast). Plan: `docs/superpowers/plans/2026-11-18-ui-area-6-cleanup.md`
 
-Found in area 1's review, for a later round: example camps show edit controls that
-can't save (runbook note forms, slot links, no `read-only` badge next to the title);
-the view should pass a flag and the pages hide them. The runbook shows very small
-scaled amounts as "0,0 kg" (rounding, not UI).
+### 3a. UI fixes from the move: to brainstorm
 
-Found in area 2's review: Bootstrap's danger red (`btn-outline-danger`) on the sand page
-background is 4,3:1, under AA, on every page with a delete button; unchecked checkbox
-borders are too faint on sand (under 3:1). Both are theme decisions for `app.css` and
-`DESIGN.md` §3.4. The new-ingredient dialog is taller than a laptop screen and scrolls
-inside; the live search's Clear button only follows a submitted search.
+Parked during the UI move's reviews (areas 1–5):
+
+- Example camps and example Chiros show edit controls that can't save: runbook note
+  forms, slot links, the stock page's Save and "Add a row". There's no `read-only`
+  badge next to the title, and a plain member's Chiro page has none either. The view
+  should pass a flag and the pages hide the controls.
+- Saving shopping days, the stock or a camp's utilities gives no confirmation message.
+- Pressing Enter in a table with "Add a row" (camp groups, pantry, utilities) adds a
+  row instead of saving, because that button comes first in the form.
+- The new-ingredient dialog is taller than a laptop screen and scrolls inside. The
+  live search's Clear button only shows after a search has been submitted.
+- Buttons and fields are 38px high (Bootstrap's default), under the 44px tap target in
+  `docs/ui-guidelines.md`, on the pages used on a phone.
+- The runbook shows very small scaled amounts as "0,0 kg" (rounding, not UI).
+- Headings with a size class (`<h2 class="h4">`, card headers' `h2.h5`) render in
+  Bootstrap's grey, not navy: Bootstrap's `.h1`–`.h6` colour beats the element rule.
+  Setting `--bs-heading-color` to navy fixes it, and changes the look of every card
+  header.
 
 ### 4. Going public: to brainstorm
 
@@ -116,9 +131,8 @@ already lists them apart.
 
 - [ ] Mark ingredients with what they contain, for the diet and balance checks
 - [ ] Fetch up-to-date ingredient prices automatically: needs a reliable source first
-- [ ] Install an Ollama vision model; none is installed yet, so photos can't be read
-- [ ] Send real bills of other shops, so the reader can be tuned to their layout
-      (Collect&Go and Van Zon invoices are done)
+- [ ] Test the bill reader with more real bills (Collect&Go, Van Zon, other shops) and
+      add the layouts that come up (Collect&Go and Van Zon invoices are done)
 
 ## Later
 

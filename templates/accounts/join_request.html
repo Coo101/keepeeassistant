@@ -1,15 +1,18 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n crispy_forms_tags %}
 {% block title %}{% translate "Request access" %} — {% translate "Camp Meal Planner" %}{% endblock %}
 {% block content %}
-<h1>{% translate "Request access" %}</h1>
-<p class="page-meta">{% translate "Camp Meal Planner is by invitation for now. Tell us who you are, and if it's approved you get an invitation by mail. Your details are only used for this." %}</p>
-<form method="post" class="stacked-form">
-  {% csrf_token %}
-  {{ form.non_field_errors }}
-  <div class="card">
-    {% for field in form %}{% if field.is_hidden %}{{ field }}{% else %}<div class="form-row">{{ field.as_field_group }}</div>{% endif %}{% endfor %}
+{% translate "Request access" as page_title %}
+{% translate "Camp Meal Planner is by invitation for now. Tell us who you are, and if it's approved you get an invitation by mail. Your details are only used for this." as page_meta %}
+{% include "components/page_header.html" with title=page_title meta=page_meta %}
+{% include "components/form_errors.html" with form=form %}
+<div class="row">
+  <div class="col-md-8 col-lg-6">
+    <form method="post">
+      {% csrf_token %}
+      {% for field in form %}{% if field.is_hidden %}{{ field }}{% else %}{{ field|as_crispy_field }}{% endif %}{% endfor %}
+      <button class="btn btn-primary" type="submit">{% translate "Send request" %}</button>
+    </form>
   </div>
-  <button class="btn" type="submit">{% translate "Send request" %}</button>
-</form>
+</div>
 {% endblock %}

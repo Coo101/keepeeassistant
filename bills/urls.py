@@ -12,14 +12,14 @@ urlpatterns = [
         name="bill_detail",
     ),
     path(
+        "camps/<int:camp_id>/bills/<int:bill_id>/line-row/",
+        views.bill_line_row,
+        name="bill_line_row",
+    ),
+    path(
         "camps/<int:camp_id>/bills/<int:bill_id>/file/",
         views.bill_file,
         name="bill_file",
-    ),
-    path(
-        "camps/<int:camp_id>/bills/<int:bill_id>/retry/",
-        views.bill_retry,
-        name="bill_retry",
     ),
     path(
         "camps/<int:camp_id>/bills/<int:bill_id>/remove-file/",

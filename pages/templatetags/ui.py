@@ -40,3 +40,14 @@ def table_input(field: BoundField) -> SafeString:
     if field.errors:
         css += " is-invalid"
     return field.as_widget(attrs={"class": css, "aria-label": str(field.label)})
+
+
+# A bill's status as a badge colour (docs/ui-guidelines.md: badges for status).
+STATUS_BADGES = {"done": "text-bg-success", "failed": "text-bg-danger"}
+
+
+@register.filter
+def status_badge(status: str) -> str:
+    """The badge colour for a bill status: reviewed green, couldn't be read red,
+    to review yellow."""
+    return STATUS_BADGES.get(status, "text-bg-warning")

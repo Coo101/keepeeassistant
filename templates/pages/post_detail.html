@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n ui %}
 {% block title %}{{ post.title }} — {% translate "Camp Meal Planner" %}{% endblock %}
 {% block content %}
-<p><a class="back-link" href="{% url 'post_list' %}">← {% translate "all news" %}</a></p>
-<h1>{{ post.title }}</h1>
-<p class="page-meta">{{ post.published_at|date:"d F Y" }}</p>
+{% url 'post_list' as back_url %}{% translate "All news" as back_label %}
+{% include "components/back_link.html" with url=back_url label=back_label %}
+{% include "components/page_header.html" with title=post.title meta=post.published_at|short_date:"year" %}
 <div class="prose">{{ body }}</div>
 {% endblock %}

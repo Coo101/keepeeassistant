@@ -45,8 +45,16 @@ details.
 
 - Public home page, news posts (Markdown, written in the admin) and help pages
   (Markdown files in `pages/content/`). No CMS.
+- Every page ends with a footer: the app name, links to the maker's GitHub and
+  Bluesky, and a "Buy me a beer" link to Buy Me a Coffee. It loads nothing from
+  other sites.
 - Account page: your details, your Chiros, changing your password. Password resets
   by email; mail only prints to the log until `EMAIL_HOST` is set.
+- The public pages (home, news, help, login, request access, invitations, password
+  pages) work as well on a phone as on a PC (D19); the account and Chiro pages are
+  planning views, designed for a PC. Help pages take their title from the file's
+  first `# ` line and list the other help pages beside the text (above it on a
+  phone). An open invitation's link wraps on a phone.
 
 ### Chiros, roles, invitations and join requests
 

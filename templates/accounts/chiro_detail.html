@@ -1,63 +1,81 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n crispy_forms_tags %}
 {% block title %}{{ chiro.name }} — {% translate "Camp Meal Planner" %}{% endblock %}
 {% block content %}
-<p><a class="back-link" href="{% url 'account' %}">← {% translate "your account" %}</a></p>
-<h1>{{ chiro.name }}</h1>
-<p><a class="btn btn-outline" href="{% url 'chiro_stock' chiro.pk %}">{% translate "Stock: kitchen utilities and food" %}</a></p>
+{% url 'account' as back_url %}{% translate "Your account" as back_label %}
+{% include "components/back_link.html" with url=back_url label=back_label %}
+{% url 'chiro_stock' chiro.pk as stock_url %}{% translate "Stock: kitchen utilities and food" as stock_label %}
+{% include "components/page_header.html" with title=chiro.name action_url=stock_url action_label=stock_label action_icon="box-seam" action_style="outline" %}
 
-<h2>{% translate "Members" %}</h2>
-<div class="table-scroll">
-<table class="compact">
-  <thead><tr><th>{% translate "Member" %}</th><th>{% translate "Role" %}</th>{% if is_admin %}<th></th>{% endif %}</tr></thead>
-  <tbody>
-    {% for membership in memberships %}
-    <tr>
-      <td>{{ membership.user.get_full_name|default:membership.user.get_username }}</td>
-      {% if is_admin %}
-      <td colspan="2">
-        <form method="post" action="{% url 'chiro_member' chiro.pk membership.pk %}" class="actions" style="margin:0">
-          {% csrf_token %}
-          <select name="role" aria-label="{% translate 'Role' %}">
-            {% for value, label in roles %}<option value="{{ value }}"{% if value == membership.role %} selected{% endif %}>{{ label }}</option>{% endfor %}
-          </select>
-          <button class="btn btn-outline btn-small" type="submit">{% translate "Save" %}</button>
-          <button class="btn btn-danger-outline btn-small" type="submit" name="remove" value="1">{% translate "Remove" %}</button>
-        </form>
-      </td>
-      {% else %}
-      <td>{{ membership.get_role_display }}</td>
-      {% endif %}
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="card shadow-sm">
+  <div class="card-header"><h2 class="h5 mb-0">{% translate "Members" %}</h2></div>
+  <div class="table-responsive">
+    <table class="table table-sm mb-0 align-middle">
+      <thead>
+        <tr><th scope="col">{% translate "Member" %}</th><th scope="col">{% translate "Role" %}</th></tr>
+      </thead>
+      <tbody>
+        {% for membership in memberships %}
+        <tr>
+          <td>{{ membership.user.get_full_name|default:membership.user.get_username }}</td>
+          {% if is_admin %}
+          <td>
+            <form method="post" action="{% url 'chiro_member' chiro.pk membership.pk %}" class="d-flex gap-2 align-items-center">
+              {% csrf_token %}
+              <select name="role" class="form-select form-select-sm w-auto" aria-label="{% translate 'Role' %}">
+                {% for value, label in roles %}<option value="{{ value }}"{% if value == membership.role %} selected{% endif %}>{{ label }}</option>{% endfor %}
+              </select>
+              <button class="btn btn-sm btn-outline-primary" type="submit"><i class="bi bi-check-lg" aria-hidden="true"></i> {% translate "Save" %}</button>
+              <button class="btn btn-sm btn-outline-danger ms-auto" type="submit" name="remove" value="1"><i class="bi bi-person-dash" aria-hidden="true"></i> {% translate "Remove" %}</button>
+            </form>
+          </td>
+          {% else %}
+          <td>{{ membership.get_role_display }}</td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 
 {% if is_admin %}
-<h2>{% translate "Invite someone" %}</h2>
-<form method="post" class="stacked-form">
-  {% csrf_token %}
-  {{ form.non_field_errors }}
-  <div class="card">
-    {% for field in form %}{% if field.is_hidden %}{{ field }}{% else %}<div class="form-row">{{ field.as_field_group }}</div>{% endif %}{% endfor %}
-  </div>
-  <button class="btn" type="submit">{% translate "Send invitation" %}</button>
-</form>
-
-{% if invitations %}
-<h2>{% translate "Open invitations" %}</h2>
-<ul class="outside-list">
-  {% for invitation, link in invitations %}
-  <li>
-    {{ invitation.email }}: <code>{{ link }}</code>
-    <form method="post" action="{% url 'invitation_cancel' chiro.pk invitation.pk %}">
+<div class="row g-4 mt-0">
+  <div class="col-lg-6">
+    {% include "components/form_errors.html" with form=form %}
+    <form method="post">
       {% csrf_token %}
-      <button class="btn btn-outline btn-small" type="submit">{% translate "Cancel" %}</button>
+      <div class="card shadow-sm">
+        <div class="card-header"><h2 class="h5 mb-0">{% translate "Invite someone" %}</h2></div>
+        <div class="card-body">
+          {% for field in form %}{% if field.is_hidden %}{{ field }}{% else %}{{ field|as_crispy_field }}{% endif %}{% endfor %}
+        </div>
+      </div>
+      <div class="d-flex mt-4">
+        <button class="btn btn-primary ms-auto" type="submit"><i class="bi bi-send" aria-hidden="true"></i> {% translate "Send invitation" %}</button>
+      </div>
     </form>
-  </li>
-  {% endfor %}
-</ul>
-{% endif %}
+  </div>
+
+  {% if invitations %}
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-header"><h2 class="h5 mb-0">{% translate "Open invitations" %}</h2></div>
+      <ul class="list-group list-group-flush">
+        {% for invitation, link in invitations %}
+        <li class="list-group-item">
+          <div class="text-break">{{ invitation.email }}</div>
+          <code class="text-break">{{ link }}</code>
+          <form method="post" action="{% url 'invitation_cancel' chiro.pk invitation.pk %}" class="mt-2">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-outline-secondary" type="submit"><i class="bi bi-x-lg" aria-hidden="true"></i> {% translate "Cancel" %}</button>
+          </form>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+</div>
 {% endif %}
 {% endblock %}

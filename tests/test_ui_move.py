@@ -4,6 +4,7 @@ Each area adds its converted templates to CONVERTED_TEMPLATES and its pages to
 CONVERTED_PAGES (docs/superpowers/specs/2026-11-16-ui-move-design.md).
 """
 
+import datetime
 import re
 from collections.abc import Callable
 from pathlib import Path
@@ -11,10 +12,12 @@ from pathlib import Path
 import pytest
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.test import Client
 from django.urls import reverse
 
-from accounts.models import Chiro, Membership
+from accounts.models import Chiro, Invitation, Membership, Role
 from camps.models import Camp
+from pages.models import Post
 from recipes.models import Recipe
 from tests.factories import (
     KG,
@@ -57,6 +60,37 @@ CONVERTED_TEMPLATES: list[str] = [
     "recipes/ingredient_list.html",
     "recipes/_ingredient_results.html",
     "recipes/ingredient_form.html",
+    "shopping/shopping.html",
+    "shopping/budget.html",
+    "kitchen/stock.html",
+    "kitchen/camp_utensils.html",
+    "bills/bill_detail.html",
+    "bills/_bill_line_row.html",
+    "bills/bill_list.html",
+    "bills/report.html",
+    "bills/_report_body.html",
+    "pages/doc.html",
+    "pages/home.html",
+    "pages/post_list.html",
+    "pages/post_detail.html",
+    "accounts/account.html",
+    "accounts/chiro_detail.html",
+    "accounts/invitation_closed.html",
+    "accounts/invitation_join.html",
+    "accounts/invitation_login.html",
+    "accounts/invitation_signup.html",
+    "accounts/invitation_wrong_account.html",
+    "accounts/join_request.html",
+    "accounts/join_thanks.html",
+    "registration/login.html",
+    "registration/password_change_form.html",
+    "registration/password_change_done.html",
+    "registration/password_reset_form.html",
+    "registration/password_reset_done.html",
+    "registration/password_reset_confirm.html",
+    "registration/password_reset_complete.html",
+    "confirm_delete.html",
+    "403.html",
 ]
 
 # (URL name, the URL's args for a camp): full pages with one h1 and the red rule.
@@ -68,6 +102,20 @@ CONVERTED_PAGES: list[tuple[str, Callable[[Camp], list]]] = [
     ("planner", lambda camp: [camp.pk]),
     ("edit_slot", lambda camp: [camp.pk, camp.start_date.isoformat(), "dinner"]),
     ("runbook", lambda camp: [camp.pk]),
+    ("shopping", lambda camp: [camp.pk]),
+    ("budget", lambda camp: [camp.pk]),
+    ("camp_utensils", lambda camp: [camp.pk]),
+    ("bill_list", lambda camp: [camp.pk]),
+    ("financial_report", lambda camp: [camp.pk]),
+]
+
+# (URL name, args): public pages for a logged-out visitor, one h1 and the red rule.
+PUBLIC_PAGES: list[tuple[str, list]] = [
+    ("home", []),
+    ("post_list", []),
+    ("login", []),
+    ("password_reset", []),
+    ("join_request", []),
 ]
 
 # (URL name, the URL's args for a recipe): recipe pages with one h1 and the red rule.
@@ -106,6 +154,9 @@ OLD = {
     "slot-course",
     "step-block",
     "qty",
+    "hero",
+    "feature-grid",
+    "login-card",
 }
 
 CLASS_ATTRIBUTE = re.compile(r'class="([^"]*)"')
@@ -113,15 +164,18 @@ CLASS_ATTRIBUTE = re.compile(r'class="([^"]*)"')
 
 def old_classes(template_text: str) -> set[str]:
     """The old app.css classes a template still uses, plus "btn" for a bare `.btn`
-    and "badge" for a badge without a Bootstrap colour."""
+    and "badge" for a badge without a Bootstrap colour. A colour from a template
+    variable (`badge {{ ... }}`) can't be checked here and counts as one."""
     found: set[str] = set()
     for attribute in CLASS_ATTRIBUTE.findall(template_text):
         tokens = [t for t in attribute.split() if "{" not in t and "%" not in t]
         found |= OLD.intersection(tokens)
         if "btn" in tokens and not any(t.startswith("btn-") for t in tokens):
             found.add("btn")
-        if "badge" in tokens and not any(
-            t.startswith(("text-bg-", "bg-")) for t in tokens
+        if (
+            "badge" in tokens
+            and "{{" not in attribute
+            and not any(t.startswith(("text-bg-", "bg-")) for t in tokens)
         ):
             found.add("badge")
     return found
@@ -133,6 +187,7 @@ def test_old_classes_finds_the_old_ones() -> None:
     assert old_classes('<p class="muted page-meta">') == {"muted", "page-meta"}
     assert old_classes('<span class="badge">') == {"badge"}
     assert old_classes('<span class="badge text-bg-warning">') == set()
+    assert old_classes('<span class="badge {{ colour }}">') == set()
     assert (
         old_classes('<a class="slot-chip{% if x %} slot-chip-empty{% endif %}">')
         == set()
@@ -262,3 +317,240 @@ def test_ingredient_form_errors_show_a_summary() -> None:
     html = response.content.decode()
     assert "alert-danger" in html
     assert "is-invalid" in html
+
+
+def _one_h1_and_the_red_rule(html: str) -> None:
+    assert html.count("<h1") == 1
+    assert not re.search(r"<h1[^>]*>\s*</h1>", html), "the h1 is empty"
+    assert "page-rule" in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("url_name,args", PUBLIC_PAGES)
+def test_public_page_has_one_h1_and_the_red_rule(url_name: str, args: list) -> None:
+    response = Client().get(reverse(url_name, args=args))
+    assert response.status_code == 200
+    _one_h1_and_the_red_rule(response.content.decode())
+
+
+@pytest.mark.django_db
+def test_home_headings_in_order() -> None:
+    Post.objects.create(title="Nieuwe recepten", slug="nieuw", body="x")
+    html = Client().get(reverse("home")).content.decode()
+    levels = [int(level) for level in re.findall(r"<h([1-6])", html)]
+    assert levels[0] == 1
+    for before, after in zip(levels, levels[1:], strict=False):
+        assert after <= before + 1, levels
+
+
+@pytest.mark.django_db
+def test_post_pages() -> None:
+    client = Client()
+    assert "bi-newspaper" in client.get(reverse("post_list")).content.decode()
+    post = Post.objects.create(
+        title="Nieuwe recepten",
+        slug="nieuw",
+        body="Tekst",
+        published_at=datetime.datetime(2026, 3, 4, 12, 0, tzinfo=datetime.UTC),
+    )
+    response = client.get(reverse("post_list"))
+    assert response.status_code == 200
+    html = response.content.decode()
+    assert "Wed 4 Mar 2026" in html
+    assert "bi-newspaper" not in html
+    response = client.get(reverse("post_detail", args=[post.slug]))
+    assert response.status_code == 200
+    html = response.content.decode()
+    _one_h1_and_the_red_rule(html)
+    assert re.search(r"<h1[^>]*>\s*Nieuwe recepten", html)
+    assert "Wed 4 Mar 2026" in html
+
+
+@pytest.mark.django_db
+def test_account_and_chiro_pages_have_one_h1() -> None:
+    camp = make_camp()
+    client = member_client(camp, role=Role.ADMIN)
+    for url in (reverse("account"), reverse("chiro_detail", args=[camp.chiro_id])):
+        response = client.get(url)
+        assert response.status_code == 200
+        _one_h1_and_the_red_rule(response.content.decode())
+
+
+@pytest.mark.django_db
+def test_chiro_page_member_form_unchanged() -> None:
+    camp = make_camp()
+    invitation = Invitation.objects.create(chiro=camp.chiro, email="jan@example.com")
+    client = member_client(camp, role=Role.ADMIN)
+    html = client.get(reverse("chiro_detail", args=[camp.chiro_id])).content.decode()
+    membership = Membership.objects.get(chiro=camp.chiro, role=Role.ADMIN)
+    action = reverse("chiro_member", args=[camp.chiro_id, membership.pk])
+    assert f'action="{action}"' in html
+    assert f'<option value="{Role.ADMIN}" selected>' in html
+    select = re.search(r'<select[^>]*name="role"[^>]*>', html)
+    assert select is not None
+    assert "form-select" in select.group(0)
+    assert "aria-label=" in select.group(0)
+    remove = re.search(r'<button[^>]*name="remove"[^>]*>', html)
+    assert remove is not None
+    assert 'value="1"' in remove.group(0)
+    assert "btn-outline-danger" in remove.group(0)
+    link = reverse("invitation_accept", args=[invitation.token])
+    assert re.search(rf'<code class="text-break">[^<]*{re.escape(link)}', html)
+
+
+@pytest.mark.django_db
+def test_account_without_chiro_shows_empty_state() -> None:
+    html = account_client().get(reverse("account")).content.decode()
+    assert "bi-people" in html
+
+
+@pytest.mark.django_db
+def test_join_form_honeypot_stays_hidden() -> None:
+    html = Client().get(reverse("join_request")).content.decode()
+    honeypot = re.search(r'<input[^>]*name="website"[^>]*>', html)
+    assert honeypot is not None
+    assert 'type="hidden"' in honeypot.group(0)
+    assert not re.search(r'<label[^>]*for="id_website"', html)
+
+
+@pytest.mark.django_db
+def test_login_error_is_an_alert() -> None:
+    User.objects.create_user("kok", password="juist-wachtwoord-1")
+    response = Client().post(
+        reverse("login"),
+        {"username": "kok", "password": "fout", "next": "/camps/"},
+    )
+    assert response.status_code == 200
+    html = response.content.decode()
+    assert "alert-danger" in html
+    assert re.search(r'<input[^>]*name="next"[^>]*value="/camps/"', html)
+    assert "Username or email" in html
+    username = re.search(r'<input[^>]*name="username"[^>]*>', html)
+    assert username is not None
+    assert "form-control" in username.group(0)
+    assert 'autocomplete="username"' in username.group(0)
+
+
+@pytest.mark.django_db
+def test_confirm_delete_page() -> None:
+    camp = make_camp()
+    client = member_client(camp, role=Role.ADMIN)
+    response = client.get(reverse("camp_delete", args=[camp.pk]))
+    assert response.status_code == 200
+    html = response.content.decode()
+    _one_h1_and_the_red_rule(html)
+    button = re.search(
+        r'<button[^>]*class="btn btn-danger[^"]*"[^>]*>(.*?)</button>', html, re.S
+    )
+    assert button is not None
+    assert "bi-trash" in button.group(1)
+    assert f'href="{reverse("camp_list")}"' in html
+
+
+@pytest.mark.django_db
+def test_confirm_delete_blocked() -> None:
+    recipe = make_recipe("Soep", ingredients=[("Wortel", "1", KG, PRODUCE)])
+    ingredient = recipe.ingredients.first().ingredient
+    url = reverse("ingredient_delete", args=[ingredient.pk])
+    html = account_client().get(url).content.decode()
+    assert "alert-warning" in html
+    assert "\u26a0" not in html
+
+
+ROOT = Path(__file__).resolve().parent.parent
+
+# Classes that JavaScript adds at run time, so no template or Python file names them.
+RUNTIME_CLASSES: dict[str, str] = {
+    "show": "Bootstrap's collapse and dropdowns add it when open",
+    "collapsing": "Bootstrap's collapse adds it while animating",
+    "htmx-request": "HTMX adds it while a request runs",
+    "htmx-swapping": "HTMX adds it while swapping content",
+    "htmx-settling": "HTMX adds it while settling content",
+    "htmx-added": "HTMX adds it to new content",
+    "htmx-indicator": "HTMX's indicator class, set on elements by hx-indicator",
+}
+
+
+def css_classes(css: str) -> set[str]:
+    """Every `.name` in a selector; comments, url(...) and declarations left out."""
+    css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    css = re.sub(r"url\([^)]*\)", "", css)
+    selectors = re.findall(r"([^{}]+)\{", css)
+    found: set[str] = set()
+    for selector in selectors:
+        if selector.strip().startswith("@"):
+            continue
+        found |= set(re.findall(r"\.(-?[_a-zA-Z][\w-]*)", selector))
+    return found
+
+
+def used_classes() -> str:
+    """The text of every template, the app's JavaScript and the project's own Python."""
+    paths = [
+        *(ROOT / "templates").rglob("*.html"),
+        *(ROOT / "static" / "js").rglob("*.js"),
+    ]
+    paths += [
+        path
+        for path in ROOT.rglob("*.py")
+        if not {"tests", "node_modules", "staticfiles"} & set(path.parts)
+        and not any(part.startswith(".") for part in path.relative_to(ROOT).parts)
+    ]
+    return "\n".join(path.read_text(encoding="utf-8") for path in paths)
+
+
+def test_css_classes() -> None:
+    assert css_classes(".a, .b:hover > .c {}\n/* .d */") == {"a", "b", "c"}
+    assert css_classes("x { background: url(a.png); }\n.e { margin: 0.5rem; }") == {"e"}
+    assert css_classes("@media (min-width: 992px) { .f { color: red; } }") == {"f"}
+
+
+def test_every_app_css_class_is_used() -> None:
+    app_css = (ROOT / "static" / "css" / "app.css").read_text(encoding="utf-8")
+    bootstrap = (
+        ROOT / "static" / "vendor" / "bootstrap" / "css" / "bootstrap.min.css"
+    ).read_text(encoding="utf-8")
+    bootstrap_classes = css_classes(bootstrap)
+    text = used_classes()
+    unused = sorted(
+        name
+        for name in css_classes(app_css) - RUNTIME_CLASSES.keys() - bootstrap_classes
+        if not re.search(rf"(?<![\w-]){re.escape(name)}(?![\w-])", text)
+    )
+    assert unused == []
+
+
+def test_danger_red_is_dark_enough() -> None:
+    app_css = (ROOT / "static" / "css" / "app.css").read_text(encoding="utf-8")
+    assert "--bs-danger: #B02A37" in app_css
+    assert "--bs-danger-rgb: 176, 42, 55" in app_css
+    assert "--bs-form-invalid-color: #B02A37" in app_css
+    assert "--bs-form-invalid-border-color: #B02A37" in app_css
+
+
+@pytest.mark.django_db
+def test_markdown_tables_and_headings_are_styled() -> None:
+    """The Markdown renderer's plain <table> and <h2> sit inside .prose, which
+    app.css styles; the unused-class test can't see generated HTML."""
+    html = Client().get(reverse("doc", args=["planning"])).content.decode()
+    prose = html.index('prose">')
+    assert "<table>" in html[prose:]
+    app_css = (ROOT / "static" / "css" / "app.css").read_text(encoding="utf-8")
+    for selector in (".prose h2", ".prose table", ".prose td", ".prose thead th"):
+        assert selector in app_css
+
+
+def test_outside_entries_links_use_alert_link() -> None:
+    text = (TEMPLATES / "planning" / "_outside_entries.html").read_text(
+        encoding="utf-8"
+    )
+    links = re.findall(r"<a [^>]*>", text)
+    assert links
+    for link in links:
+        assert "alert-link" in link, link
+
+
+def test_camp_form_scripts_are_versioned() -> None:
+    text = (TEMPLATES / "camps" / "camp_form.html").read_text(encoding="utf-8")
+    assert "{% static 'js/" not in text
+    assert re.search(r"\{% asset 'js/headcount\.js' %\}", text)

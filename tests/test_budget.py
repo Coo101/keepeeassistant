@@ -4,6 +4,7 @@ import datetime
 from decimal import Decimal
 
 import pytest
+from django.urls import reverse
 
 from accounts.models import Chiro
 from core.constants import DishType, MealType, Shop
@@ -17,6 +18,7 @@ from tests.factories import (
     assign,
     make_camp,
     make_recipe,
+    member_client,
     set_price,
 )
 
@@ -219,3 +221,20 @@ def test_price_in_an_old_unit_is_not_used() -> None:
 
     set_price("Potatoes", "0.50")
     assert _line(camp).cost == Decimal("5.00")
+
+
+def test_budget_marks_lines_without_a_price() -> None:
+    camp = make_camp(children=0, teens=13, staff=0)
+    recipe = make_recipe("Soep", teens=13, ingredients=[("Prei", "1", KG, PRODUCE)])
+    assign(camp, AUG(2), MealType.DINNER, recipe)
+    ShoppingTrip.objects.create(camp=camp, date=AUG(1))
+    html = member_client(camp).get(reverse("budget", args=[camp.pk])).content.decode()
+    assert "badge text-bg-warning" in html
+    assert "no price" in html
+
+
+def test_budget_without_trips_points_to_shopping() -> None:
+    camp = make_camp()
+    html = member_client(camp).get(reverse("budget", args=[camp.pk])).content.decode()
+    assert reverse("shopping", args=[camp.pk]) in html
+    assert "bi-cart" in html

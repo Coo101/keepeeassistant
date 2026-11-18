@@ -1,14 +1,14 @@
 # Rekeningen en wat je betaalde
 
-Laad rekeningen (facturen en kasticketjes) op onder *Rekeningen* in je kamp, als pdf of als foto.
+Laad rekeningen (facturen en kasticketjes) op onder *Rekeningen* in je kamp, als pdf met tekst. Heb je een foto of een papieren ticket? Maak er eerst een pdf met tekstherkenning van (veel scan-apps doen dat); een pdf zonder tekst wordt geweigerd.
 
 ## Privacy
 
-Rekeningen kunnen namen, adressen en klantenkaartnummers bevatten. Snij die waar je kunt weg uit foto's. Elk lid van je Chiro kan het bestand openen. Na het nakijken kun je het bestand verwijderen en de bedragen houden.
+Rekeningen kunnen namen, adressen en klantenkaartnummers bevatten. Snij die waar je kunt weg voor je de pdf maakt. Elk lid van je Chiro kan het bestand openen. Na het nakijken kun je het bestand verwijderen en de bedragen houden.
 
 ## Inlezen
 
-Pdf's met echte tekst worden meteen ingelezen. Scans en foto's wachten op een AI-model op de eigen computer van de beheerder, dus dat kan even duren. Je kunt de lijnen ook altijd zelf toevoegen.
+De app leest de pdf meteen in en vult zoveel mogelijk lijnen in en koppelt ze. Hij kent de facturen van Collect&Go (Colruyt) en Van Zon; een rekening van een andere winkel wordt bewaard zonder lijnen, en die voeg je zelf toe.
 
 ## Nakijken
 
@@ -18,6 +18,8 @@ Er verandert niets tot je de lijnen hebt nagekeken en bewaard:
 - **Hoeveelheid per stuk**: in de eenheid van het ingrediënt. Een zak van 500 g met een prijs per kg is 0,5.
 - **Categorie**: kampeten, keukengerei, activiteit, persoonlijk of andere. Keukengerei kan naar de voorraad van je Chiro.
 - **Overgeslagen**: tekst die helemaal geen aankoop is.
+
+Ontbreekt er een lijn, of typ je een rekening helemaal zelf in? *Lijn toevoegen* zet een lege lijn onder de tabel.
 
 Een lijn kampeten met een ingrediënt bepaalt de prijs voor jullie kamp. Je keuzes worden onthouden voor de volgende rekening van die winkel.
 

@@ -69,12 +69,9 @@ def _new_line(
 @transaction.atomic
 def store_parsed_bill(bill: Bill, parsed: ParsedBill) -> None:
     """Add the lines as suggestions; nothing changes a price until reviewed.
-
-    A read can take minutes, so check the bill is still waiting and empty: someone
-    may have deleted it or entered the lines by hand in the meantime.
-    """
+    Only into a bill that still exists and has no lines yet."""
     bill = Bill.objects.select_for_update().filter(pk=bill.pk).first()
-    if bill is None or bill.status != Bill.Status.WAITING or bill.lines.exists():
+    if bill is None or bill.lines.exists():
         return
     ingredients = list(Ingredient.objects.all())
     matches = {
@@ -130,8 +127,8 @@ def apply_review(bill: Bill, remember_matches: bool = True) -> None:
     """After a person saved the lines: record prices, matches and the status.
     Made-up bills (the example camp) don't teach matches for real ones."""
     lines = list(bill.lines.select_related("ingredient", "price", "bill__camp"))
-    if not lines and bill.status in {Bill.Status.WAITING, Bill.Status.FAILED}:
-        return  # nothing was entered, so it stays in the reading queue
+    if not lines and bill.status == Bill.Status.FAILED:
+        return  # nothing was entered, so it stays failed
     for line in lines:
         _sync_price(line)
         line.save(update_fields=["price"])

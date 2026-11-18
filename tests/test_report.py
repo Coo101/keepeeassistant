@@ -130,6 +130,17 @@ def test_report_page_and_pdf(camp, monkeypatch) -> None:
         assert "FRISDRANK" in html
 
 
+def test_report_warnings_are_alerts(camp) -> None:
+    Bill.objects.create(camp=camp, shop="colruyt", status=Bill.Status.REVIEW)
+    html = (
+        member_client(camp)
+        .get(reverse("financial_report", args=[camp.pk]))
+        .content.decode()
+    )
+    assert "alert-warning" in html
+    assert "⚠️" not in html
+
+
 # --- the example camp
 
 

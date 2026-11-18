@@ -8,7 +8,6 @@ os.environ["DJANGO_SECRET_KEY"] = "test-only-not-a-secret"
 from config.settings import *  # noqa: E402, F403
 
 MEDIA_ROOT = tempfile.mkdtemp(prefix="keepee-test-media-")
-OLLAMA_URL = ""
 
 # The tests check the English text; the Dutch ones say so with a language cookie.
 LANGUAGE_CODE = "en"

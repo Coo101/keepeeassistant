@@ -6,21 +6,18 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.forms import modelformset_factory
 from django.utils.translation import gettext_lazy as _
-from PIL import Image
 
 from bills.models import Bill, BillLine
+from bills.reading import pdf_text
 
-ALLOWED_SUFFIXES = {".pdf", ".jpg", ".jpeg", ".png", ".webp"}
 MAX_UPLOAD_BYTES = 15 * 1024 * 1024
 MAX_UNIT_PRICE = 9999
 
 
 class BillUploadForm(forms.ModelForm):
     file = forms.FileField(
-        label=_("PDF or photo"),
-        widget=forms.ClearableFileInput(
-            attrs={"accept": ",".join(sorted(ALLOWED_SUFFIXES))}
-        ),
+        label=_("PDF with text"),
+        widget=forms.ClearableFileInput(attrs={"accept": ".pdf"}),
     )
 
     class Meta:
@@ -29,24 +26,27 @@ class BillUploadForm(forms.ModelForm):
         widgets = {"date": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")}
 
     def clean_file(self):
+        """Only PDFs with real text: the app reads them in Python (D21)."""
         upload = self.cleaned_data["file"]
-        suffix = Path(upload.name).suffix.lower()
-        if suffix not in ALLOWED_SUFFIXES:
-            raise ValidationError(_("Upload a PDF, JPG, PNG or WebP file."))
+        if Path(upload.name).suffix.lower() != ".pdf":
+            raise ValidationError(
+                _("Upload a PDF. Turn a photo into a PDF with text first.")
+            )
         if upload.size > MAX_UPLOAD_BYTES:
             raise ValidationError(_("The file can be 15 MB at most."))
-        if suffix == ".pdf":
-            valid = upload.read(5) == b"%PDF-"
-        else:
-            try:
-                Image.open(upload).verify()
-                valid = True
-            # Pillow raises several types on files that aren't images.
-            except Exception:
-                valid = False
+        # Kept for reading the lines, so the PDF is only parsed once.
+        self.pdf_text = ""
+        if upload.read(5) == b"%PDF-":
+            upload.seek(0)
+            self.pdf_text = pdf_text(upload)
         upload.seek(0)
-        if not valid:
-            raise ValidationError(_("This file doesn't look like a real PDF or image."))
+        if not self.pdf_text.strip():
+            raise ValidationError(
+                _(
+                    "This PDF has no text the app can read. Make a PDF with text "
+                    "(with text recognition), or ask for the shop's digital invoice."
+                )
+            )
         return upload
 
 
