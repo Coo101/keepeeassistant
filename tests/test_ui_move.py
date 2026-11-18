@@ -61,6 +61,11 @@ CONVERTED_TEMPLATES: list[str] = [
     "shopping/budget.html",
     "kitchen/stock.html",
     "kitchen/camp_utensils.html",
+    "bills/bill_detail.html",
+    "bills/_bill_line_row.html",
+    "bills/bill_list.html",
+    "bills/report.html",
+    "bills/_report_body.html",
 ]
 
 # (URL name, the URL's args for a camp): full pages with one h1 and the red rule.
@@ -75,6 +80,8 @@ CONVERTED_PAGES: list[tuple[str, Callable[[Camp], list]]] = [
     ("shopping", lambda camp: [camp.pk]),
     ("budget", lambda camp: [camp.pk]),
     ("camp_utensils", lambda camp: [camp.pk]),
+    ("bill_list", lambda camp: [camp.pk]),
+    ("financial_report", lambda camp: [camp.pk]),
 ]
 
 # (URL name, the URL's args for a recipe): recipe pages with one h1 and the red rule.
@@ -120,15 +127,18 @@ CLASS_ATTRIBUTE = re.compile(r'class="([^"]*)"')
 
 def old_classes(template_text: str) -> set[str]:
     """The old app.css classes a template still uses, plus "btn" for a bare `.btn`
-    and "badge" for a badge without a Bootstrap colour."""
+    and "badge" for a badge without a Bootstrap colour. A colour from a template
+    variable (`badge {{ ... }}`) can't be checked here and counts as one."""
     found: set[str] = set()
     for attribute in CLASS_ATTRIBUTE.findall(template_text):
         tokens = [t for t in attribute.split() if "{" not in t and "%" not in t]
         found |= OLD.intersection(tokens)
         if "btn" in tokens and not any(t.startswith("btn-") for t in tokens):
             found.add("btn")
-        if "badge" in tokens and not any(
-            t.startswith(("text-bg-", "bg-")) for t in tokens
+        if (
+            "badge" in tokens
+            and "{{" not in attribute
+            and not any(t.startswith(("text-bg-", "bg-")) for t in tokens)
         ):
             found.add("badge")
     return found
@@ -140,6 +150,7 @@ def test_old_classes_finds_the_old_ones() -> None:
     assert old_classes('<p class="muted page-meta">') == {"muted", "page-meta"}
     assert old_classes('<span class="badge">') == {"badge"}
     assert old_classes('<span class="badge text-bg-warning">') == set()
+    assert old_classes('<span class="badge {{ colour }}">') == set()
     assert (
         old_classes('<a class="slot-chip{% if x %} slot-chip-empty{% endif %}">')
         == set()

@@ -40,9 +40,11 @@ report. Budget estimates before the camp are in [shopping](shopping.md).
     number; otherwise the description.
 - Review: a person checks every line (ingredient, amount per item in the ingredient's
   unit, category). Saving sets the camp's price (paid / total amount) and remembers
-  the match per shop. Nothing changes a price before that. The review table fits the
-  page, keeps its header in view, and can create a missing ingredient per line, named
-  after the line. (Prices: see [recipes](recipes.md).)
+  the match per shop. Nothing changes a price before that. The review table is built
+  for a PC: it fits the page at 1366px, keeps its header in view, and can create a
+  missing ingredient per line, named after the line. *Add a line* adds an empty line
+  (in place, or by posting the form without JavaScript); bills list status as badges
+  (to review, reviewed, couldn't be read). (Prices: see [recipes](recipes.md).)
 - Categories: only camp food sets prices. Camp food and other (deposits, discounts)
   count towards the food total compared with the budget. Skipped lines count for
   nothing.

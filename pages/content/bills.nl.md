@@ -19,6 +19,8 @@ Er verandert niets tot je de lijnen hebt nagekeken en bewaard:
 - **Categorie**: kampeten, keukengerei, activiteit, persoonlijk of andere. Keukengerei kan naar de voorraad van je Chiro.
 - **Overgeslagen**: tekst die helemaal geen aankoop is.
 
+Ontbreekt er een lijn, of typ je een rekening helemaal zelf in? *Lijn toevoegen* zet een lege lijn onder de tabel.
+
 Een lijn kampeten met een ingrediënt bepaalt de prijs voor jullie kamp. Je keuzes worden onthouden voor de volgende rekening van die winkel.
 
 ## Het financieel verslag

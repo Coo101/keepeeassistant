@@ -1,4 +1,4 @@
-{% load static i18n crispy_forms_tags %}{# Outside the page's own form: HTML forms can't be nested. `selects` is a CSS selector for the ingredient dropdowns that get the new ingredient. #}
+{% load i18n crispy_forms_tags assets %}{# Outside the page's own form: HTML forms can't be nested. `selects` is a CSS selector for the ingredient dropdowns that get the new ingredient. #}
 <dialog id="new-ingredient-dialog" class="rounded border-0 shadow p-4" data-selects="{{ selects }}" data-save-error="{% translate "Couldn't save the ingredient. Check that you're still logged in." %}">
   <h2 class="h5">{% translate "New ingredient" %}</h2>
   <p class="text-body-secondary">{% translate "Everyone shares these ingredients. The name and unit can't be changed afterwards." %}</p>
@@ -19,4 +19,4 @@
     </div>
   </form>
 </dialog>
-<script src="{% static 'js/ingredient_dialog.js' %}" defer></script>
+<script src="{% asset 'js/ingredient_dialog.js' %}" defer></script>

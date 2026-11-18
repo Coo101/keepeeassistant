@@ -1,6 +1,7 @@
 """Bills: upload, reading, review, prices and access (docs/spec/finance.md)."""
 
 import datetime
+import re
 from decimal import Decimal
 from pathlib import Path
 
@@ -343,6 +344,17 @@ def test_upload_page_shows_the_privacy_warning(client, camp) -> None:
     assert "enctype=" in page
 
 
+def test_bill_list_shows_status_badges(client, camp) -> None:
+    upload(client, camp)
+    html = client.get(reverse("bill_list", args=[camp.pk])).content.decode()
+    assert "badge text-bg-warning" in html
+
+
+def test_bill_list_empty_state(client, camp) -> None:
+    html = client.get(reverse("bill_list", args=[camp.pk])).content.decode()
+    assert "bi-receipt" in html
+
+
 def test_review_sets_the_camps_price_and_remembers_the_match(
     client, camp, carrots
 ) -> None:
@@ -531,6 +543,7 @@ def _bill_urls(camp: Camp, bill: Bill) -> list[str]:
         for name in (
             "bill_detail",
             "bill_file",
+            "bill_line_row",
             "bill_remove_file",
             "bill_delete",
         )
@@ -783,3 +796,64 @@ def test_a_stored_file_that_cannot_be_opened_marks_the_bill_failed(
     read_text_pdf(bill)
     bill.refresh_from_db()
     assert bill.status == Bill.Status.FAILED
+
+
+# "Add a line" on the review table.
+
+
+def test_bill_line_row_gets_the_next_index(client, camp, carrots) -> None:
+    upload(client, camp)
+    bill = Bill.objects.get()
+    url = reverse("bill_line_row", args=[camp.pk, bill.pk]) + "?form-TOTAL_FORMS=3"
+    html = client.get(url).content.decode()
+    assert 'name="form-3-description"' in html
+    assert 'data-select="form-3-ingredient"' in html
+    assert ">Wortel" in html
+    assert 'id="id_form-TOTAL_FORMS" hx-swap-oob="true"' in html
+    assert 'value="4"' in html
+
+
+def test_add_line_without_javascript_keeps_edits_and_saves_nothing(
+    client, camp, carrots
+) -> None:
+    upload(client, camp)
+    bill = Bill.objects.get()
+    count = bill.lines.count()
+    data = review_data(bill, **{"0_ingredient": carrots.pk, "0_pack_amount": "1"})
+    data["add_row"] = "form"
+    response = client.post(reverse("bill_detail", args=[camp.pk, bill.pk]), data)
+    assert response.status_code == 200
+    html = response.content.decode()
+    assert f'name="form-{count}-description"' in html
+    assert not IngredientPrice.objects.exists()
+    bill.refresh_from_db()
+    assert bill.status == Bill.Status.REVIEW
+
+
+# The review page on Bootstrap.
+
+
+def test_review_page_layout(client, camp) -> None:
+    upload(client, camp)
+    bill = Bill.objects.get()
+    html = client.get(reverse("bill_detail", args=[camp.pk, bill.pk])).content.decode()
+    assert html.count("<h1") == 1
+    assert "page-rule" in html
+    assert "text-bg-warning" in html
+    assert f'hx-get="{reverse("bill_line_row", args=[camp.pk, bill.pk])}"' in html
+    delete_url = reverse("bill_delete", args=[camp.pk, bill.pk])
+    assert re.search(rf'<a[^>]*btn-outline-danger[^>]*href="{delete_url}"', html)
+
+
+def test_failed_bill_without_file_can_be_typed(client, camp) -> None:
+    upload(client, camp, content=text_pdf(UNKNOWN_TEXT))
+    bill = Bill.objects.get()
+    assert bill.status == Bill.Status.FAILED
+    # Removing the file through the view also resets the status, so drop it directly.
+    bill.file.delete(save=False)
+    Bill.objects.filter(pk=bill.pk).update(file="")
+    html = client.get(reverse("bill_detail", args=[camp.pk, bill.pk])).content.decode()
+    assert UNKNOWN_LAYOUT in html
+    assert "The file was removed." in html
+    assert "text-bg-danger" in html
+    assert 'name="form-0-description"' in html
