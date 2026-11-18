@@ -17,11 +17,6 @@ urlpatterns = [
         name="bill_file",
     ),
     path(
-        "camps/<int:camp_id>/bills/<int:bill_id>/retry/",
-        views.bill_retry,
-        name="bill_retry",
-    ),
-    path(
         "camps/<int:camp_id>/bills/<int:bill_id>/remove-file/",
         views.bill_remove_file,
         name="bill_remove_file",

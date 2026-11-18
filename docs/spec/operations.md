@@ -35,8 +35,8 @@ How the app is run, deployed, secured and backed up. Not tied to a camp stage.
 
 ### Containers
 
-- `docker-compose.yml`: `web` (gunicorn) and `bill-reader` (`read_bills --loop`),
-  sharing the data volume. Migrations run at start.
+- `docker-compose.yml`: `web` (gunicorn) with the data volume. Migrations run at
+  start.
 - The container runs as a non-root user (uid 1000).
 
 ### Data and backups
@@ -65,7 +65,7 @@ How the app is run, deployed, secured and backed up. Not tied to a camp stage.
 ### Commands
 
 - `migrate`, `createsuperuser`, `seed_demo` (dev only), `import_kamp_recipes` (the
-  recipe library), `create_example_camp`, `read_bills`.
+  recipe library), `create_example_camp`.
 
 ### Settings
 

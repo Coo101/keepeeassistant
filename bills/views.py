@@ -49,7 +49,7 @@ def bill_list(request: HttpRequest, camp_id: int) -> HttpResponse:
         bill.original_name = form.cleaned_data["file"].name[:255]
         bill.save()
         logger.info("%s uploaded bill %s", request.user, bill.pk)
-        read_text_pdf(bill)
+        read_text_pdf(bill, text=form.pdf_text)
         return redirect("bill_detail", camp_id=camp.pk, bill_id=bill.pk)
     return render(
         request,
@@ -139,22 +139,12 @@ def bill_file(request: HttpRequest, camp_id: int, bill_id: int) -> FileResponse:
 
 
 @require_POST
-def bill_retry(request: HttpRequest, camp_id: int, bill_id: int) -> HttpResponse:
-    bill = _bill(request, camp_id, bill_id)
-    if bill.status == Bill.Status.FAILED and bill.file:
-        bill.status = Bill.Status.WAITING
-        bill.error = ""
-        bill.save(update_fields=["status", "error"])
-    return redirect("bill_detail", camp_id=camp_id, bill_id=bill.pk)
-
-
-@require_POST
 def bill_remove_file(request: HttpRequest, camp_id: int, bill_id: int) -> HttpResponse:
     """Keep the amounts, drop the document with the personal data."""
     bill = _bill(request, camp_id, bill_id)
     bill.file.delete(save=False)
     bill.file = ""
-    if bill.status in {Bill.Status.WAITING, Bill.Status.FAILED}:
+    if bill.status == Bill.Status.FAILED:
         bill.status = Bill.Status.REVIEW
     bill.save(update_fields=["file", "status"])
     logger.info("%s removed the file of bill %s", request.user, bill.pk)

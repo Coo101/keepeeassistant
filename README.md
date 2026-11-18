@@ -60,10 +60,9 @@ including those for running behind a proxy.
 - **Shopping lists**: one per trip and shop, minus what's in the Chiro's pantry. Uncovered
   days are flagged.
 - **Budget**: uses a camp's own price if it has one, otherwise the latest price.
-- **Bills**: upload PDFs and photos, review the lines, set camp prices and compare what you
-  paid with the estimate. Text PDFs are read in Python. Scans and photos wait for an Ollama
-  vision model, through `manage.py read_bills --loop` (the `bill-reader` service in
-  `docker-compose.yml`).
+- **Bills**: upload PDFs with text, review the lines, set camp prices and compare what you
+  paid with the estimate. The PDFs are read in Python; turn a photo into a PDF with text
+  recognition first. Other files are refused.
 - **Kitchen utilities and pantry**: a stock per Chiro (pots, fire pits, and food
   already there) and what each camp needs; what's missing goes on the shopping lists,
   and bought utilities on a bill can be added to the stock.
