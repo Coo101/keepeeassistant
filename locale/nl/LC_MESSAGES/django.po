@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Camp Meal Planner\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 21:05+0100\n"
+"POT-Creation-Date: 2026-11-18 01:03+0100\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -181,20 +181,24 @@ msgid "A Chiro needs at least one admin."
 msgstr "Een Chiro heeft minstens één beheerder nodig."
 
 #: bills/forms.py
-msgid "PDF or photo"
-msgstr "Pdf of foto"
+msgid "PDF with text"
+msgstr "Pdf met tekst"
 
 #: bills/forms.py
-msgid "Upload a PDF, JPG, PNG or WebP file."
-msgstr "Laad een pdf-, jpg-, png- of webp-bestand op."
+msgid "Upload a PDF. Turn a photo into a PDF with text first."
+msgstr "Laad een pdf op. Maak van een foto eerst een pdf met tekst."
 
 #: bills/forms.py
 msgid "The file can be 15 MB at most."
 msgstr "Het bestand mag hoogstens 15 MB zijn."
 
 #: bills/forms.py
-msgid "This file doesn't look like a real PDF or image."
-msgstr "Dit bestand lijkt geen echte pdf of afbeelding."
+msgid ""
+"This PDF has no text the app can read. Make a PDF with text (with text "
+"recognition), or ask for the shop's digital invoice."
+msgstr ""
+"Deze pdf heeft geen tekst die de app kan lezen. Maak een pdf met tekst (met "
+"tekstherkenning), of vraag de digitale factuur van de winkel."
 
 #: bills/forms.py
 msgid "Add to stock"
@@ -211,10 +215,6 @@ msgstr "Hoeveel is één stuk, in deze eenheid?"
 #: bills/forms.py
 msgid "That makes the price per unit too high."
 msgstr "Dan wordt de prijs per eenheid te hoog."
-
-#: bills/models.py
-msgid "Waiting to be read"
-msgstr "Wacht om ingelezen te worden"
 
 #: bills/models.py
 msgid "Couldn't be read"
@@ -300,16 +300,8 @@ msgid "skipped"
 msgstr "overgeslagen"
 
 #: bills/reading.py
-msgid "The model's answer wasn't valid JSON."
-msgstr "Het antwoord van het model was geen geldige JSON."
-
-#: bills/reading.py
-msgid "The file couldn't be opened. Add the lines by hand."
-msgstr "Het bestand kon niet geopend worden. Voeg de lijnen zelf toe."
-
-#: bills/reading.py
-msgid "No lines were found. Add them by hand."
-msgstr "Er zijn geen lijnen gevonden. Voeg ze zelf toe."
+msgid "This shop's layout isn't known yet: add the lines by hand."
+msgstr "De opmaak van deze winkel is nog niet gekend: voeg de lijnen zelf toe."
 
 #: bills/views.py
 msgid "New item"
@@ -1497,28 +1489,8 @@ msgid "lines total"
 msgstr "totaal van de lijnen"
 
 #: templates/bills/bill_detail.html
-msgid "Waiting to be read."
-msgstr "Wacht om ingelezen te worden."
-
-#: templates/bills/bill_detail.html
-msgid ""
-"This file has no readable text, so it goes to the AI model when that "
-"computer is on."
-msgstr ""
-"Dit bestand heeft geen leesbare tekst, dus het gaat naar het AI-model zodra "
-"die computer aanstaat."
-
-#: templates/bills/bill_detail.html
-msgid "You don't have to wait: you can add the lines below by hand."
-msgstr "Je hoeft niet te wachten: je kunt de lijnen hieronder zelf toevoegen."
-
-#: templates/bills/bill_detail.html
 msgid "This bill couldn't be read."
 msgstr "Deze rekening kon niet ingelezen worden."
-
-#: templates/bills/bill_detail.html
-msgid "Try again"
-msgstr "Opnieuw proberen"
 
 #: templates/bills/bill_detail.html
 msgid ""
@@ -1639,18 +1611,17 @@ msgstr "Rekening toevoegen"
 #: templates/bills/bill_list.html
 msgid ""
 "⚠️ <strong>Bills can hold personal data</strong>, such as names, addresses "
-"and loyalty card numbers. Crop those out of photos where you can. The file "
-"is stored on this server and every member of this camp's Chiro can open it. "
-"Scans and photos are read by an AI model on the administrator's own "
-"computer, not by an outside service. You can remove the file after reviewing "
-"and keep the amounts."
+"and loyalty card numbers. Crop those out before making the PDF where you "
+"can. The file is stored on this server and every member of this camp's Chiro "
+"can open it. It's read on this server, not by an AI or an outside service. "
+"You can remove the file after reviewing and keep the amounts."
 msgstr ""
 "⚠️ <strong>Rekeningen kunnen persoonsgegevens bevatten</strong>, zoals namen, "
-"adressen en klantenkaartnummers. Snij die waar je kunt weg uit foto's. Het "
-"bestand wordt op deze server bewaard en elk lid van de Chiro van dit kamp "
-"kan het openen. Scans en foto's worden ingelezen door een AI-model op de "
-"eigen computer van de beheerder, niet door een externe dienst. Na het "
-"nakijken kun je het bestand verwijderen en de bedragen houden."
+"adressen en klantenkaartnummers. Snij die waar je kunt weg voor je de pdf "
+"maakt. Het bestand wordt op deze server bewaard en elk lid van de Chiro van "
+"dit kamp kan het openen. Het wordt op deze server ingelezen, niet door een "
+"AI of een externe dienst. Na het nakijken kun je het bestand verwijderen en "
+"de bedragen houden."
 
 #: templates/bills/bill_list.html
 msgid "Upload bill"
@@ -2867,6 +2838,41 @@ msgstr "Niet gedekte dagen (geen ronde koopt ervoor):"
 #: templates/shopping/shopping_print.html
 msgid "Nothing to buy for this trip."
 msgstr "Niets te kopen voor deze ronde."
+
+#~ msgid "PDF or photo"
+#~ msgstr "Pdf of foto"
+
+#~ msgid "Upload a PDF, JPG, PNG or WebP file."
+#~ msgstr "Laad een pdf-, jpg-, png- of webp-bestand op."
+
+#~ msgid "This file doesn't look like a real PDF or image."
+#~ msgstr "Dit bestand lijkt geen echte pdf of afbeelding."
+
+#~ msgid "Waiting to be read"
+#~ msgstr "Wacht om ingelezen te worden"
+
+#~ msgid "The model's answer wasn't valid JSON."
+#~ msgstr "Het antwoord van het model was geen geldige JSON."
+
+#~ msgid "No lines were found. Add them by hand."
+#~ msgstr "Er zijn geen lijnen gevonden. Voeg ze zelf toe."
+
+#~ msgid "Waiting to be read."
+#~ msgstr "Wacht om ingelezen te worden."
+
+#~ msgid ""
+#~ "This file has no readable text, so it goes to the AI model when that "
+#~ "computer is on."
+#~ msgstr ""
+#~ "Dit bestand heeft geen leesbare tekst, dus het gaat naar het AI-model "
+#~ "zodra die computer aanstaat."
+
+#~ msgid "You don't have to wait: you can add the lines below by hand."
+#~ msgstr ""
+#~ "Je hoeft niet te wachten: je kunt de lijnen hieronder zelf toevoegen."
+
+#~ msgid "Try again"
+#~ msgstr "Opnieuw proberen"
 
 #~ msgid "kitchen utilities"
 #~ msgstr "keukengerei"

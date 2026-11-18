@@ -124,9 +124,8 @@ already lists them apart.
 
 - [ ] Mark ingredients with what they contain, for the diet and balance checks
 - [ ] Fetch up-to-date ingredient prices automatically: needs a reliable source first
-- [ ] Install an Ollama vision model; none is installed yet, so photos can't be read
-- [ ] Send real bills of other shops, so the reader can be tuned to their layout
-      (Collect&Go and Van Zon invoices are done)
+- [ ] Test the bill reader with more real bills (Collect&Go, Van Zon, other shops) and
+      add the layouts that come up (Collect&Go and Van Zon invoices are done)
 
 ## Later
 

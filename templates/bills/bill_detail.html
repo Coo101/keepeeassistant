@@ -10,20 +10,9 @@
   {% if bill.printed_total is not None %}· {% translate "printed total" %} € {{ bill.printed_total|floatformat:2 }}{% endif %}
 </p>
 
-{% if bill.status == "waiting" %}
-<div class="warning">
-  ⏳ <strong>{% translate "Waiting to be read." %}</strong> {% translate "This file has no readable text, so it goes to the AI model when that computer is on." %}
-  {% translate "You don't have to wait: you can add the lines below by hand." %}
-</div>
-{% elif bill.status == "failed" %}
+{% if bill.status == "failed" %}
 <div class="warning">
   ⚠️ <strong>{% translate "This bill couldn't be read." %}</strong> {{ bill.error }}
-  {% if bill.file %}
-  <form method="post" action="{% url 'bill_retry' camp.pk bill.pk %}">
-    {% csrf_token %}
-    <button class="btn btn-outline btn-small" type="submit">{% translate "Try again" %}</button>
-  </form>
-  {% endif %}
 </div>
 {% endif %}
 {% if total_differs %}

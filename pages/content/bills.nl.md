@@ -1,14 +1,14 @@
 # Rekeningen en wat je betaalde
 
-Laad rekeningen (facturen en kasticketjes) op onder *Rekeningen* in je kamp, als pdf of als foto.
+Laad rekeningen (facturen en kasticketjes) op onder *Rekeningen* in je kamp, als pdf met tekst. Heb je een foto of een papieren ticket? Maak er eerst een pdf met tekstherkenning van (veel scan-apps doen dat); een pdf zonder tekst wordt geweigerd.
 
 ## Privacy
 
-Rekeningen kunnen namen, adressen en klantenkaartnummers bevatten. Snij die waar je kunt weg uit foto's. Elk lid van je Chiro kan het bestand openen. Na het nakijken kun je het bestand verwijderen en de bedragen houden.
+Rekeningen kunnen namen, adressen en klantenkaartnummers bevatten. Snij die waar je kunt weg voor je de pdf maakt. Elk lid van je Chiro kan het bestand openen. Na het nakijken kun je het bestand verwijderen en de bedragen houden.
 
 ## Inlezen
 
-Pdf's met echte tekst worden meteen ingelezen. Scans en foto's wachten op een AI-model op de eigen computer van de beheerder, dus dat kan even duren. Je kunt de lijnen ook altijd zelf toevoegen.
+De app leest de pdf meteen in en vult zoveel mogelijk lijnen in en koppelt ze. Hij kent de facturen van Collect&Go (Colruyt) en Van Zon; een rekening van een andere winkel wordt bewaard zonder lijnen, en die voeg je zelf toe.
 
 ## Nakijken
 
