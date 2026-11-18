@@ -167,6 +167,11 @@ use fonts already on the device.
   in the heading font: Camp Meal Planner in English, Kamp Maaltijd Planner in Dutch. It replaces the 🏕️ emoji, which looks different on every
   system.
 - Below the navbar, nothing: the red field ends straight, no shadow.
+- Footer on every page (`components/footer.html`): light grey with a top border, the
+  app name and year, icon links to GitHub and Bluesky, and a "Buy me a beer" button
+  (`btn-warning`, Buy Me a Coffee's yellow) linking to buymeacoffee.com. Everything
+  is served from the app: no third-party images or scripts, so visitors' browsers
+  don't contact other sites until they click. Hidden when printing.
 
 ### 5.2 Page header and the red rule
 

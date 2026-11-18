@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Camp Meal Planner\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-18 13:17+0100\n"
+"POT-Creation-Date: 2026-11-18 14:54+0100\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1079,7 +1079,8 @@ msgstr "Niet toegestaan"
 #: templates/accounts/invitation_signup.html
 #: templates/accounts/invitation_wrong_account.html
 #: templates/accounts/join_request.html templates/accounts/join_thanks.html
-#: templates/base.html templates/camps/camp_list.html templates/pages/doc.html
+#: templates/base.html templates/camps/camp_list.html
+#: templates/components/footer.html templates/pages/doc.html
 #: templates/pages/home.html templates/pages/post_detail.html
 #: templates/pages/post_list.html templates/recipes/ingredient_list.html
 #: templates/recipes/recipe_list.html templates/registration/login.html
@@ -1310,7 +1311,8 @@ msgstr "Recepten"
 msgid "Ingredients"
 msgstr "Ingrediënten"
 
-#: templates/base.html templates/pages/home.html templates/pages/post_list.html
+#: templates/base.html templates/pages/home.html
+#: templates/pages/post_list.html
 msgid "News"
 msgstr "Nieuws"
 
@@ -1826,6 +1828,10 @@ msgstr "Menuplan"
 msgid "Edit camp"
 msgstr "Kamp bewerken"
 
+#: templates/components/footer.html
+msgid "Buy me a beer"
+msgstr "Trakteer me op een pintje"
+
 #: templates/components/form_errors.html
 msgid "Some fields need your attention; see below."
 msgstr "Enkele velden moeten nog aangepast worden; zie hieronder."
@@ -2066,7 +2072,8 @@ msgstr ""
 msgid "recipe page"
 msgstr "receptpagina"
 
-#: templates/planning/edit_slot.html templates/recipes/_ingredient_results.html
+#: templates/planning/edit_slot.html
+#: templates/recipes/_ingredient_results.html
 #: templates/recipes/ingredient_form.html templates/shopping/budget.html
 msgid "Ingredient"
 msgstr "Ingrediënt"
